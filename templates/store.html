@@ -1,0 +1,765 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="space-y-8 pb-12">
+
+    <!-- STORE HEADER BANNER -->
+    <div class="bg-gradient-to-r from-blue-700 via-indigo-700 to-slate-900 text-white rounded-3xl p-6 sm:p-10 shadow-lg relative overflow-hidden">
+        <div class="absolute right-0 top-0 w-96 h-96 bg-white/5 rounded-full blur-3xl -z-0 pointer-events-none"></div>
+        <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+            <div class="space-y-2 max-w-xl">
+                <span id="storeBadgeLabel" class="bg-blue-500/30 text-blue-200 border border-blue-400/30 text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wider">
+                    🛒 In-Store School & Art Supplies
+                </span>
+                <h1 id="storeTitleText" class="text-2xl sm:text-3xl font-extrabold tracking-tight">Kez C-Em Zek Store Catalog</h1>
+                <p id="storeDescText" class="text-xs sm:text-sm text-slate-300 leading-relaxed">
+                    Order notebooks, pens, sketchpads, and design materials online. Pick up at our shop counter alongside your print jobs!
+                </p>
+            </div>
+            
+            <!-- CART SUMMARY QUICK BUTTON (Visible for Customers) -->
+            <button id="customerCartBtn" onclick="toggleCartDrawer(true)" class="bg-amber-400 hover:bg-amber-300 text-slate-900 font-bold text-xs px-5 py-3.5 rounded-2xl transition shadow-md flex items-center justify-center gap-2 cursor-pointer self-start md:self-auto">
+                <i class="fas fa-shopping-cart text-sm"></i>
+                <span>View Cart & Checkout</span>
+                <span id="cartBadgeCount" class="bg-slate-900 text-amber-300 px-2 py-0.5 rounded-full font-mono text-[11px]">0</span>
+            </button>
+
+            <!-- ADMIN QUICK ACTIONS (Visible for Admins) -->
+            <div id="adminStoreActions" class="hidden flex items-center gap-3">
+                <button onclick="openAddProductModal()" class="bg-emerald-500 hover:bg-emerald-400 text-slate-900 font-bold text-xs px-5 py-3.5 rounded-2xl transition shadow-md flex items-center gap-2 cursor-pointer">
+                    <i class="fas fa-plus text-sm"></i>
+                    <span>+ Add New Product</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- SEARCH & CATEGORY FILTER BAR -->
+    <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-xs flex flex-col sm:flex-row justify-between items-center gap-4">
+        <!-- Search Bar -->
+        <div class="relative w-full sm:w-80">
+            <i class="fas fa-search absolute left-3.5 top-3 text-slate-400 text-xs"></i>
+            <input type="text" id="storeSearchInput" oninput="filterStoreProducts()" placeholder="Search notebooks, pens, art supplies..." class="w-full bg-slate-50 border border-slate-200 pl-9 pr-4 py-2 rounded-xl text-xs text-slate-800 focus:outline-none focus:border-blue-600 font-medium">
+        </div>
+
+        <!-- Category Pills -->
+        <div class="flex items-center gap-1.5 overflow-x-auto w-full sm:w-auto text-xs font-semibold">
+            <button onclick="setStoreCategory('all')" id="catBtn-all" class="store-cat-btn px-4 py-2 rounded-xl bg-blue-600 text-white transition cursor-pointer">All Items</button>
+            <button onclick="setStoreCategory('notebooks')" id="catBtn-notebooks" class="store-cat-btn px-4 py-2 rounded-xl bg-slate-100 text-slate-600 hover:bg-slate-200 transition cursor-pointer">Notebooks</button>
+            <button onclick="setStoreCategory('pens')" id="catBtn-pens" class="store-cat-btn px-4 py-2 rounded-xl bg-slate-100 text-slate-600 hover:bg-slate-200 transition cursor-pointer">Pens & Writing</button>
+            <button onclick="setStoreCategory('art')" id="catBtn-art" class="store-cat-btn px-4 py-2 rounded-xl bg-slate-100 text-slate-600 hover:bg-slate-200 transition cursor-pointer">Art Supplies</button>
+        </div>
+    </div>
+
+    <!-- PRODUCTS GRID -->
+    <div id="storeProductsGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div class="col-span-full text-center py-12 text-slate-400 text-xs">Loading store products...</div>
+    </div>
+
+    <!-- ADD NEW PRODUCT MODAL (Admin Only) -->
+    <div id="addProductModalBackdrop" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 hidden flex items-center justify-center p-4" onclick="if(event.target===this) closeAddProductModal()">
+        <div class="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-8 space-y-6 shadow-2xl border border-slate-200">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-4">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center text-lg font-bold">📦</div>
+                    <div>
+                        <h3 class="font-bold text-slate-900 text-sm">Add New Store Product</h3>
+                        <p class="text-[11px] text-slate-500">Magdagdag ng bagong item sa store catalog at inventory</p>
+                    </div>
+                </div>
+                <button onclick="closeAddProductModal()" class="text-slate-400 hover:text-slate-600 p-2 rounded-xl cursor-pointer">
+                    <i class="fas fa-times text-sm"></i>
+                </button>
+            </div>
+
+            <div class="space-y-4 text-xs">
+                <div class="space-y-1">
+                    <label class="block font-bold text-slate-700">Product Name</label>
+                    <input type="text" id="newProdName" placeholder="e.g. Correction Tape 5m" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs text-slate-800 focus:outline-none focus:border-blue-600 font-medium">
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="space-y-1">
+                        <label class="block font-bold text-slate-700">Category</label>
+                        <select id="newProdCategory" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs text-slate-800 focus:outline-none focus:border-blue-600 font-medium">
+                            <option value="notebooks">Notebooks</option>
+                            <option value="pens">Pens & Writing</option>
+                            <option value="art">Art Supplies</option>
+                        </select>
+                    </div>
+                    <div class="space-y-1">
+                        <label class="block font-bold text-slate-700">Product Image URL or Import</label>
+                        <div class="flex gap-2">
+                            <input type="text" id="newProdImage" placeholder="https://..." class="flex-1 bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs text-slate-800 focus:outline-none focus:border-blue-600 font-medium">
+                            <input type="file" id="newProdFileImport" accept="image/*" onchange="handleProductFileImport(event, 'new')" class="hidden">
+                            <label for="newProdFileImport" class="bg-blue-50 hover:bg-blue-100 text-blue-700 font-bold px-3 py-3 rounded-xl cursor-pointer border border-blue-200 transition text-center flex items-center justify-center" title="Import Image File">
+                                <i class="fas fa-upload"></i>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="space-y-1">
+                        <label class="block font-bold text-slate-700">Price (₱)</label>
+                        <input type="number" id="newProdPrice" value="30.00" min="1" step="0.50" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs text-slate-800 focus:outline-none focus:border-blue-600 font-medium">
+                    </div>
+                    <div class="space-y-1">
+                        <label class="block font-bold text-slate-700">Initial Stock (pcs)</label>
+                        <input type="number" id="newProdStock" value="100" min="1" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs text-slate-800 focus:outline-none focus:border-blue-600 font-medium">
+                    </div>
+                </div>
+
+                <div class="space-y-1">
+                    <label class="block font-bold text-slate-700">Description</label>
+                    <input type="text" id="newProdDesc" placeholder="e.g. Smooth tear-proof correction tape." class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs text-slate-800 focus:outline-none focus:border-blue-600 font-medium">
+                </div>
+            </div>
+
+            <div class="flex gap-3 pt-2">
+                <button onclick="closeAddProductModal()" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold py-3 rounded-xl transition cursor-pointer">
+                    Cancel
+                </button>
+                <button onclick="submitNewProduct()" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold py-3 rounded-xl transition shadow-md cursor-pointer flex items-center justify-center gap-2">
+                    <i class="fas fa-check text-xs"></i>
+                    <span>Save Product</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- EDIT PRODUCT MODAL (Admin Only) -->
+    <div id="editProductModalBackdrop" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 hidden flex items-center justify-center p-4" onclick="if(event.target===this) closeEditProductModal()">
+        <div class="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-8 space-y-6 shadow-2xl border border-slate-200">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-4">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-lg font-bold">✏️</div>
+                    <div>
+                        <h3 class="font-bold text-slate-900 text-sm">Edit Store Product & Import Image</h3>
+                        <p class="text-[11px] text-slate-500">I-update ang details o mag-import ng bagong larawan</p>
+                    </div>
+                </div>
+                <button onclick="closeEditProductModal()" class="text-slate-400 hover:text-slate-600 p-2 rounded-xl cursor-pointer">
+                    <i class="fas fa-times text-sm"></i>
+                </button>
+            </div>
+
+            <input type="hidden" id="editProdId">
+            <div class="space-y-4 text-xs">
+                <div class="space-y-1">
+                    <label class="block font-bold text-slate-700">Product Name</label>
+                    <input type="text" id="editProdName" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs text-slate-800 focus:outline-none focus:border-blue-600 font-medium">
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="space-y-1">
+                        <label class="block font-bold text-slate-700">Category</label>
+                        <select id="editProdCategory" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs text-slate-800 focus:outline-none focus:border-blue-600 font-medium">
+                            <option value="notebooks">Notebooks</option>
+                            <option value="pens">Pens & Writing</option>
+                            <option value="art">Art Supplies</option>
+                        </select>
+                    </div>
+                    <div class="space-y-1">
+                        <label class="block font-bold text-slate-700">Product Image URL or Import</label>
+                        <div class="flex gap-2">
+                            <input type="text" id="editProdImage" placeholder="https://..." class="flex-1 bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs text-slate-800 focus:outline-none focus:border-blue-600 font-medium">
+                            <input type="file" id="editProdFileImport" accept="image/*" onchange="handleProductFileImport(event, 'edit')" class="hidden">
+                            <label for="editProdFileImport" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold px-3 py-3 rounded-xl cursor-pointer border border-indigo-200 transition text-center flex items-center justify-center" title="Import Image File">
+                                <i class="fas fa-upload"></i>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="space-y-1">
+                        <label class="block font-bold text-slate-700">Price (₱)</label>
+                        <input type="number" id="editProdPrice" min="1" step="0.50" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs text-slate-800 focus:outline-none focus:border-blue-600 font-medium">
+                    </div>
+                    <div class="space-y-1">
+                        <label class="block font-bold text-slate-700">Stock (pcs)</label>
+                        <input type="number" id="editProdStock" min="0" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs text-slate-800 focus:outline-none focus:border-blue-600 font-medium">
+                    </div>
+                </div>
+
+                <div class="space-y-1">
+                    <label class="block font-bold text-slate-700">Description</label>
+                    <input type="text" id="editProdDesc" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs text-slate-800 focus:outline-none focus:border-blue-600 font-medium">
+                </div>
+            </div>
+
+            <div class="flex gap-3 pt-2">
+                <button onclick="closeEditProductModal()" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold py-3 rounded-xl transition cursor-pointer">
+                    Cancel
+                </button>
+                <button onclick="submitEditProduct()" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold py-3 rounded-xl transition shadow-md cursor-pointer flex items-center justify-center gap-2">
+                    <i class="fas fa-check text-xs"></i>
+                    <span>Update Product</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- CUSTOM RESTOCK QUANTITY MODAL (Admin Only) -->
+    <div id="restockModalBackdrop" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 hidden flex items-center justify-center p-4" onclick="if(event.target===this) closeRestockModal()">
+        <div class="bg-white rounded-3xl max-w-sm w-full p-6 space-y-5 shadow-2xl border border-slate-200">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold text-sm">📦</div>
+                    <div>
+                        <h3 class="font-bold text-slate-900 text-xs uppercase tracking-wider">Restock Inventory</h3>
+                        <p class="text-[10px] text-slate-500" id="restockItemNameLabel">Item Name</p>
+                    </div>
+                </div>
+                <button onclick="closeRestockModal()" class="text-slate-400 hover:text-slate-600 p-1 rounded-lg cursor-pointer">
+                    <i class="fas fa-times text-sm"></i>
+                </button>
+            </div>
+
+            <div class="space-y-3 text-xs">
+                <div class="space-y-1">
+                    <label class="block font-bold text-slate-700">Enter Custom Quantity to Add (pcs):</label>
+                    <input type="number" id="customRestockQtyInput" value="50" min="1" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-sm font-mono font-extrabold text-slate-900 focus:outline-none focus:border-emerald-600">
+                </div>
+            </div>
+
+            <div class="flex gap-2 pt-1">
+                <button onclick="closeRestockModal()" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold py-2.5 rounded-xl transition cursor-pointer">
+                    Cancel
+                </button>
+                <button onclick="submitCustomRestock()" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold py-2.5 rounded-xl transition shadow-md cursor-pointer flex items-center justify-center gap-1.5">
+                    <i class="fas fa-plus text-xs"></i>
+                    <span>Confirm Restock</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- SHOPPING CART SLIDE-OVER DRAWER MODAL (Customer Only) -->
+    <div id="cartModalBackdrop" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 hidden transition-opacity" onclick="toggleCartDrawer(false)"></div>
+    <div id="cartDrawer" class="fixed right-0 top-0 h-full w-full max-w-md bg-white z-50 shadow-2xl transform translate-x-full transition-transform duration-300 flex flex-col justify-between">
+        <!-- Header -->
+        <div class="p-5 border-b border-slate-200 flex items-center justify-between bg-slate-50">
+            <div class="flex items-center gap-2">
+                <div class="w-8 h-8 rounded-xl bg-blue-600 text-white flex items-center justify-center font-bold text-xs">🛒</div>
+                <div>
+                    <h3 class="font-bold text-xs text-slate-900 uppercase tracking-wider">Your Shopping Cart</h3>
+                    <p class="text-[10px] text-slate-500">Selected store supplies for pickup</p>
+                </div>
+            </div>
+            <button onclick="toggleCartDrawer(false)" class="text-slate-400 hover:text-slate-700 p-2 rounded-xl transition cursor-pointer">
+                <i class="fas fa-times text-sm"></i>
+            </button>
+        </div>
+
+        <!-- Cart Items List -->
+        <div id="cartItemsContainer" class="flex-1 p-5 overflow-y-auto space-y-3 divide-y divide-slate-100">
+            <div class="text-center py-12 text-slate-400 text-xs">Your cart is empty.</div>
+        </div>
+
+        <!-- Checkout Controls -->
+        <div class="p-6 border-t border-slate-200 bg-slate-50 space-y-4">
+            <div class="space-y-1.5 text-xs">
+                <label class="block font-semibold text-slate-700">Payment Option</label>
+                <div class="grid grid-cols-2 gap-2">
+                    <label class="border border-slate-200 bg-white p-2.5 rounded-xl flex items-center gap-2 cursor-pointer text-[11px] font-bold">
+                        <input type="radio" name="storePaymentMethod" value="GCash" checked class="text-blue-600">
+                        <span>📲 GCash</span>
+                    </label>
+                    <label class="border border-slate-200 bg-white p-2.5 rounded-xl flex items-center gap-2 cursor-pointer text-[11px] font-bold">
+                        <input type="radio" name="storePaymentMethod" value="Cash on Pickup" class="text-blue-600">
+                        <span>💵 Cash Pickup</span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="flex justify-between items-baseline pt-2">
+                <span class="text-xs font-bold text-slate-500 uppercase">Subtotal</span>
+                <span id="cartSubtotalAmount" class="text-2xl font-extrabold font-mono text-amber-600">₱0.00</span>
+            </div>
+
+            <button onclick="submitStoreCheckout()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs py-3.5 rounded-xl transition shadow-md cursor-pointer flex items-center justify-center gap-2">
+                <span>Confirm & Place Store Order</span>
+                <i class="fas fa-arrow-right text-xs"></i>
+            </button>
+        </div>
+    </div>
+
+</div>
+
+<script>
+let STORE_PRODUCTS = [];
+let cartState = {};
+let currentCategory = 'all';
+let isAdminUser = false;
+let activeRestockProdId = null;
+
+document.addEventListener('DOMContentLoaded', () => {
+    const userStr = localStorage.getItem("kcz_logged_user");
+    if (userStr) {
+        try {
+            const user = JSON.parse(userStr);
+            if (user.role === 'admin') {
+                isAdminUser = true;
+                document.getElementById('storeBadgeLabel').textContent = "🛡️ ADMIN INVENTORY & RESTOCK MANAGER";
+                document.getElementById('storeTitleText').textContent = "Store Inventory & Restock Control";
+                document.getElementById('storeDescText').textContent = "Monitor real-time item stocks, restock items, edit products, or add new store supplies.";
+                document.getElementById('customerCartBtn').classList.add('hidden');
+                document.getElementById('adminStoreActions').classList.remove('hidden');
+            }
+        } catch(e){}
+    }
+
+    fetchStoreProductsFromBackend();
+});
+
+function fetchStoreProductsFromBackend() {
+    fetch('/api/store/products')
+    .then(res => res.json())
+    .then(data => {
+        STORE_PRODUCTS = data || [];
+        renderStoreProducts();
+        checkStockAlertsOnLoad();
+    })
+    .catch(() => {
+        // Fallback default products
+        STORE_PRODUCTS = [
+            { id: 'p1', name: 'Spiral Notebook (80 Sheets)', category: 'notebooks', price: 25.00, stock: 140, desc: 'High quality ruled paper for school & office.', imageUrl: 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=300&q=80' },
+            { id: 'p2', name: 'Stitched Composition Book', category: 'notebooks', price: 35.00, stock: 35, desc: 'Durable hardcover notebook 100 pages.', imageUrl: 'https://images.unsplash.com/photo-1589829085413-56de8ae18c73?auto=format&fit=crop&w=300&q=80' },
+            { id: 'p3', name: 'Black Gel Pen (0.5mm)', category: 'pens', price: 15.00, stock: 320, desc: 'Smooth quick-drying gel ink.', imageUrl: 'https://images.unsplash.com/photo-1583485088034-697b5bc54ccd?auto=format&fit=crop&w=300&q=80' },
+            { id: 'p4', name: 'Highlighter Markers (Pack of 3)', category: 'pens', price: 45.00, stock: 10, desc: 'Neon yellow, green, & pink highlighters.', imageUrl: 'https://images.unsplash.com/photo-1569683795645-b62e50fbf103?auto=format&fit=crop&w=300&q=80' },
+            { id: 'p5', name: 'A4 Watercolor Sketchpad', category: 'art', price: 120.00, stock: 12, desc: '200 GSM heavy cold-pressed paper.', imageUrl: 'https://images.unsplash.com/photo-1513364776144-60967b0f800f?auto=format&fit=crop&w=300&q=80' },
+            { id: 'p6', name: 'Colored Pencils Set (12 colors)', category: 'art', price: 85.00, stock: 55, desc: 'Vibrant blendable colored pencils.', imageUrl: 'https://images.unsplash.com/photo-1513542789411-b6a5d4f31634?auto=format&fit=crop&w=300&q=80' }
+        ];
+        renderStoreProducts();
+    });
+}
+
+function saveProductsToBackend() {
+    fetch('/api/store/products', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ products: STORE_PRODUCTS })
+    })
+    .then(res => res.json())
+    .then(() => {
+        renderStoreProducts();
+    })
+    .catch(err => console.error("Error saving products:", err));
+}
+
+function checkStockAlertsOnLoad() {
+    STORE_PRODUCTS.forEach(p => {
+        if (p.stock === 0) {
+            triggerAdminNotification(`❌ OUT OF STOCK ALERT: "${p.name}" has 0 stock remaining!`);
+        } else if (p.stock < 50) {
+            triggerAdminNotification(`⚠️ LOW STOCK WARNING: "${p.name}" is down to ${p.stock} pcs!`);
+        }
+    });
+}
+
+function triggerAdminNotification(msg) {
+    fetch('/api/notifications', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: 'ADMIN', notificationType: 'Inventory Alert', message: msg })
+    }).catch(() => {});
+}
+
+function setStoreCategory(cat) {
+    currentCategory = cat;
+    document.querySelectorAll('.store-cat-btn').forEach(btn => {
+        btn.className = "store-cat-btn px-4 py-2 rounded-xl bg-slate-100 text-slate-600 hover:bg-slate-200 transition cursor-pointer";
+    });
+    const activeBtn = document.getElementById(`catBtn-${cat}`);
+    if (activeBtn) activeBtn.className = "store-cat-btn px-4 py-2 rounded-xl bg-blue-600 text-white transition cursor-pointer";
+    renderStoreProducts();
+}
+
+function filterStoreProducts() {
+    renderStoreProducts();
+}
+
+function renderStoreProducts() {
+    const grid = document.getElementById('storeProductsGrid');
+    const searchTerm = document.getElementById('storeSearchInput').value.toLowerCase().trim();
+
+    const filtered = STORE_PRODUCTS.filter(p => {
+        const matchesCat = currentCategory === 'all' || p.category === currentCategory;
+        const matchesSearch = p.name.toLowerCase().includes(searchTerm) || p.desc.toLowerCase().includes(searchTerm);
+        return matchesCat && matchesSearch;
+    });
+
+    if (filtered.length === 0) {
+        grid.innerHTML = `<div class="col-span-full text-center py-12 text-slate-400 text-xs">No items found matching search.</div>`;
+        return;
+    }
+
+    grid.innerHTML = filtered.map(p => {
+        const cartQty = cartState[p.id] ? cartState[p.id].qty : 0;
+        const isOut = p.stock === 0;
+        const isLow = p.stock > 0 && p.stock < 50;
+        const defaultImg = "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=300&q=80";
+        const imgUrl = p.imageUrl && p.imageUrl.trim() !== '' ? p.imageUrl : defaultImg;
+
+        let badgeHTML = '<span class="absolute top-2 right-2 px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 shadow-xs">✅ In Stock</span>';
+        let cardBorder = 'border-slate-200';
+
+        if (isOut) {
+            badgeHTML = '<span class="absolute top-2 right-2 px-2.5 py-1 rounded-full text-[10px] font-bold bg-rose-100 text-rose-800 shadow-xs">❌ Out of Stock</span>';
+            cardBorder = 'border-rose-300 bg-rose-50/20';
+        } else if (isLow) {
+            badgeHTML = '<span class="absolute top-2 right-2 px-2.5 py-1 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 shadow-xs">⚠️ Low Stock</span>';
+            cardBorder = 'border-amber-300 bg-amber-50/20';
+        }
+
+        if (isAdminUser) {
+            return `
+                <div class="bg-white border ${cardBorder} rounded-2xl p-5 shadow-xs transition-all flex flex-col justify-between space-y-4">
+                    <div class="space-y-3">
+                        <div class="relative h-36 bg-slate-100 rounded-xl overflow-hidden border border-slate-100">
+                            <img src="${imgUrl}" alt="${p.name}" class="w-full h-full object-cover" onerror="this.src='${defaultImg}'">
+                            ${badgeHTML}
+                        </div>
+                        <div>
+                            <div class="flex justify-between items-start">
+                                <h3 class="font-bold text-sm text-slate-900">${p.name}</h3>
+                                <button onclick="openEditProductModal('${p.id}')" class="text-indigo-600 hover:text-indigo-800 p-1.5 rounded-lg hover:bg-indigo-50 transition cursor-pointer" title="Edit Product">
+                                    <i class="fas fa-edit text-sm"></i>
+                                </button>
+                            </div>
+                            <p class="text-[11px] text-slate-500 pt-0.5 leading-relaxed">${p.desc}</p>
+                        </div>
+                    </div>
+                    <div class="space-y-3 pt-2 border-t border-slate-100">
+                        <div class="flex justify-between items-center text-xs">
+                            <span class="text-slate-500">Current Stock:</span>
+                            <span class="font-mono font-extrabold ${isOut ? 'text-rose-600 text-base' : (isLow ? 'text-amber-600 text-base' : 'text-slate-900 text-base')}">${p.stock} pcs</span>
+                        </div>
+                        <div class="flex justify-between items-center text-xs">
+                            <span class="text-slate-500">Price:</span>
+                            <span class="font-mono font-bold text-slate-700">₱${p.price.toFixed(2)}</span>
+                        </div>
+                        
+                        <button onclick="openRestockModal('${p.id}', '${p.name}')" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs py-2.5 rounded-xl transition shadow-2xs cursor-pointer flex items-center justify-center gap-1.5">
+                            <i class="fas fa-plus-circle text-xs"></i> Custom Restock
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+        return `
+            <div class="bg-white border ${cardBorder} rounded-2xl p-5 shadow-xs transition-all flex flex-col justify-between space-y-4">
+                <div class="space-y-3">
+                    <div class="relative h-36 bg-slate-100 rounded-xl overflow-hidden border border-slate-100">
+                        <img src="${imgUrl}" alt="${p.name}" class="w-full h-full object-cover" onerror="this.src='${defaultImg}'">
+                        ${badgeHTML}
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-sm text-slate-900">${p.name}</h3>
+                        <p class="text-[11px] text-slate-500 pt-0.5 leading-relaxed">${p.desc}</p>
+                    </div>
+                </div>
+                <div class="space-y-3 pt-2 border-t border-slate-100">
+                    <div class="flex justify-between items-center text-xs">
+                        <span class="text-slate-400">Available Stock:</span>
+                        <span class="font-mono font-bold ${isOut ? 'text-rose-600' : (isLow ? 'text-amber-600' : 'text-slate-800')}">${p.stock} pcs</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-xs text-slate-400">Price:</span>
+                        <span class="font-mono font-extrabold text-slate-900 text-base">₱${p.price.toFixed(2)}</span>
+                    </div>
+                    
+                    <div class="flex items-center gap-2">
+                        <div class="flex items-center border border-slate-200 rounded-xl bg-slate-50 p-1">
+                            <button onclick="updateItemQty('${p.id}', -1)" class="w-7 h-7 bg-white text-slate-700 rounded-lg text-xs font-bold hover:bg-slate-200 cursor-pointer flex items-center justify-center">-</button>
+                            <span class="w-8 text-center text-xs font-bold font-mono">${cartQty}</span>
+                            <button onclick="updateItemQty('${p.id}', 1)" class="w-7 h-7 bg-white text-slate-700 rounded-lg text-xs font-bold hover:bg-slate-200 cursor-pointer flex items-center justify-center">+</button>
+                        </div>
+                        <button onclick="${isOut ? 'alert(\'Item is currently out of stock.\')' : `addToCartDirect('${p.id}')`}" class="flex-1 ${isOut ? 'bg-slate-300 text-slate-500 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700 text-white cursor-pointer'} font-bold text-xs py-2 rounded-xl transition shadow-2xs">
+                            ${isOut ? 'Sold Out' : '+ Add'}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+function openAddProductModal() {
+    document.getElementById('newProdName').value = '';
+    document.getElementById('newProdImage').value = '';
+    document.getElementById('newProdPrice').value = '30.00';
+    document.getElementById('newProdStock').value = '100';
+    document.getElementById('newProdDesc').value = '';
+    document.getElementById('addProductModalBackdrop').classList.remove('hidden');
+}
+
+function closeAddProductModal() {
+    document.getElementById('addProductModalBackdrop').classList.add('hidden');
+}
+
+function openEditProductModal(prodId) {
+    const p = STORE_PRODUCTS.find(item => item.id === prodId);
+    if (!p) return;
+
+    document.getElementById('editProdId').value = p.id;
+    document.getElementById('editProdName').value = p.name;
+    document.getElementById('editProdCategory').value = p.category;
+    document.getElementById('editProdImage').value = p.imageUrl || '';
+    document.getElementById('editProdPrice').value = p.price;
+    document.getElementById('editProdStock').value = p.stock;
+    document.getElementById('editProdDesc').value = p.desc;
+
+    document.getElementById('editProductModalBackdrop').classList.remove('hidden');
+}
+
+function closeEditProductModal() {
+    document.getElementById('editProductModalBackdrop').classList.add('hidden');
+}
+
+function handleProductFileImport(event, mode) {
+    const file = event.target.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const base64Url = e.target.result;
+            if (mode === 'edit') {
+                document.getElementById('editProdImage').value = base64Url;
+            } else {
+                document.getElementById('newProdImage').value = base64Url;
+            }
+            alert("📷 Image successfully imported and attached!");
+        };
+        reader.readAsDataURL(file);
+    }
+}
+
+function openRestockModal(prodId, prodName) {
+    activeRestockProdId = prodId;
+    document.getElementById('restockItemNameLabel').textContent = prodName;
+    document.getElementById('customRestockQtyInput').value = 50;
+    document.getElementById('restockModalBackdrop').classList.remove('hidden');
+}
+
+function closeRestockModal() {
+    activeRestockProdId = null;
+    document.getElementById('restockModalBackdrop').classList.add('hidden');
+}
+
+function submitCustomRestock() {
+    if (!activeRestockProdId) return;
+    const addQty = parseInt(document.getElementById('customRestockQtyInput').value) || 0;
+    if (addQty <= 0) {
+        alert("Please enter a valid quantity greater than 0.");
+        return;
+    }
+
+    const prod = STORE_PRODUCTS.find(p => p.id === activeRestockProdId);
+    if (prod) {
+        prod.stock += addQty;
+        saveProductsToBackend();
+        closeRestockModal();
+        alert(`Successfully restocked +${addQty} pcs to ${prod.name}! (New total stock: ${prod.stock})`);
+    }
+}
+
+function submitNewProduct() {
+    const name = document.getElementById('newProdName').value.trim();
+    const category = document.getElementById('newProdCategory').value;
+    const imageUrl = document.getElementById('newProdImage').value.trim();
+    const price = parseFloat(document.getElementById('newProdPrice').value) || 30.0;
+    const stock = parseInt(document.getElementById('newProdStock').value) || 100;
+    const desc = document.getElementById('newProdDesc').value.trim() || 'New store supply item.';
+
+    if (!name) {
+        alert("Please enter a product name.");
+        return;
+    }
+
+    const newProd = {
+        id: `p-${Date.now()}`,
+        name: name,
+        category: category,
+        price: price,
+        stock: stock,
+        desc: desc,
+        imageUrl: imageUrl
+    };
+
+    STORE_PRODUCTS.unshift(newProd);
+    saveProductsToBackend();
+    closeAddProductModal();
+    alert(`Successfully added new product: ${name}!`);
+}
+
+function submitEditProduct() {
+    const prodId = document.getElementById('editProdId').value;
+    const name = document.getElementById('editProdName').value.trim();
+    const category = document.getElementById('editProdCategory').value;
+    const imageUrl = document.getElementById('editProdImage').value.trim();
+    const price = parseFloat(document.getElementById('editProdPrice').value) || 0;
+    const stock = parseInt(document.getElementById('editProdStock').value) || 0;
+    const desc = document.getElementById('editProdDesc').value.trim();
+
+    if (!name) {
+        alert("Please enter a product name.");
+        return;
+    }
+
+    const prod = STORE_PRODUCTS.find(p => p.id === prodId);
+    if (prod) {
+        prod.name = name;
+        prod.category = category;
+        prod.imageUrl = imageUrl;
+        prod.price = price;
+        prod.stock = stock;
+        prod.desc = desc;
+
+        saveProductsToBackend();
+        closeEditProductModal();
+        alert(`Successfully updated product: ${name}!`);
+    }
+}
+
+function updateItemQty(prodId, delta) {
+    const prod = STORE_PRODUCTS.find(p => p.id === prodId);
+    if (!prod) return;
+
+    if (!cartState[prodId]) {
+        if (delta > 0) {
+            if (delta <= prod.stock) {
+                cartState[prodId] = { ...prod, qty: delta };
+            } else {
+                alert(`Sorry, only ${prod.stock} pcs available in stock.`);
+            }
+        }
+    } else {
+        const newQty = cartState[prodId].qty + delta;
+        if (newQty <= 0) {
+            delete cartState[prodId];
+        } else if (newQty <= prod.stock) {
+            cartState[prodId].qty = newQty;
+        } else {
+            alert(`Sorry, only ${prod.stock} pcs available in stock.`);
+        }
+    }
+    renderStoreProducts();
+    updateCartDrawerUI();
+}
+
+function addToCartDirect(prodId) {
+    updateItemQty(prodId, 1);
+    toggleCartDrawer(true);
+}
+
+function toggleCartDrawer(open) {
+    const backdrop = document.getElementById('cartModalBackdrop');
+    const drawer = document.getElementById('cartDrawer');
+    if (open) {
+        backdrop.classList.remove('hidden');
+        drawer.classList.remove('translate-x-full');
+    } else {
+        backdrop.classList.add('hidden');
+        drawer.classList.add('translate-x-full');
+    }
+}
+
+function updateCartDrawerUI() {
+    const container = document.getElementById('cartItemsContainer');
+    const badge = document.getElementById('cartBadgeCount');
+    const subtotal = document.getElementById('cartSubtotalAmount');
+
+    const items = Object.values(cartState);
+    const totalCount = items.reduce((sum, item) => sum + item.qty, 0);
+    const totalPrice = items.reduce((sum, item) => sum + (item.price * item.qty), 0);
+
+    if (badge) badge.textContent = totalCount;
+    if (subtotal) subtotal.textContent = `₱${totalPrice.toFixed(2)}`;
+
+    if (items.length === 0) {
+        container.innerHTML = `<div class="text-center py-12 text-slate-400 text-xs">Your cart is empty.</div>`;
+        return;
+    }
+
+    container.innerHTML = items.map(item => `
+        <div class="py-3 flex items-center justify-between gap-3 text-xs">
+            <div class="flex items-center gap-2.5">
+                <img src="${item.imageUrl || 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=100&q=80'}" class="w-10 h-10 object-cover rounded-lg">
+                <div>
+                    <div class="font-bold text-slate-800">${item.name}</div>
+                    <div class="text-[10px] text-slate-400 font-mono">₱${item.price.toFixed(2)} x ${item.qty}</div>
+                </div>
+            </div>
+            <div class="flex items-center gap-2">
+                <span class="font-mono font-bold text-slate-900">₱${(item.price * item.qty).toFixed(2)}</span>
+                <button onclick="updateItemQty('${item.id}', -999)" class="text-rose-500 hover:text-rose-700 p-1 cursor-pointer">
+                    <i class="fas fa-trash-alt text-xs"></i>
+                </button>
+            </div>
+        </div>
+    `).join('');
+}
+
+function submitStoreCheckout() {
+    const items = Object.values(cartState);
+    if (items.length === 0) {
+        alert("Pumili muna ng items sa store bago mag-checkout.");
+        return;
+    }
+
+    const payMethod = document.querySelector('input[name="storePaymentMethod"]:checked')?.value || "GCash";
+    const totalPrice = items.reduce((sum, item) => sum + (item.price * item.qty), 0);
+    const itemNames = items.map(i => `${i.name} (${i.qty}x)`).join(', ');
+
+    const loggedUser = JSON.parse(localStorage.getItem('kcz_logged_user') || '{"email":"customer@kezcemzek.com"}');
+
+    const now = new Date();
+    const dateStr = now.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+    const fullOrderTime = `${dateStr} • ${timeStr}`;
+
+    const orderData = {
+        customerId: "CUST-101",
+        customer: loggedUser.email.split('@')[0],
+        service: `In-Store: ${itemNames}`,
+        pages: 1,
+        copies: items.reduce((sum, i) => sum + i.qty, 0),
+        paperSize: "Store Supply",
+        colorMode: "N/A",
+        sides: "N/A",
+        total: totalPrice,
+        file: "Store_Receipt.pdf",
+        payment: payMethod,
+        orderDate: fullOrderTime
+    };
+
+    fetch('/api/orders', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(orderData)
+    })
+    .then(res => {
+        if (!res.ok) throw new Error("Server response error");
+        return res.json();
+    })
+    .then(data => {
+        if (data && data.success) {
+            cartState = {};
+            updateCartDrawerUI();
+            toggleCartDrawer(false);
+            alert("🎉 Store Order placed successfully! Check 'My Orders' and Admin Queue.");
+            window.location.href = "/customer?tab=myOrders";
+        } else {
+            alert("Error submitting store order.");
+        }
+    })
+    .catch(err => {
+        console.error("Store Order Error:", err);
+        alert("Connection error when placing store order. Please try again.");
+    });
+}
+</script>
+{% endblock %}

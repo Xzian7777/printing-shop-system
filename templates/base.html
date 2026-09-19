@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kez C-Em Zek - Printing Services</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- Custom Stylesheet -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v=1.3">
+</head>
+<body class="bg-slate-100 text-slate-800 font-sans min-h-screen flex flex-col justify-between relative overflow-x-hidden">
+
+  <!-- Ambient Background Mesh -->
+  <div class="fixed inset-0 pointer-events-none -z-10 overflow-hidden">
+    <div class="absolute -top-32 -left-32 w-96 h-96 bg-gradient-to-br from-[#f09433]/20 via-[#e6683c]/15 to-[#dc2743]/20 rounded-full blur-3xl"></div>
+    <div class="absolute top-1/2 -right-32 w-[30rem] h-[30rem] bg-gradient-to-tl from-[#bc1888]/20 via-[#cc2366]/15 to-[#dc2743]/15 rounded-full blur-3xl"></div>
+  </div>
+
+  <!-- ================= HEADER / NAVBAR ================= -->
+  <header class="navbar-glass sticky top-0 z-40 w-full border-b border-slate-200/80 bg-white/80 backdrop-blur-md">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      
+      <!-- Brand Logo -->
+      <a href="/" class="flex items-center gap-3 group">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-[#f09433] via-[#dc2743] to-[#bc1888] flex items-center justify-center text-white font-black text-lg shadow-md group-hover:scale-105 transition-transform">
+          KCZ
+        </div>
+        <span class="font-extrabold text-xl tracking-tight text-slate-900 group-hover:text-[#dc2743] transition-colors">
+          Kez C-Em Zek
+        </span>
+      </a>
+
+      <!-- Navigation Links -->
+      <nav class="hidden md:flex items-center gap-6 text-sm font-medium text-slate-600">
+        <a href="/#services" class="hover:text-[#dc2743] transition-colors">Services</a>
+        <a href="/store" class="hover:text-[#dc2743] transition-colors">Store</a>
+        
+        <!-- NAKATAGO ANG ORDERS LINK KAPAG HINDI NAKA-LOGIN -->
+        {% if session.get('username') %}
+          {% if session.get('role') == 'admin' %}
+            <a href="/admin" class="hover:text-[#dc2743] transition-colors font-bold text-indigo-600">Admin Dashboard</a>
+          {% else %}
+            <a href="/customer?tab=myOrders" class="hover:text-[#dc2743] transition-colors">Orders</a>
+          {% endif %}
+        {% endif %}
+        
+        <a href="/#how-it-works" class="hover:text-[#dc2743] transition-colors">How It Works</a>
+      </nav>
+
+      <!-- User Session Actions -->
+      <div class="flex items-center gap-4">
+        {% if session.get('username') %}
+          <!-- NOTIFICATIONS BELL (LUMALABAS LANG PAG NAKA-LOGIN) -->
+          <div class="relative" id="notifDropdownContainer">
+            <button onclick="toggleNotifDropdown()" class="relative p-2 rounded-full hover:bg-slate-100 text-slate-600 transition-colors focus:outline-none">
+              <i class="fa-solid fa-bell text-lg"></i>
+              <span id="notifBadge" class="hidden absolute top-1 right-1 w-2.5 h-2.5 bg-rose-500 rounded-full ring-2 ring-white"></span>
+            </button>
+
+            <!-- Dropdown Menu -->
+            <div id="notifMenu" class="hidden absolute right-0 mt-2 w-80 bg-white/95 backdrop-blur-md rounded-2xl shadow-xl border border-slate-100 z-50 p-4">
+              <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+                <span class="font-bold text-sm text-slate-800">Notifications</span>
+                <div class="flex gap-2 text-xs">
+                  <button onclick="markAllNotifsRead()" class="text-[#dc2743] hover:underline font-medium">Mark read</button>
+                  <span class="text-slate-300">|</span>
+                  <button onclick="deleteAllNotifs()" class="text-slate-400 hover:text-rose-600 font-medium">Clear all</button>
+                </div>
+              </div>
+              <div id="notifList" class="max-h-64 overflow-y-auto divide-y divide-slate-50 py-1 text-sm text-slate-600">
+                <p class="text-center text-slate-400 py-4 text-xs">No notifications yet.</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- USER BADGE & SIGN OUT -->
+          <div class="flex items-center gap-2 bg-slate-200/60 px-3 py-1.5 rounded-full text-xs font-semibold text-slate-700">
+            <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+            <span>{{ session.get('username') }} ({{ session.get('role', 'customer')|upper }})</span>
+          </div>
+
+          <button onclick="openLogoutModal()" class="text-xs font-bold text-rose-600 hover:text-rose-700 hover:bg-rose-50 px-3 py-1.5 rounded-xl transition-all">
+            Sign Out
+          </button>
+        {% else %}
+          <!-- LUMALABAS KAPAG HINDI NAKA-LOGIN -->
+          <a href="/login" class="bg-gradient-to-r from-[#f09433] via-[#dc2743] to-[#bc1888] text-white px-5 py-2 rounded-xl text-xs font-bold shadow-md hover:shadow-lg transition-all">
+            Sign In
+          </a>
+        {% endif %}
+      </div>
+
+    </div>
+  </header>
+
+  <!-- ================= MAIN CONTENT BLOCK ================= -->
+  <main class="flex-grow">
+    {% block content %}{% endblock %}
+  </main>
+
+  <!-- ================= FOOTER ================= -->
+  <footer class="bg-white/80 backdrop-blur-md border-t border-slate-200 py-6 mt-12">
+    <div class="max-w-7xl mx-auto px-4 text-center text-xs text-slate-500">
+      &copy; 2026 Kez C-Em Zek Printing Services. All rights reserved.
+    </div>
+  </footer>
+
+  <!-- ================= LOGOUT CONFIRMATION MODAL ================= -->
+  <div id="logoutModal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm transition-opacity">
+    <div class="bg-white rounded-2xl shadow-2xl border border-slate-100 max-w-sm w-full p-6 text-center transform transition-all scale-100">
+      <h3 class="text-lg font-bold text-slate-900 mb-1">Logout Confirmation</h3>
+      <p class="text-xs text-slate-500 mb-6">Are you sure you want to logout?</p>
+
+      <div class="flex items-center justify-center gap-3">
+        <a href="/logout" class="flex-1 bg-gradient-to-r from-[#f09433] via-[#dc2743] to-[#bc1888] text-white font-semibold text-sm py-2.5 px-4 rounded-xl transition-colors text-center shadow-sm">
+          Confirm
+        </a>
+        <button onclick="closeLogoutModal()" class="flex-1 bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 font-semibold text-sm py-2.5 px-4 rounded-xl transition-colors">
+          Cancel
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function openLogoutModal() {
+      document.getElementById('logoutModal').classList.remove('hidden');
+    }
+
+    function closeLogoutModal() {
+      document.getElementById('logoutModal').classList.add('hidden');
+    }
+
+    function toggleNotifDropdown() {
+      const menu = document.getElementById('notifMenu');
+      if (menu) menu.classList.toggle('hidden');
+    }
+
+    document.addEventListener('click', function(e) {
+      const container = document.getElementById('notifDropdownContainer');
+      const menu = document.getElementById('notifMenu');
+      if (container && menu && !container.contains(e.target)) {
+        menu.classList.add('hidden');
+      }
+    });
+  </script>
+
+</body>
+</html>

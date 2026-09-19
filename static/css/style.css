@@ -1,0 +1,19 @@
+/* Custom Scrollbars */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: #f8fafc; }
+::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+/* Visual Proofing Canvas Background */
+.canvas-bg {
+    background-image: radial-gradient(#e2e8f0 1.5px, transparent 1.5px);
+    background-size: 16px 16px;
+}
+
+/* RFID Card Tap Animation */
+@keyframes tapCard {
+    0% { transform: translateY(-10px) scale(0.98); opacity: 0.7; }
+    50% { transform: translateY(0px) scale(1.02); }
+    100% { transform: translateY(0px) scale(1); opacity: 1; }
+}
+.animate-tap { animation: tapCard 0.3s ease-out forwards; }

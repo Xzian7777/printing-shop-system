@@ -1,0 +1,264 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="min-h-[580px] bg-white rounded-2xl overflow-hidden border border-slate-200 shadow-sm flex flex-col md:flex-row my-auto">
+    <!-- Left Graphic Panel (Exact match to reference image) -->
+    <div class="md:w-1/2 bg-blue-600 text-white p-8 sm:p-12 flex flex-col justify-between relative overflow-hidden">
+        <div class="absolute inset-0 opacity-15 bg-[radial-gradient(#ffffff_1px,transparent_1px)] [background-size:16px_16px]"></div>
+        
+        <div class="flex items-center space-x-3 relative z-10">
+            <div class="w-9 h-9 bg-white/20 rounded-xl flex items-center justify-center font-bold">🖨️</div>
+            <span class="font-bold text-white text-lg tracking-tight">Kez C-Em Zek</span>
+        </div>
+
+        <div class="space-y-4 my-auto py-6 relative z-10 max-w-md">
+            <h2 class="text-2xl sm:text-3xl font-extrabold leading-snug">
+                Manage your prints, orders, at pickup — in one account.
+            </h2>
+            <p class="text-blue-100 text-xs sm:text-sm leading-relaxed">
+                Track order status, i-save ang mga design mo, at bilisan ang pag-reorder. Pickup lang sa shop, bayad online o cash.
+            </p>
+        </div>
+
+        <div class="text-[11px] text-blue-200 relative z-10">© 2026 Kez C-Em Zek Printing Services</div>
+    </div>
+
+    <!-- Right Form Section -->
+    <div class="md:w-1/2 bg-slate-50/50 p-6 sm:p-10 flex flex-col justify-center items-center">
+        <div class="w-full max-w-sm space-y-5">
+            <div class="flex justify-between items-center">
+                <a href="/" class="text-slate-500 hover:text-slate-900 text-xs font-medium flex items-center gap-1">
+                    <span>←</span> Back to home
+                </a>
+            </div>
+
+            <!-- Validation Error Alert Box -->
+            <div id="authErrorAlert" class="hidden bg-rose-50 border border-rose-200 text-rose-700 p-3 rounded-xl text-xs space-y-1">
+                <div class="font-bold flex items-center gap-1.5">
+                    <svg class="w-4 h-4 text-rose-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    <span id="authErrorTitle">Validation Error</span>
+                </div>
+                <p id="authErrorMessage" class="text-[11px] text-rose-600">Pakisuri ang mga impormasyon.</p>
+            </div>
+
+            <!-- LOGIN FORM -->
+            <form id="loginFormContainer" onsubmit="handleLoginSubmit(event)" class="space-y-4">
+                <!-- Role Switcher Pill (Exact reference style) -->
+                <div class="bg-slate-200/80 p-1 rounded-full flex text-xs font-medium">
+                    <button type="button" onclick="setLoginRole('customer')" id="roleCustomerBtn" class="flex-1 py-2 rounded-full bg-blue-600 text-white shadow-xs transition flex items-center justify-center gap-1.5 font-semibold">
+                        <span>👤</span> Customer
+                    </button>
+                    <button type="button" onclick="setLoginRole('admin')" id="roleAdminBtn" class="flex-1 py-2 rounded-full text-slate-600 hover:text-slate-900 transition flex items-center justify-center gap-1.5 font-semibold">
+                        <span>🛡️</span> Admin
+                    </button>
+                </div>
+                <input type="hidden" id="loginRoleInput" value="customer">
+
+                <div class="space-y-1 pt-1">
+                    <h1 class="text-xl font-extrabold text-slate-900 tracking-tight">Welcome back</h1>
+                    <p class="text-xs text-slate-500">Sign in to track orders and reorder faster.</p>
+                </div>
+
+                <div class="space-y-1">
+                    <label class="block text-xs font-medium text-slate-700">Email</label>
+                    <input type="email" id="loginEmailInput" value="customer@kezcemzek.com" required placeholder="you@email.com" class="w-full bg-white border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:border-blue-600">
+                </div>
+
+                <div class="space-y-1">
+                    <div class="flex justify-between items-center">
+                        <label class="block text-xs font-medium text-slate-700">Password</label>
+                        <a href="#" class="text-[11px] text-blue-600 hover:underline">Forgot password?</a>
+                    </div>
+                    <input type="password" id="loginPasswordInput" value="password123" required placeholder="••••••••" class="w-full bg-white border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:border-blue-600">
+                </div>
+
+                <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium text-xs py-3 rounded-xl transition shadow-sm">
+                    Sign In
+                </button>
+
+                <div class="text-center pt-2 text-xs text-slate-500">
+                    Wala pang account? <button type="button" onclick="switchAuthMode('signup')" class="text-blue-600 font-semibold hover:underline">Sign up</button>
+                </div>
+            </form>
+
+            <!-- SIGN UP FORM -->
+            <form id="signupFormContainer" onsubmit="handleSignupSubmit(event)" class="space-y-3 hidden">
+                <div class="space-y-1">
+                    <h1 class="text-xl font-extrabold text-slate-900 tracking-tight">Create Account</h1>
+                    <p class="text-xs text-slate-500">Magrehistro para magsimulang mag-print.</p>
+                </div>
+
+                <div class="grid grid-cols-2 gap-2">
+                    <div class="space-y-1">
+                        <label class="block text-[11px] font-medium text-slate-700">First Name</label>
+                        <input type="text" id="signupFirstName" required placeholder="Juan" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-800 focus:outline-none focus:border-blue-600">
+                    </div>
+                    <div class="space-y-1">
+                        <label class="block text-[11px] font-medium text-slate-700">Last Name</label>
+                        <input type="text" id="signupLastName" required placeholder="Dela Cruz" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-800 focus:outline-none focus:border-blue-600">
+                    </div>
+                </div>
+
+                <div class="space-y-1">
+                    <label class="block text-[11px] font-medium text-slate-700">Username</label>
+                    <input type="text" id="signupUsername" required placeholder="juandelacruz" class="w-full bg-white border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-800 focus:outline-none focus:border-blue-600">
+                </div>
+
+                <div class="space-y-1">
+                    <label class="block text-[11px] font-medium text-slate-700">Email Address</label>
+                    <input type="email" id="signupEmail" required placeholder="juan@email.com" class="w-full bg-white border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-800 focus:outline-none focus:border-blue-600">
+                </div>
+
+                <div class="space-y-1">
+                    <label class="block text-[11px] font-medium text-slate-700">Password</label>
+                    <input type="password" id="signupPassword" required placeholder="••••••••" class="w-full bg-white border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-800 focus:outline-none focus:border-blue-600">
+                </div>
+
+                <div class="space-y-1">
+                    <label class="block text-[11px] font-medium text-slate-700">Confirm Password</label>
+                    <input type="password" id="signupConfirmPassword" required placeholder="••••••••" class="w-full bg-white border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-800 focus:outline-none focus:border-blue-600">
+                </div>
+
+                <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium text-xs py-2.5 rounded-xl transition shadow-sm">
+                    Create Account
+                </button>
+
+                <div class="text-center pt-1 text-xs text-slate-500">
+                    May account na ba? <button type="button" onclick="switchAuthMode('login')" class="text-blue-600 font-semibold hover:underline">Sign in</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+function setLoginRole(role) {
+    const roleInput = document.getElementById('loginRoleInput');
+    const custBtn = document.getElementById('roleCustomerBtn');
+    const adminBtn = document.getElementById('roleAdminBtn');
+    const emailInput = document.getElementById('loginEmailInput');
+    const pwdInput = document.getElementById('loginPasswordInput');
+
+    roleInput.value = role;
+
+    if (role === 'admin') {
+        adminBtn.className = "flex-1 py-2 rounded-full bg-blue-600 text-white shadow-xs transition flex items-center justify-center gap-1.5 font-semibold";
+        custBtn.className = "flex-1 py-2 rounded-full text-slate-600 hover:text-slate-900 transition flex items-center justify-center gap-1.5 font-semibold";
+        emailInput.value = "admin@kezcemzek.com";
+        pwdInput.value = "admin123";
+    } else {
+        custBtn.className = "flex-1 py-2 rounded-full bg-blue-600 text-white shadow-xs transition flex items-center justify-center gap-1.5 font-semibold";
+        adminBtn.className = "flex-1 py-2 rounded-full text-slate-600 hover:text-slate-900 transition flex items-center justify-center gap-1.5 font-semibold";
+        emailInput.value = "customer@kezcemzek.com";
+        pwdInput.value = "password123";
+    }
+}
+
+function switchAuthMode(mode) {
+    const loginForm = document.getElementById('loginFormContainer');
+    const signupForm = document.getElementById('signupFormContainer');
+    const alertBox = document.getElementById('authErrorAlert');
+
+    alertBox.classList.add('hidden');
+
+    if (mode === 'signup') {
+        loginForm.classList.add('hidden');
+        signupForm.classList.remove('hidden');
+    } else {
+        signupForm.classList.add('hidden');
+        loginForm.classList.remove('hidden');
+    }
+}
+
+function handleLoginSubmit(e) {
+    e.preventDefault();
+    const role = document.getElementById('loginRoleInput').value;
+    const email = document.getElementById('loginEmailInput').value.trim();
+    const password = document.getElementById('loginPasswordInput').value;
+    const alertBox = document.getElementById('authErrorAlert');
+    const msgElem = document.getElementById('authErrorMessage');
+
+    alertBox.classList.add('hidden');
+
+    fetch('/api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: email, password: password, role: role })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            // ⭐ DITO ANG SUSI: I-save sa localStorage ang logged-in user
+            localStorage.setItem("kcz_logged_user", JSON.stringify(data.user));
+            
+            // Redirect sa tamang dashboard
+            window.location.href = data.user.role === 'admin' ? '/admin' : '/customer';
+        } else {
+            msgElem.textContent = data.message || "Maling email o password.";
+            alertBox.classList.remove('hidden');
+        }
+    })
+    .catch(() => {
+        msgElem.textContent = "May error sa server connection.";
+        alertBox.classList.remove('hidden');
+    });
+}
+function handleSignupSubmit(e) {
+    e.preventDefault();
+    const firstName = document.getElementById('signupFirstName').value.trim();
+    const lastName = document.getElementById('signupLastName').value.trim();
+    const username = document.getElementById('signupUsername').value.trim();
+    const email = document.getElementById('signupEmail').value.trim();
+    const password = document.getElementById('signupPassword').value;
+    const confirmPassword = document.getElementById('signupConfirmPassword').value;
+    
+    const alertBox = document.getElementById('authErrorAlert');
+    const msgElem = document.getElementById('authErrorMessage');
+    alertBox.classList.add('hidden');
+
+    if (!firstName || !lastName || !username || !email || !password || !confirmPassword) {
+        msgElem.textContent = "Pakisagutan ang lahat ng registration fields.";
+        alertBox.classList.remove('hidden');
+        return;
+    }
+
+    if (!email.includes('@') || !email.includes('.')) {
+        msgElem.textContent = "Maglagay ng valid email address.";
+        alertBox.classList.remove('hidden');
+        return;
+    }
+
+    if (password.length < 6) {
+        msgElem.textContent = "Ang password ay dapat hindi bababa sa 6 characters.";
+        alertBox.classList.remove('hidden');
+        return;
+    }
+
+    if (password !== confirmPassword) {
+        msgElem.textContent = "Hindi magkatugma ang Password at Confirm Password.";
+        alertBox.classList.remove('hidden');
+        return;
+    }
+
+    fetch('/api/signup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ firstName, lastName, username, email, password })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            alert("Account created successfully! Please sign in.");
+            switchAuthMode('login');
+        } else {
+            msgElem.textContent = data.message || "Nabigo ang pagrehistro.";
+            alertBox.classList.remove('hidden');
+        }
+    })
+    .catch(() => {
+        msgElem.textContent = "May error sa server connection.";
+        alertBox.classList.remove('hidden');
+    });
+}
+</script>
+{% endblock %}
