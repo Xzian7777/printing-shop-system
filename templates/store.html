@@ -56,6 +56,30 @@
         <div class="col-span-full text-center py-12 text-slate-400 text-xs">Loading store products...</div>
     </div>
 
+    <!-- LOGIN REQUIRED MODAL (For Unauthenticated Users) -->
+    <div id="loginPromptModalBackdrop" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl max-w-sm w-full p-6 text-center space-y-4 shadow-2xl border border-slate-200">
+            <div class="w-12 h-12 rounded-2xl bg-amber-100 text-amber-600 flex items-center justify-center mx-auto text-xl font-bold">
+                <i class="fas fa-lock"></i>
+            </div>
+            <div>
+                <h3 class="text-base font-extrabold text-slate-900">Sign In Required</h3>
+                <p class="text-xs text-slate-500 mt-1 leading-relaxed">
+                    Kailangan mo munang mag-sign in para makapag-add ng items sa iyong shopping cart at makatapos ng order.
+                </p>
+            </div>
+            <div class="flex gap-2 pt-2">
+                <button onclick="closeLoginPromptModal()" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold py-3 rounded-xl transition cursor-pointer">
+                    Cancel
+                </button>
+                <a href="/login" class="flex-1 bg-gradient-to-r from-[#f09433] via-[#dc2743] to-[#bc1888] hover:opacity-95 text-white text-xs font-bold py-3 rounded-xl transition shadow-md flex items-center justify-center gap-1.5 cursor-pointer font-bold">
+                    <i class="fas fa-sign-in-alt text-xs"></i>
+                    <span>Sign In</span>
+                </a>
+            </div>
+        </div>
+    </div>
+
     <!-- ADD NEW PRODUCT MODAL (Admin Only) -->
     <div id="addProductModalBackdrop" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 hidden flex items-center justify-center p-4" onclick="if(event.target===this) closeAddProductModal()">
         <div class="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-8 space-y-6 shadow-2xl border border-slate-200">
@@ -189,13 +213,39 @@
                 </div>
             </div>
 
-            <div class="flex gap-3 pt-2">
+            <div class="flex gap-2 pt-2">
+                <button onclick="deleteProductFromModal()" class="bg-rose-50 hover:bg-rose-100 text-rose-600 font-bold px-3 py-3 rounded-xl transition border border-rose-200 cursor-pointer flex items-center justify-center gap-1.5" title="Delete Product">
+                    <i class="fas fa-trash-alt text-xs"></i>
+                    <span>Delete</span>
+                </button>
                 <button onclick="closeEditProductModal()" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold py-3 rounded-xl transition cursor-pointer">
                     Cancel
                 </button>
                 <button onclick="submitEditProduct()" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold py-3 rounded-xl transition shadow-md cursor-pointer flex items-center justify-center gap-2">
                     <i class="fas fa-check text-xs"></i>
                     <span>Update Product</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- CUSTOM DELETE CONFIRMATION MODAL (Admin Only) -->
+    <div id="deleteConfirmModalBackdrop" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl max-w-sm w-full p-6 text-center space-y-4 shadow-2xl border border-slate-200">
+            <div class="w-12 h-12 rounded-2xl bg-rose-100 text-rose-600 flex items-center justify-center mx-auto text-xl font-bold">
+                <i class="fas fa-exclamation-triangle"></i>
+            </div>
+            <div>
+                <h3 class="text-base font-extrabold text-slate-900">Delete Product?</h3>
+                <p class="text-xs text-slate-500 mt-1 leading-relaxed" id="deleteConfirmItemName">Are you sure you want to delete this product from inventory?</p>
+            </div>
+            <div class="flex gap-2 pt-2">
+                <button onclick="closeDeleteConfirmModal()" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold py-3 rounded-xl transition cursor-pointer">
+                    Cancel
+                </button>
+                <button onclick="executeProductDeletion()" id="btnConfirmDelete" class="flex-1 bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold py-3 rounded-xl transition shadow-md cursor-pointer flex items-center justify-center gap-1.5">
+                    <i class="fas fa-trash-alt text-xs"></i>
+                    <span>Yes, Delete</span>
                 </button>
             </div>
         </div>
@@ -292,52 +342,58 @@
 let STORE_PRODUCTS = [];
 let cartState = {};
 let currentCategory = 'all';
-let isAdminUser = false;
+
+// KUNIN ANG USER AUTHENTICATION STATE MULA SA FLASK SESSION
+let isLoggedIn = {{ 'true' if session.get('username') else 'false' }};
+let isAdminUser = {{ 'true' if session.get('role') == 'admin' else 'false' }};
+
 let activeRestockProdId = null;
+let pendingDeleteProdId = null;
 
 document.addEventListener('DOMContentLoaded', () => {
-    const userStr = localStorage.getItem("kcz_logged_user");
-    if (userStr) {
-        try {
-            const user = JSON.parse(userStr);
-            if (user.role === 'admin') {
-                isAdminUser = true;
-                document.getElementById('storeBadgeLabel').textContent = "🛡️ ADMIN INVENTORY & RESTOCK MANAGER";
-                document.getElementById('storeTitleText').textContent = "Store Inventory & Restock Control";
-                document.getElementById('storeDescText').textContent = "Monitor real-time item stocks, restock items, edit products, or add new store supplies.";
-                document.getElementById('customerCartBtn').classList.add('hidden');
-                document.getElementById('adminStoreActions').classList.remove('hidden');
-            }
-        } catch(e){}
+    if (isAdminUser) {
+        document.getElementById('storeBadgeLabel').textContent = "🛡️ ADMIN INVENTORY & RESTOCK MANAGER";
+        document.getElementById('storeTitleText').textContent = "Store Inventory & Restock Control";
+        document.getElementById('storeDescText').textContent = "Monitor real-time item stocks, restock items, edit products, or add new store supplies.";
+        document.getElementById('customerCartBtn').classList.add('hidden');
+        document.getElementById('adminStoreActions').classList.remove('hidden');
     }
 
     fetchStoreProductsFromBackend();
 });
 
+function openLoginPromptModal() {
+    document.getElementById('loginPromptModalBackdrop').classList.remove('hidden');
+}
+
+function closeLoginPromptModal() {
+    document.getElementById('loginPromptModalBackdrop').classList.add('hidden');
+}
+
 function fetchStoreProductsFromBackend() {
     fetch('/api/store/products')
     .then(res => res.json())
     .then(data => {
-        STORE_PRODUCTS = data || [];
+        if (Array.isArray(data)) {
+            STORE_PRODUCTS = data;
+        } else if (data && Array.isArray(data.products)) {
+            STORE_PRODUCTS = data.products;
+        } else {
+            STORE_PRODUCTS = [];
+        }
         renderStoreProducts();
-        checkStockAlertsOnLoad();
+        if (isAdminUser) {
+            checkStockAlertsOnLoad();
+        }
     })
-    .catch(() => {
-        // Fallback default products
-        STORE_PRODUCTS = [
-            { id: 'p1', name: 'Spiral Notebook (80 Sheets)', category: 'notebooks', price: 25.00, stock: 140, desc: 'High quality ruled paper for school & office.', imageUrl: 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=300&q=80' },
-            { id: 'p2', name: 'Stitched Composition Book', category: 'notebooks', price: 35.00, stock: 35, desc: 'Durable hardcover notebook 100 pages.', imageUrl: 'https://images.unsplash.com/photo-1589829085413-56de8ae18c73?auto=format&fit=crop&w=300&q=80' },
-            { id: 'p3', name: 'Black Gel Pen (0.5mm)', category: 'pens', price: 15.00, stock: 320, desc: 'Smooth quick-drying gel ink.', imageUrl: 'https://images.unsplash.com/photo-1583485088034-697b5bc54ccd?auto=format&fit=crop&w=300&q=80' },
-            { id: 'p4', name: 'Highlighter Markers (Pack of 3)', category: 'pens', price: 45.00, stock: 10, desc: 'Neon yellow, green, & pink highlighters.', imageUrl: 'https://images.unsplash.com/photo-1569683795645-b62e50fbf103?auto=format&fit=crop&w=300&q=80' },
-            { id: 'p5', name: 'A4 Watercolor Sketchpad', category: 'art', price: 120.00, stock: 12, desc: '200 GSM heavy cold-pressed paper.', imageUrl: 'https://images.unsplash.com/photo-1513364776144-60967b0f800f?auto=format&fit=crop&w=300&q=80' },
-            { id: 'p6', name: 'Colored Pencils Set (12 colors)', category: 'art', price: 85.00, stock: 55, desc: 'Vibrant blendable colored pencils.', imageUrl: 'https://images.unsplash.com/photo-1513542789411-b6a5d4f31634?auto=format&fit=crop&w=300&q=80' }
-        ];
+    .catch(err => {
+        console.error("Error fetching store products:", err);
         renderStoreProducts();
     });
 }
 
 function saveProductsToBackend() {
-    fetch('/api/store/products', {
+    return fetch('/api/store/products', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ products: STORE_PRODUCTS })
@@ -385,9 +441,13 @@ function renderStoreProducts() {
     const grid = document.getElementById('storeProductsGrid');
     const searchTerm = document.getElementById('storeSearchInput').value.toLowerCase().trim();
 
+    if (!Array.isArray(STORE_PRODUCTS)) {
+        STORE_PRODUCTS = [];
+    }
+
     const filtered = STORE_PRODUCTS.filter(p => {
         const matchesCat = currentCategory === 'all' || p.category === currentCategory;
-        const matchesSearch = p.name.toLowerCase().includes(searchTerm) || p.desc.toLowerCase().includes(searchTerm);
+        const matchesSearch = (p.name || '').toLowerCase().includes(searchTerm) || (p.desc || '').toLowerCase().includes(searchTerm);
         return matchesCat && matchesSearch;
     });
 
@@ -425,11 +485,16 @@ function renderStoreProducts() {
                         <div>
                             <div class="flex justify-between items-start">
                                 <h3 class="font-bold text-sm text-slate-900">${p.name}</h3>
-                                <button onclick="openEditProductModal('${p.id}')" class="text-indigo-600 hover:text-indigo-800 p-1.5 rounded-lg hover:bg-indigo-50 transition cursor-pointer" title="Edit Product">
-                                    <i class="fas fa-edit text-sm"></i>
-                                </button>
+                                <div class="flex items-center gap-1">
+                                    <button onclick="openEditProductModal('${p.id}')" class="text-indigo-600 hover:text-indigo-800 p-1.5 rounded-lg hover:bg-indigo-50 transition cursor-pointer" title="Edit Product">
+                                        <i class="fas fa-edit text-sm"></i>
+                                    </button>
+                                    <button onclick="deleteProduct('${p.id}')" class="text-rose-600 hover:text-rose-800 p-1.5 rounded-lg hover:bg-rose-50 transition cursor-pointer" title="Delete Product">
+                                        <i class="fas fa-trash-alt text-sm"></i>
+                                    </button>
+                                </div>
                             </div>
-                            <p class="text-[11px] text-slate-500 pt-0.5 leading-relaxed">${p.desc}</p>
+                            <p class="text-[11px] text-slate-500 pt-0.5 leading-relaxed">${p.desc || ''}</p>
                         </div>
                     </div>
                     <div class="space-y-3 pt-2 border-t border-slate-100">
@@ -439,7 +504,7 @@ function renderStoreProducts() {
                         </div>
                         <div class="flex justify-between items-center text-xs">
                             <span class="text-slate-500">Price:</span>
-                            <span class="font-mono font-bold text-slate-700">₱${p.price.toFixed(2)}</span>
+                            <span class="font-mono font-bold text-slate-700">₱${Number(p.price || 0).toFixed(2)}</span>
                         </div>
                         
                         <button onclick="openRestockModal('${p.id}', '${p.name}')" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs py-2.5 rounded-xl transition shadow-2xs cursor-pointer flex items-center justify-center gap-1.5">
@@ -459,7 +524,7 @@ function renderStoreProducts() {
                     </div>
                     <div>
                         <h3 class="font-bold text-sm text-slate-900">${p.name}</h3>
-                        <p class="text-[11px] text-slate-500 pt-0.5 leading-relaxed">${p.desc}</p>
+                        <p class="text-[11px] text-slate-500 pt-0.5 leading-relaxed">${p.desc || ''}</p>
                     </div>
                 </div>
                 <div class="space-y-3 pt-2 border-t border-slate-100">
@@ -469,7 +534,7 @@ function renderStoreProducts() {
                     </div>
                     <div class="flex justify-between items-center">
                         <span class="text-xs text-slate-400">Price:</span>
-                        <span class="font-mono font-extrabold text-slate-900 text-base">₱${p.price.toFixed(2)}</span>
+                        <span class="font-mono font-extrabold text-slate-900 text-base">₱${Number(p.price || 0).toFixed(2)}</span>
                     </div>
                     
                     <div class="flex items-center gap-2">
@@ -502,7 +567,7 @@ function closeAddProductModal() {
 }
 
 function openEditProductModal(prodId) {
-    const p = STORE_PRODUCTS.find(item => item.id === prodId);
+    const p = STORE_PRODUCTS.find(item => String(item.id) === String(prodId));
     if (!p) return;
 
     document.getElementById('editProdId').value = p.id;
@@ -511,13 +576,63 @@ function openEditProductModal(prodId) {
     document.getElementById('editProdImage').value = p.imageUrl || '';
     document.getElementById('editProdPrice').value = p.price;
     document.getElementById('editProdStock').value = p.stock;
-    document.getElementById('editProdDesc').value = p.desc;
+    document.getElementById('editProdDesc').value = p.desc || '';
 
     document.getElementById('editProductModalBackdrop').classList.remove('hidden');
 }
 
 function closeEditProductModal() {
     document.getElementById('editProductModalBackdrop').classList.add('hidden');
+}
+
+function deleteProduct(prodId) {
+    const prod = STORE_PRODUCTS.find(p => String(p.id) === String(prodId));
+    if (!prod) return;
+
+    pendingDeleteProdId = prodId;
+    document.getElementById('deleteConfirmItemName').textContent = `Sigurado ka bang gusto mong burahin ang produktong "${prod.name}" sa inventory? Hindi na ito mababawi.`;
+    document.getElementById('deleteConfirmModalBackdrop').classList.remove('hidden');
+}
+
+function closeDeleteConfirmModal() {
+    pendingDeleteProdId = null;
+    document.getElementById('deleteConfirmModalBackdrop').classList.add('hidden');
+}
+
+function deleteProductFromModal() {
+    const prodId = document.getElementById('editProdId').value;
+    if (!prodId) return;
+
+    closeEditProductModal();
+    deleteProduct(prodId);
+}
+
+async function executeProductDeletion() {
+    if (!pendingDeleteProdId) return;
+    const prodId = pendingDeleteProdId;
+    const btn = document.getElementById('btnConfirmDelete');
+
+    if (btn) {
+        btn.disabled = true;
+        btn.innerText = "Deleting...";
+    }
+
+    try {
+        await fetch(`/api/store/products/${prodId}`, { method: 'DELETE' });
+        STORE_PRODUCTS = STORE_PRODUCTS.filter(p => String(p.id) !== String(prodId));
+        await saveProductsToBackend();
+        closeDeleteConfirmModal();
+    } catch (err) {
+        console.error("Error executing deletion:", err);
+        STORE_PRODUCTS = STORE_PRODUCTS.filter(p => String(p.id) !== String(prodId));
+        await saveProductsToBackend();
+        closeDeleteConfirmModal();
+    } finally {
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = `<i class="fas fa-trash-alt text-xs"></i> <span>Yes, Delete</span>`;
+        }
+    }
 }
 
 function handleProductFileImport(event, mode) {
@@ -557,7 +672,7 @@ function submitCustomRestock() {
         return;
     }
 
-    const prod = STORE_PRODUCTS.find(p => p.id === activeRestockProdId);
+    const prod = STORE_PRODUCTS.find(p => String(p.id) === String(activeRestockProdId));
     if (prod) {
         prod.stock += addQty;
         saveProductsToBackend();
@@ -609,7 +724,7 @@ function submitEditProduct() {
         return;
     }
 
-    const prod = STORE_PRODUCTS.find(p => p.id === prodId);
+    const prod = STORE_PRODUCTS.find(p => String(p.id) === String(prodId));
     if (prod) {
         prod.name = name;
         prod.category = category;
@@ -625,7 +740,13 @@ function submitEditProduct() {
 }
 
 function updateItemQty(prodId, delta) {
-    const prod = STORE_PRODUCTS.find(p => p.id === prodId);
+    // KUNG HINDI NAKA-LOG IN AT GUSTONG MAGDAGDAG NG ITEM
+    if (!isLoggedIn && delta > 0) {
+        openLoginPromptModal();
+        return;
+    }
+
+    const prod = STORE_PRODUCTS.find(p => String(p.id) === String(prodId));
     if (!prod) return;
 
     if (!cartState[prodId]) {
@@ -651,11 +772,22 @@ function updateItemQty(prodId, delta) {
 }
 
 function addToCartDirect(prodId) {
+    // KUNG HINDI NAKA-LOG IN
+    if (!isLoggedIn) {
+        openLoginPromptModal();
+        return;
+    }
+
     updateItemQty(prodId, 1);
     toggleCartDrawer(true);
 }
 
 function toggleCartDrawer(open) {
+    if (!isLoggedIn && open) {
+        openLoginPromptModal();
+        return;
+    }
+
     const backdrop = document.getElementById('cartModalBackdrop');
     const drawer = document.getElementById('cartDrawer');
     if (open) {
@@ -704,6 +836,11 @@ function updateCartDrawerUI() {
 }
 
 function submitStoreCheckout() {
+    if (!isLoggedIn) {
+        openLoginPromptModal();
+        return;
+    }
+
     const items = Object.values(cartState);
     if (items.length === 0) {
         alert("Pumili muna ng items sa store bago mag-checkout.");

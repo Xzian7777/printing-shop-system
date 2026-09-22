@@ -22,6 +22,8 @@ chat_memory_store = [
     }
 ]
 
+# ================= PAGE ROUTES =================
+
 @app.route('/')
 def index():
     return render_template('index.html')
@@ -33,10 +35,28 @@ def login():
         username = data.get('username') or data.get('email')
         role = data.get('role', 'customer')
         
-        session['username'] = username.split('@')[0] if '@' in username else username
+        if not username:
+            return jsonify({
+                "status": "error",
+                "success": False,
+                "message": "Kailangan ang email o username."
+            }), 400
+
+        username_clean = username.split('@')[0] if '@' in username else username
+        session['username'] = username_clean
         session['email'] = username
         session['role'] = role
-        return jsonify({"success": True, "redirect": "/admin" if role == 'admin' else "/customer"})
+
+        redirect_target = "/admin" if role == 'admin' else "/customer"
+
+        return jsonify({
+            "status": "success",
+            "success": True,
+            "message": "Login successful!",
+            "role": role,
+            "redirect": redirect_target,
+            "redirect_url": redirect_target
+        })
     return render_template('login.html')
 
 @app.route('/logout')
@@ -60,6 +80,9 @@ def customer_dashboard():
 def store_page():
     return render_template('store.html')
 
+
+# ================= API ENDPOINTS =================
+
 @app.route('/api/login', methods=['POST'])
 def api_login():
     try:
@@ -68,13 +91,14 @@ def api_login():
         role = data.get('role', 'customer')
         
         if not email:
-            return jsonify({"success": False, "message": "Email is required"}), 400
+            return jsonify({"status": "error", "success": False, "message": "Email is required"}), 400
             
         username_clean = email.split('@')[0] if '@' in email else email
         session['username'] = username_clean
         session['email'] = email
         session['role'] = role
         
+        redirect_target = "/admin" if role == 'admin' else "/customer"
         user_info = {
             "email": email,
             "role": role,
@@ -82,12 +106,14 @@ def api_login():
         }
         
         return jsonify({
+            "status": "success",
             "success": True, 
-            "redirect": "/admin" if role == 'admin' else "/customer",
+            "redirect": redirect_target,
+            "redirect_url": redirect_target,
             "user": user_info
         })
     except Exception as e:
-        return jsonify({"success": False, "error": str(e)}), 500
+        return jsonify({"status": "error", "success": False, "error": str(e)}), 500
 
 @app.route('/api/signup', methods=['POST'])
 def api_signup():
@@ -106,9 +132,9 @@ def api_signup():
             "rfidUid": "CARD-NEW-PH"
         }
         create_customer(new_customer)
-        return jsonify({"success": True, "message": "Account created successfully!"})
+        return jsonify({"status": "success", "success": True, "message": "Account created successfully!"})
     except Exception as e:
-        return jsonify({"success": False, "error": str(e)}), 500
+        return jsonify({"status": "error", "success": False, "error": str(e)}), 500
 
 @app.route('/api/orders', methods=['GET', 'POST'])
 def handle_orders():
@@ -140,9 +166,9 @@ def handle_orders():
             }
             
             create_order(new_order)
-            return jsonify({"success": True, "orderId": order_id, "message": "Order submitted successfully!"})
+            return jsonify({"status": "success", "success": True, "orderId": order_id, "message": "Order submitted successfully!"})
         except Exception as e:
-            return jsonify({"success": False, "error": str(e)}), 500
+            return jsonify({"status": "error", "success": False, "error": str(e)}), 500
 
     elif request.method == 'GET':
         try:
@@ -158,7 +184,7 @@ def handle_orders():
                 
             return jsonify(orders)
         except Exception as e:
-            return jsonify({"success": False, "error": str(e)}), 500
+            return jsonify({"status": "error", "success": False, "error": str(e)}), 500
 
 @app.route('/api/orders/<order_id>/status', methods=['PUT'])
 def update_status(order_id):
@@ -169,14 +195,11 @@ def update_status(order_id):
         
         final_status = f"Rejected: {reason}" if new_status == 'Rejected' and reason else new_status
         
-        # Retrieve order record before status update
         orders = get_orders()
         target_order = next((o for o in orders if str(o.get('id')) == str(order_id)), None)
         
-        # Update order status in Firebase / Database
         update_order_status(order_id, final_status)
         
-        # Deduct stock automatically if order is Approved or Completed
         if new_status in ['Approved', 'Completed'] and target_order:
             service_desc = target_order.get('service', '')
             products = get_store_products()
@@ -202,9 +225,9 @@ def update_status(order_id):
             if stock_updated:
                 save_store_products(products)
 
-        return jsonify({"success": True})
+        return jsonify({"status": "success", "success": True})
     except Exception as e:
-        return jsonify({"success": False, "error": str(e)}), 500
+        return jsonify({"status": "error", "success": False, "error": str(e)}), 500
 
 @app.route('/api/store/products', methods=['GET', 'PUT', 'POST'])
 def handle_store_products():
@@ -213,7 +236,7 @@ def handle_store_products():
             products = get_store_products()
             return jsonify(products)
         except Exception as e:
-            return jsonify({"success": False, "error": str(e)}), 500
+            return jsonify({"status": "error", "success": False, "error": str(e)}), 500
 
     elif request.method in ['PUT', 'POST']:
         try:
@@ -221,9 +244,41 @@ def handle_store_products():
             products = data.get('products') if isinstance(data, dict) and 'products' in data else data
             if isinstance(products, list):
                 save_store_products(products)
-            return jsonify({"success": True})
+            return jsonify({"status": "success", "success": True})
         except Exception as e:
-            return jsonify({"success": False, "error": str(e)}), 500
+            return jsonify({"status": "error", "success": False, "error": str(e)}), 500
+
+@app.route('/api/store/products/<prod_id>', methods=['DELETE'])
+def delete_store_product_by_id(prod_id):
+    try:
+        prod_id_str = str(prod_id)
+        
+        # 1. Direkta munang burahin ang Document sa Firestore collections
+        if db:
+            try:
+                db.collection('store_products').document(prod_id_str).delete()
+            except Exception as e1:
+                print(f"Firestore store_products delete error: {e1}")
+            try:
+                db.collection('products').document(prod_id_str).delete()
+            except Exception as e2:
+                print(f"Firestore products delete error: {e2}")
+
+        # 2. Kunin ang kasalukuyang listahan at alisin ang produktong buburahin
+        products = get_store_products() or []
+        updated_products = [p for p in products if str(p.get('id')) != prod_id_str]
+        
+        # 3. I-save ang bagong listahan
+        save_store_products(updated_products)
+        
+        return jsonify({
+            "status": "success", 
+            "success": True, 
+            "message": f"Product #{prod_id} permanently deleted!"
+        }), 200
+    except Exception as e:
+        print(f"Error deleting product: {e}")
+        return jsonify({"status": "error", "success": False, "error": str(e)}), 500
 
 @app.route('/api/analytics', methods=['GET'])
 def get_analytics():
@@ -231,7 +286,7 @@ def get_analytics():
         summary = get_analytics_summary()
         return jsonify(summary)
     except Exception as e:
-        return jsonify({"success": False, "error": str(e)}), 500
+        return jsonify({"status": "error", "success": False, "error": str(e)}), 500
 
 @app.route('/api/notifications', methods=['GET', 'POST'])
 def handle_notifications():
@@ -252,7 +307,7 @@ def handle_notifications():
             "status": "Unread"
         }
         create_notification(notif)
-        return jsonify({"success": True})
+        return jsonify({"status": "success", "success": True})
 
 @app.route('/api/notifications/read', methods=['POST'])
 def read_all_notifications():
@@ -260,12 +315,12 @@ def read_all_notifications():
     if session.get('role') == 'admin':
         user_id = 'ADMIN'
     mark_all_notifications_read(user_id)
-    return jsonify({"success": True})
+    return jsonify({"status": "success", "success": True})
 
 @app.route('/api/notifications/<notif_id>', methods=['DELETE'])
 def remove_notification(notif_id):
     delete_notification(notif_id)
-    return jsonify({"success": True})
+    return jsonify({"status": "success", "success": True})
 
 @app.route('/api/notifications/all', methods=['DELETE'])
 def remove_all_notifications():
@@ -273,7 +328,7 @@ def remove_all_notifications():
     if session.get('role') == 'admin':
         user_id = 'ADMIN'
     delete_all_notifications(user_id)
-    return jsonify({"success": True})
+    return jsonify({"status": "success", "success": True})
 
 @app.route('/api/chat', methods=['GET', 'POST'])
 def handle_chat():
@@ -289,7 +344,7 @@ def handle_chat():
             "time": datetime.datetime.now().strftime('%I:%M %p')
         }
         chat_memory_store.append(msg)
-        return jsonify({"success": True})
+        return jsonify({"status": "success", "success": True})
 
 @app.route('/api/rfid/tap', methods=['POST'])
 def rfid_tap():
@@ -301,7 +356,7 @@ def rfid_tap():
         "pointsAdded": 20,
         "timestamp": datetime.datetime.now().isoformat()
     })
-    return jsonify({"success": True, "earnedPoints": 20})
+    return jsonify({"status": "success", "success": True, "earnedPoints": 20})
 
 if __name__ == '__main__':
     print("=" * 60)

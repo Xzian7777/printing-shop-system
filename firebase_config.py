@@ -189,32 +189,61 @@ def create_payment(payment_data):
 # SCHEMA D: INVENTORY & STORE PRODUCTS DATA
 # ===================================================================
 def get_store_products():
-    ref = get_collection("store_products")
-    if ref:
-        try:
-            docs = ref.stream()
-            items = [doc.to_dict() for doc in docs]
-            if items:
-                return items
-        except Exception:
-            pass
-    return [
-        { "id": "p1", "name": "Spiral Notebook (80 Sheets)", "category": "notebooks", "price": 25.00, "stock": 140, "desc": "High quality ruled paper for school & office.", "imageUrl": "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=300&q=80" },
-        { "id": "p2", "name": "Stitched Composition Book", "category": "notebooks", "price": 35.00, "stock": 35, "desc": "Durable hardcover notebook 100 pages.", "imageUrl": "https://images.unsplash.com/photo-1589829085413-56de8ae18c73?auto=format&fit=crop&w=300&q=80" },
-        { "id": "p3", "name": "Black Gel Pen (0.5mm)", "category": "pens", "price": 15.00, "stock": 320, "desc": "Smooth quick-drying gel ink.", "imageUrl": "https://images.unsplash.com/photo-1583485088034-697b5bc54ccd?auto=format&fit=crop&w=300&q=80" },
-        { "id": "p4", "name": "Highlighter Markers (Pack of 3)", "category": "pens", "price": 45.00, "stock": 10, "desc": "Neon yellow, green, & pink highlighters.", "imageUrl": "https://images.unsplash.com/photo-1569683795645-b62e50fbf103?auto=format&fit=crop&w=300&q=80" },
-        { "id": "p5", "name": "A4 Watercolor Sketchpad", "category": "art", "price": 120.00, "stock": 12, "desc": "200 GSM heavy cold-pressed paper.", "imageUrl": "https://images.unsplash.com/photo-1513364776144-60967b0f800f?auto=format&fit=crop&w=300&q=80" },
-        { "id": "p6", "name": "Colored Pencils Set (12 colors)", "category": "art", "price": 85.00, "stock": 55, "desc": "Vibrant blendable colored pencils.", "imageUrl": "https://images.unsplash.com/photo-1513542789411-b6a5d4f31634?auto=format&fit=crop&w=300&q=80" }
-    ]
+    """
+    Kumukuha ng lahat ng produkto mula sa 'products' collection sa Firestore.
+    """
+    try:
+        if db:
+            docs = db.collection('products').stream()
+            products = []
+            for doc in docs:
+                data = doc.to_dict()
+                products.append({
+                    "id": doc.id,
+                    "name": data.get("name", ""),
+                    "category": data.get("category", "notebooks"),
+                    "price": float(data.get("price", 0)),
+                    "stock": int(data.get("stock", 0)),
+                    "desc": data.get("description") or data.get("desc", ""),
+                    "imageUrl": data.get("imageUrl", "")
+                })
+            return products
+        return []
+    except Exception as e:
+        print(f"Error fetching products from Firestore: {e}")
+        return []
 
 def save_store_products(products):
-    ref = get_collection("store_products")
-    if ref:
-        try:
-            for p in products:
-                ref.document(str(p["id"])).set(p)
-        except Exception:
-            pass
+    """
+    Nagsasave, nag-uupdate, at nagdedelete ng mga produkto sa 'products' collection sa Firestore.
+    """
+    try:
+        if db:
+            # 1. Kunin ang lahat ng kasalukuyang Document IDs sa Firestore
+            docs = db.collection('products').stream()
+            existing_doc_ids = [doc.id for doc in docs]
+            
+            keep_ids = [str(p.get('id')) for p in products if p.get('id')]
+            
+            # 2. Burahin sa Firestore ang anumang document ID na tinanggal sa UI
+            for doc_id in existing_doc_ids:
+                if doc_id not in keep_ids:
+                    db.collection('products').document(doc_id).delete()
+                    
+            # 3. I-save o i-update ang bawat produkto
+            for prod in products:
+                prod_id = str(prod.get('id'))
+                data_to_save = {
+                    "name": prod.get("name", ""),
+                    "category": prod.get("category", "notebooks"),
+                    "price": float(prod.get("price", 0)),
+                    "stock": int(prod.get("stock", 0)),
+                    "description": prod.get("desc") or prod.get("description", ""),
+                    "imageUrl": prod.get("imageUrl", "")
+                }
+                db.collection('products').document(prod_id).set(data_to_save, merge=True)
+    except Exception as e:
+        print(f"Error saving products to Firestore: {e}")
     return True
 
 def get_inventory():
