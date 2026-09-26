@@ -65,7 +65,7 @@
             <div>
                 <h3 class="text-base font-extrabold text-slate-900">Sign In Required</h3>
                 <p class="text-xs text-slate-500 mt-1 leading-relaxed">
-                    Kailangan mo munang mag-sign in para makapag-add ng items sa iyong shopping cart at makatapos ng order.
+                    Kailangan mo munang mag-sign in para makapag-add o makapag-type ng quantity ng items sa iyong shopping cart.
                 </p>
             </div>
             <div class="flex gap-2 pt-2">
@@ -538,9 +538,16 @@ function renderStoreProducts() {
                     </div>
                     
                     <div class="flex items-center gap-2">
+                        <!-- EDITABLE QUANTITY CONTROL (INPUT BOX + BUTTONS) -->
                         <div class="flex items-center border border-slate-200 rounded-xl bg-slate-50 p-1">
                             <button onclick="updateItemQty('${p.id}', -1)" class="w-7 h-7 bg-white text-slate-700 rounded-lg text-xs font-bold hover:bg-slate-200 cursor-pointer flex items-center justify-center">-</button>
-                            <span class="w-8 text-center text-xs font-bold font-mono">${cartQty}</span>
+                            
+                            <input type="number" min="0" max="${p.stock}" value="${cartQty}" 
+                                   onchange="setItemQtyDirect('${p.id}', this.value)" 
+                                   onfocus="if(!isLoggedIn){ this.blur(); openLoginPromptModal(); }" 
+                                   class="w-10 text-center text-xs font-bold font-mono bg-transparent focus:outline-none focus:bg-white focus:rounded-md py-1 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                   title="Click or double-click to type quantity">
+                            
                             <button onclick="updateItemQty('${p.id}', 1)" class="w-7 h-7 bg-white text-slate-700 rounded-lg text-xs font-bold hover:bg-slate-200 cursor-pointer flex items-center justify-center">+</button>
                         </div>
                         <button onclick="${isOut ? 'alert(\'Item is currently out of stock.\')' : `addToCartDirect('${p.id}')`}" class="flex-1 ${isOut ? 'bg-slate-300 text-slate-500 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700 text-white cursor-pointer'} font-bold text-xs py-2 rounded-xl transition shadow-2xs">
@@ -737,6 +744,38 @@ function submitEditProduct() {
         closeEditProductModal();
         alert(`Successfully updated product: ${name}!`);
     }
+}
+
+// FUNCTION PARA SA MANUAL DIREKTANG PAG-TYPE NG QUANTITY
+function setItemQtyDirect(prodId, rawValue) {
+    if (!isLoggedIn) {
+        openLoginPromptModal();
+        renderStoreProducts();
+        return;
+    }
+
+    const prod = STORE_PRODUCTS.find(p => String(p.id) === String(prodId));
+    if (!prod) return;
+
+    let newQty = parseInt(rawValue) || 0;
+
+    if (newQty < 0) {
+        newQty = 0;
+    }
+
+    if (newQty > prod.stock) {
+        alert(`Paumanhin, hanggang ${prod.stock} pcs lamang ang available na stock.`);
+        newQty = prod.stock;
+    }
+
+    if (newQty === 0) {
+        delete cartState[prodId];
+    } else {
+        cartState[prodId] = { ...prod, qty: newQty };
+    }
+
+    renderStoreProducts();
+    updateCartDrawerUI();
 }
 
 function updateItemQty(prodId, delta) {

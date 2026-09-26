@@ -22,7 +22,9 @@ chat_memory_store = [
     }
 ]
 
-# ================= PAGE ROUTES =================
+# ---------------------------------------------------------------------------
+# PAGE ROUTES
+# ---------------------------------------------------------------------------
 
 @app.route('/')
 def index():
@@ -32,37 +34,34 @@ def index():
 def login():
     if request.method == 'POST':
         data = request.json or request.form or {}
-        username = data.get('username') or data.get('email')
-        role = data.get('role', 'customer')
+        email = (data.get('email') or data.get('username') or 'user@example.com').strip()
+        role = str(data.get('role', 'customer')).lower()
         
-        if not username:
-            return jsonify({
-                "status": "error",
-                "success": False,
-                "message": "Kailangan ang email o username."
-            }), 400
-
-        username_clean = username.split('@')[0] if '@' in username else username
+        is_admin = (role == 'admin') or ('admin' in email.lower())
+        target_url = "/admin" if is_admin else "/customer"
+        username_clean = email.split('@')[0] if '@' in email else email
+        
         session['username'] = username_clean
-        session['email'] = username
-        session['role'] = role
-
-        redirect_target = "/admin" if role == 'admin' else "/customer"
-
+        session['email'] = email
+        session['role'] = 'admin' if is_admin else 'customer'
+        
         return jsonify({
-            "status": "success",
             "success": True,
-            "message": "Login successful!",
-            "role": role,
-            "redirect": redirect_target,
-            "redirect_url": redirect_target
+            "status": "success",
+            "redirect": target_url,
+            "redirectUrl": target_url,
+            "redirect_url": target_url,
+            "url": target_url,
+            "target": target_url,
+            "message": "Login successful"
         })
+        
     return render_template('login.html')
 
 @app.route('/logout')
 def logout():
     session.clear()
-    return redirect(url_for('login'))
+    return redirect(url_for('index'))
 
 @app.route('/admin')
 def admin_dashboard():
@@ -80,40 +79,48 @@ def customer_dashboard():
 def store_page():
     return render_template('store.html')
 
-
-# ================= API ENDPOINTS =================
+# ---------------------------------------------------------------------------
+# API ENDPOINTS
+# ---------------------------------------------------------------------------
 
 @app.route('/api/login', methods=['POST'])
 def api_login():
     try:
         data = request.json or request.form or {}
-        email = data.get('email') or data.get('username') or ''
-        role = data.get('role', 'customer')
         
-        if not email:
-            return jsonify({"status": "error", "success": False, "message": "Email is required"}), 400
-            
-        username_clean = email.split('@')[0] if '@' in email else email
-        session['username'] = username_clean
-        session['email'] = email
-        session['role'] = role
+        email = (data.get('email') or data.get('username') or data.get('user') or '').strip()
+        password = (data.get('password') or data.get('pass') or '').strip()
+        role = str(data.get('role', 'customer')).lower()
         
-        redirect_target = "/admin" if role == 'admin' else "/customer"
-        user_info = {
-            "email": email,
-            "role": role,
-            "username": username_clean
-        }
-        
+        is_admin = (role == 'admin') or ('admin' in email.lower())
+        target_url = "/admin" if is_admin else "/customer"
+
+        if is_admin:
+            username_clean = "Admin"
+            session['username'] = username_clean
+            session['email'] = email if email else "admin@kezcemzek.com"
+            session['role'] = "admin"
+        else:
+            username_clean = email.split('@')[0] if '@' in email else email
+            session['username'] = username_clean
+            session['email'] = email
+            session['role'] = "customer"
+
         return jsonify({
+            "success": True,
             "status": "success",
-            "success": True, 
-            "redirect": redirect_target,
-            "redirect_url": redirect_target,
-            "user": user_info
-        })
+            "message": "Login Successful",
+            "redirect": target_url,
+            "redirectUrl": target_url,
+            "redirect_url": target_url,
+            "url": target_url,
+            "target": target_url,
+            "user": {"email": session['email'], "role": session['role'], "username": username_clean}
+        }), 200
+
     except Exception as e:
-        return jsonify({"status": "error", "success": False, "error": str(e)}), 500
+        return jsonify({"success": False, "status": "error", "message": str(e)}), 200
+
 
 @app.route('/api/signup', methods=['POST'])
 def api_signup():
@@ -132,9 +139,10 @@ def api_signup():
             "rfidUid": "CARD-NEW-PH"
         }
         create_customer(new_customer)
-        return jsonify({"status": "success", "success": True, "message": "Account created successfully!"})
+        return jsonify({"success": True, "message": "Account created successfully!"})
     except Exception as e:
-        return jsonify({"status": "error", "success": False, "error": str(e)}), 500
+        return jsonify({"success": False, "error": str(e)}), 500
+
 
 @app.route('/api/orders', methods=['GET', 'POST'])
 def handle_orders():
@@ -166,9 +174,9 @@ def handle_orders():
             }
             
             create_order(new_order)
-            return jsonify({"status": "success", "success": True, "orderId": order_id, "message": "Order submitted successfully!"})
+            return jsonify({"success": True, "orderId": order_id, "message": "Order submitted successfully!"})
         except Exception as e:
-            return jsonify({"status": "error", "success": False, "error": str(e)}), 500
+            return jsonify({"success": False, "error": str(e)}), 500
 
     elif request.method == 'GET':
         try:
@@ -179,14 +187,15 @@ def handle_orders():
                 orders = [
                     o for o in orders 
                     if str(o.get('customer', '')).lower() == customer_filter.lower() or 
-                       str(o.get('customerId', '')).lower() == customer_filter.lower()
+                    str(o.get('customerId', '')).lower() == customer_filter.lower()
                 ]
-                
+            
             return jsonify(orders)
         except Exception as e:
-            return jsonify({"status": "error", "success": False, "error": str(e)}), 500
+            return jsonify({"success": False, "error": str(e)}), 500
 
-@app.route('/api/orders/<order_id>/status', methods=['PUT'])
+
+@app.route('/api/orders/<order_id>/status', methods=['PUT', 'POST'])
 def update_status(order_id):
     try:
         data = request.json or {}
@@ -225,9 +234,19 @@ def update_status(order_id):
             if stock_updated:
                 save_store_products(products)
 
-        return jsonify({"status": "success", "success": True})
+        return jsonify({"success": True})
     except Exception as e:
-        return jsonify({"status": "error", "success": False, "error": str(e)}), 500
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
+@app.route('/api/customers', methods=['GET'])
+def get_customers_api():
+    try:
+        customers = get_customers()
+        return jsonify(customers)
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
 
 @app.route('/api/store/products', methods=['GET', 'PUT', 'POST'])
 def handle_store_products():
@@ -236,7 +255,7 @@ def handle_store_products():
             products = get_store_products()
             return jsonify(products)
         except Exception as e:
-            return jsonify({"status": "error", "success": False, "error": str(e)}), 500
+            return jsonify({"success": False, "error": str(e)}), 500
 
     elif request.method in ['PUT', 'POST']:
         try:
@@ -244,41 +263,10 @@ def handle_store_products():
             products = data.get('products') if isinstance(data, dict) and 'products' in data else data
             if isinstance(products, list):
                 save_store_products(products)
-            return jsonify({"status": "success", "success": True})
+            return jsonify({"success": True})
         except Exception as e:
-            return jsonify({"status": "error", "success": False, "error": str(e)}), 500
+            return jsonify({"success": False, "error": str(e)}), 500
 
-@app.route('/api/store/products/<prod_id>', methods=['DELETE'])
-def delete_store_product_by_id(prod_id):
-    try:
-        prod_id_str = str(prod_id)
-        
-        # 1. Direkta munang burahin ang Document sa Firestore collections
-        if db:
-            try:
-                db.collection('store_products').document(prod_id_str).delete()
-            except Exception as e1:
-                print(f"Firestore store_products delete error: {e1}")
-            try:
-                db.collection('products').document(prod_id_str).delete()
-            except Exception as e2:
-                print(f"Firestore products delete error: {e2}")
-
-        # 2. Kunin ang kasalukuyang listahan at alisin ang produktong buburahin
-        products = get_store_products() or []
-        updated_products = [p for p in products if str(p.get('id')) != prod_id_str]
-        
-        # 3. I-save ang bagong listahan
-        save_store_products(updated_products)
-        
-        return jsonify({
-            "status": "success", 
-            "success": True, 
-            "message": f"Product #{prod_id} permanently deleted!"
-        }), 200
-    except Exception as e:
-        print(f"Error deleting product: {e}")
-        return jsonify({"status": "error", "success": False, "error": str(e)}), 500
 
 @app.route('/api/analytics', methods=['GET'])
 def get_analytics():
@@ -286,7 +274,8 @@ def get_analytics():
         summary = get_analytics_summary()
         return jsonify(summary)
     except Exception as e:
-        return jsonify({"status": "error", "success": False, "error": str(e)}), 500
+        return jsonify({"success": False, "error": str(e)}), 500
+
 
 @app.route('/api/notifications', methods=['GET', 'POST'])
 def handle_notifications():
@@ -307,7 +296,8 @@ def handle_notifications():
             "status": "Unread"
         }
         create_notification(notif)
-        return jsonify({"status": "success", "success": True})
+        return jsonify({"success": True})
+
 
 @app.route('/api/notifications/read', methods=['POST'])
 def read_all_notifications():
@@ -315,12 +305,14 @@ def read_all_notifications():
     if session.get('role') == 'admin':
         user_id = 'ADMIN'
     mark_all_notifications_read(user_id)
-    return jsonify({"status": "success", "success": True})
+    return jsonify({"success": True})
+
 
 @app.route('/api/notifications/<notif_id>', methods=['DELETE'])
 def remove_notification(notif_id):
     delete_notification(notif_id)
-    return jsonify({"status": "success", "success": True})
+    return jsonify({"success": True})
+
 
 @app.route('/api/notifications/all', methods=['DELETE'])
 def remove_all_notifications():
@@ -328,7 +320,8 @@ def remove_all_notifications():
     if session.get('role') == 'admin':
         user_id = 'ADMIN'
     delete_all_notifications(user_id)
-    return jsonify({"status": "success", "success": True})
+    return jsonify({"success": True})
+
 
 @app.route('/api/chat', methods=['GET', 'POST'])
 def handle_chat():
@@ -344,7 +337,8 @@ def handle_chat():
             "time": datetime.datetime.now().strftime('%I:%M %p')
         }
         chat_memory_store.append(msg)
-        return jsonify({"status": "success", "success": True})
+        return jsonify({"success": True})
+
 
 @app.route('/api/rfid/tap', methods=['POST'])
 def rfid_tap():
@@ -356,7 +350,8 @@ def rfid_tap():
         "pointsAdded": 20,
         "timestamp": datetime.datetime.now().isoformat()
     })
-    return jsonify({"status": "success", "success": True, "earnedPoints": 20})
+    return jsonify({"success": True, "earnedPoints": 20})
+
 
 if __name__ == '__main__':
     print("=" * 60)
