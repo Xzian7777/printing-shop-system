@@ -125,14 +125,14 @@ def api_login():
 @app.route('/api/signup', methods=['POST'])
 def api_signup():
     try:
-        data = request.json or {}
+        data = request.json or request.form or {}
         email = data.get('email')
         username = data.get('username') or (email.split('@')[0] if email else 'user')
         
         new_customer = {
             "id": f"CUST-{int(datetime.datetime.now().timestamp())}",
-            "fullName": f"{data.get('firstName', '')} {data.get('lastName', '')}".strip(),
-            "contact": "09170000000",
+            "fullName": f"{data.get('firstName', '')} {data.get('lastName', '')}".strip() or username,
+            "contact": data.get('contact', '09170000000'),
             "email": email,
             "username": username,
             "regDate": datetime.datetime.now().strftime('%Y-%m-%d'),
@@ -148,49 +148,87 @@ def api_signup():
 def handle_orders():
     if request.method == 'POST':
         try:
-            data = request.json or {}
+            # Babasahin ang parehong JSON payload at HTML Form payload
+            data = request.json or request.form.to_dict() or {}
+            
+            # Kukuha ng in-upload na file (kung mayroon)
+            uploaded_file = request.files.get('file') or request.files.get('document')
+            file_name = uploaded_file.filename if uploaded_file else data.get('file', 'Document.pdf')
+
             order_id = f"PRNT-{datetime.datetime.now().strftime('%M%S%f')[:6]}"
             
-            cust_name = session.get('username') or data.get('customer') or 'Guest'
+            cust_name = session.get('username') or data.get('customer') or data.get('user') or 'Customer'
             if '@' in cust_name:
                 cust_name = cust_name.split('@')[0]
+                
+            cust_email = session.get('email') or data.get('email') or f"{cust_name}@gmail.com"
+
+            # Pag-compute ng Total Amount
+            total_val = data.get('totalAmount') or data.get('total') or data.get('calculatedTotal')
+            try:
+                total_amount = float(total_val)
+            except (TypeError, ValueError):
+                total_amount = 35.00
+
+            file_url_val = data.get('fileUrl') or data.get('file_url') or ''
+            if not file_url_val:
+                file_url_val = f"Local Attached File: {file_name}"
 
             new_order = {
                 "id": order_id,
                 "customerId": data.get('customerId', 'CUST-101'),
                 "customer": cust_name,
-                "service": data.get('service', 'Standard A4 Document'),
-                "pages": data.get('pages', 1),
-                "copies": data.get('copies', 1),
-                "paperSize": data.get('paperSize', 'Custom Specs'),
-                "colorMode": data.get('colorMode', 'Color'),
-                "sides": data.get('sides', 'Single'),
-                "payment": data.get('payment', 'GCash'),
-                "total": float(data.get('totalAmount') or data.get('total') or 0.0),
+                "email": cust_email,
+                "service": data.get('service') or data.get('selectedService') or 'Standard A4 Print',
+                "quantity": int(data.get('quantity') or data.get('copies') or 1),
+                "pages": int(data.get('pages', 1)),
+                "paperSize": data.get('paperSize') or data.get('size') or 'A4 Standard',
+                "colorMode": data.get('colorMode', 'Full Color'),
+                "sides": data.get('sides', 'Single-Sided'),
+                "payment": data.get('payment') or data.get('paymentMethod') or 'GCash Online',
+                "total": total_amount,
                 "status": "Order Submitted",
-                "file": data.get('file', 'Document.pdf'),
-                "orderDate": data.get('orderDate') or datetime.datetime.now().strftime('%b %d, %Y • %I:%M %p'),
+                "file": file_name,
+                "fileUrl": file_url_val,
+                "orderDate": datetime.datetime.now().strftime('%b %d, %Y • %I:%M %p'),
+                "createdAt": datetime.datetime.now().isoformat(),
                 "timestamp": datetime.datetime.now().isoformat()
             }
             
             create_order(new_order)
-            return jsonify({"success": True, "orderId": order_id, "message": "Order submitted successfully!"})
+
+            # Magse-set ng Notification para sa Order Submission
+            try:
+                create_notification({
+                    "id": f"NOTIF-{int(datetime.datetime.now().timestamp())}",
+                    "userId": "ADMIN",
+                    "notificationType": "New Order",
+                    "message": f"Bagong order {order_id} mula kay {cust_name} ({new_order['service']})",
+                    "time": "Just now",
+                    "status": "Unread"
+                })
+            except Exception:
+                pass
+
+            return jsonify({"success": True, "orderId": order_id, "message": "Order submitted successfully!"}), 200
+            
         except Exception as e:
             return jsonify({"success": False, "error": str(e)}), 500
 
     elif request.method == 'GET':
         try:
             orders = get_orders()
-            customer_filter = request.args.get('user') or request.args.get('customer')
+            customer_filter = request.args.get('user') or request.args.get('customer') or request.args.get('email')
             
             if customer_filter and customer_filter.lower() not in ['admin', 'staff', 'all']:
                 orders = [
                     o for o in orders 
                     if str(o.get('customer', '')).lower() == customer_filter.lower() or 
+                    str(o.get('email', '')).lower() == customer_filter.lower() or
                     str(o.get('customerId', '')).lower() == customer_filter.lower()
                 ]
             
-            return jsonify(orders)
+            return jsonify(orders), 200
         except Exception as e:
             return jsonify({"success": False, "error": str(e)}), 500
 
@@ -198,7 +236,7 @@ def handle_orders():
 @app.route('/api/orders/<order_id>/status', methods=['PUT', 'POST'])
 def update_status(order_id):
     try:
-        data = request.json or {}
+        data = request.json or request.form or {}
         new_status = data.get('status')
         reason = data.get('reason', '')
         
@@ -224,9 +262,9 @@ def update_status(order_id):
                             qty_str = part.split('x)')[0]
                             qty_to_deduct = int(qty_str)
                         except Exception:
-                            qty_to_deduct = int(target_order.get('copies', 1))
+                            qty_to_deduct = int(target_order.get('quantity', 1))
                     else:
-                        qty_to_deduct = int(target_order.get('copies', 1))
+                        qty_to_deduct = int(target_order.get('quantity', 1))
                     
                     prod['stock'] = max(0, int(prod.get('stock', 0)) - qty_to_deduct)
                     stock_updated = True
@@ -234,7 +272,7 @@ def update_status(order_id):
             if stock_updated:
                 save_store_products(products)
 
-        return jsonify({"success": True})
+        return jsonify({"success": True}), 200
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
 
@@ -243,7 +281,7 @@ def update_status(order_id):
 def get_customers_api():
     try:
         customers = get_customers()
-        return jsonify(customers)
+        return jsonify(customers), 200
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
 
@@ -253,17 +291,17 @@ def handle_store_products():
     if request.method == 'GET':
         try:
             products = get_store_products()
-            return jsonify(products)
+            return jsonify(products), 200
         except Exception as e:
             return jsonify({"success": False, "error": str(e)}), 500
 
     elif request.method in ['PUT', 'POST']:
         try:
-            data = request.json or {}
+            data = request.json or request.form or {}
             products = data.get('products') if isinstance(data, dict) and 'products' in data else data
             if isinstance(products, list):
                 save_store_products(products)
-            return jsonify({"success": True})
+            return jsonify({"success": True}), 200
         except Exception as e:
             return jsonify({"success": False, "error": str(e)}), 500
 
@@ -272,7 +310,7 @@ def handle_store_products():
 def get_analytics():
     try:
         summary = get_analytics_summary()
-        return jsonify(summary)
+        return jsonify(summary), 200
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
 
@@ -284,9 +322,9 @@ def handle_notifications():
         if session.get('role') == 'admin':
             user_id = 'ADMIN'
         notifs = get_notifications(user_id)
-        return jsonify(notifs)
+        return jsonify(notifs), 200
     elif request.method == 'POST':
-        data = request.json or {}
+        data = request.json or request.form or {}
         notif = {
             "id": f"NOTIF-{int(datetime.datetime.now().timestamp())}",
             "userId": data.get('userId', 'CUSTOMER'),
@@ -296,7 +334,7 @@ def handle_notifications():
             "status": "Unread"
         }
         create_notification(notif)
-        return jsonify({"success": True})
+        return jsonify({"success": True}), 200
 
 
 @app.route('/api/notifications/read', methods=['POST'])
@@ -305,13 +343,13 @@ def read_all_notifications():
     if session.get('role') == 'admin':
         user_id = 'ADMIN'
     mark_all_notifications_read(user_id)
-    return jsonify({"success": True})
+    return jsonify({"success": True}), 200
 
 
 @app.route('/api/notifications/<notif_id>', methods=['DELETE'])
 def remove_notification(notif_id):
     delete_notification(notif_id)
-    return jsonify({"success": True})
+    return jsonify({"success": True}), 200
 
 
 @app.route('/api/notifications/all', methods=['DELETE'])
@@ -320,15 +358,15 @@ def remove_all_notifications():
     if session.get('role') == 'admin':
         user_id = 'ADMIN'
     delete_all_notifications(user_id)
-    return jsonify({"success": True})
+    return jsonify({"success": True}), 200
 
 
 @app.route('/api/chat', methods=['GET', 'POST'])
 def handle_chat():
     if request.method == 'GET':
-        return jsonify(chat_memory_store)
+        return jsonify(chat_memory_store), 200
     elif request.method == 'POST':
-        data = request.json or {}
+        data = request.json or request.form or {}
         msg = {
             "id": f"chat-{int(datetime.datetime.now().timestamp())}",
             "customerId": data.get('customerId', 'CUST-101'),
@@ -337,12 +375,12 @@ def handle_chat():
             "time": datetime.datetime.now().strftime('%I:%M %p')
         }
         chat_memory_store.append(msg)
-        return jsonify({"success": True})
+        return jsonify({"success": True}), 200
 
 
 @app.route('/api/rfid/tap', methods=['POST'])
 def rfid_tap():
-    data = request.json or {}
+    data = request.json or request.form or {}
     card_uid = data.get('rfidCardUid', 'CARD-8842-PH')
     log_rfid_tap({
         "id": f"TAP-{int(datetime.datetime.now().timestamp())}",
@@ -350,7 +388,7 @@ def rfid_tap():
         "pointsAdded": 20,
         "timestamp": datetime.datetime.now().isoformat()
     })
-    return jsonify({"success": True, "earnedPoints": 20})
+    return jsonify({"success": True, "earnedPoints": 20}), 200
 
 
 if __name__ == '__main__':

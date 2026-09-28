@@ -307,7 +307,7 @@
 
 </div>
 
-<!-- MODAL 1: REVIEW SPECS MODAL -->
+<!-- MODAL 1: REVIEW SPECS MODAL (UPDATED WITH CLICKABLE FILE DOWNLOAD/OPEN BUTTON) -->
 <div id="reviewSpecsModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 hidden flex items-center justify-center p-4" onclick="if(event.target===this) closeSpecsModal()">
     <div class="bg-white rounded-3xl max-w-md w-full p-6 space-y-5 shadow-2xl border border-slate-200">
         <div class="flex items-center justify-between border-b border-slate-100 pb-3">
@@ -543,7 +543,6 @@ function renderAdminRowHTML(o) {
     const payBadge = isGCash ? 'bg-blue-50 text-blue-700 border-blue-200' : 'bg-amber-50 text-amber-700 border-amber-200';
     const statusPill = getStatusPillHTML(o.status);
 
-    // Dynamic Next-Status Button Logic based on current state
     const s = (o.status || '').toLowerCase();
     let nextStatus = 'Approved';
     let btnText = '✓ Approve Order';
@@ -564,6 +563,9 @@ function renderAdminRowHTML(o) {
     }
 
     const isFinished = s.includes('complete') || s.includes('reject');
+
+    // File Link URL
+    const fileTarget = o.fileUrl || o.file_url || o.url || (typeof o.file === 'string' && (o.file.startsWith('http') || o.file.startsWith('/')) ? o.file : null);
 
     return `
         <tr class="hover:bg-slate-50/80 transition relative">
@@ -603,10 +605,15 @@ function renderAdminRowHTML(o) {
                         <button onclick="toggleActionMenuDropdown(event, '${o.id}')" class="w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center transition cursor-pointer">
                             <i class="fas fa-ellipsis-v text-xs"></i>
                         </button>
-                        <div id="actionMenu-${o.id}" class="action-menu-dropdown absolute right-0 top-full mt-1 w-40 bg-white rounded-2xl shadow-xl border border-slate-200 hidden z-50 text-left overflow-hidden divide-y divide-slate-100">
+                        <div id="actionMenu-${o.id}" class="action-menu-dropdown absolute right-0 top-full mt-1 w-44 bg-white rounded-2xl shadow-xl border border-slate-200 hidden z-50 text-left overflow-hidden divide-y divide-slate-100">
                             <button onclick="openReviewSpecsModal('${o.id}')" class="w-full px-3.5 py-2 hover:bg-slate-50 text-slate-700 font-medium text-xs text-left flex items-center gap-2 cursor-pointer">
-                                <i class="fas fa-eye text-blue-600"></i> Review Specs
+                                <i class="fas fa-eye text-blue-600"></i> Review Specs & File
                             </button>
+                            ${fileTarget ? `
+                            <a href="${fileTarget}" target="_blank" download class="w-full px-3.5 py-2 hover:bg-blue-50 text-blue-700 font-bold text-xs text-left flex items-center gap-2 cursor-pointer">
+                                <i class="fas fa-file-download text-blue-600"></i> Open Attached File
+                            </a>
+                            ` : ''}
                             <button onclick="openPrintSlipModal('${o.id}')" class="w-full px-3.5 py-2 hover:bg-slate-50 text-slate-700 font-medium text-xs text-left flex items-center gap-2 cursor-pointer">
                                 <i class="fas fa-print text-purple-600"></i> Print Job Slip
                             </button>
@@ -658,7 +665,7 @@ function renderAdminCardHTML(o) {
                     ${!isFinished ? `
                         <button onclick="updateOrderStatusFromBackend('${o.id}', '${nextStatus}')" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold text-[10px] py-1.5 rounded-lg cursor-pointer">${btnText}</button>
                     ` : ''}
-                    <button onclick="openReviewSpecsModal('${o.id}')" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-[10px] px-2.5 py-1.5 rounded-lg cursor-pointer">Specs</button>
+                    <button onclick="openReviewSpecsModal('${o.id}')" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-[10px] px-2.5 py-1.5 rounded-lg cursor-pointer">Specs & File</button>
                 </div>
             </div>
         </div>
@@ -708,10 +715,16 @@ function updateOrderStatusFromBackend(orderId, newStatus) {
     });
 }
 
+// FUNCTION NA NAGLALAGAY NG OPEN/DOWNLOAD FILE BUTTON SA MODAL
 function openReviewSpecsModal(orderId) {
     const o = allAdminOrdersCache.find(item => item.id === orderId);
     if (!o) return;
     const body = document.getElementById('specsModalBody');
+    
+    const fileName = o.file || o.fileName || 'Walang in-attach na file';
+    const fileUrl = o.fileUrl || o.file_url || o.url || (typeof o.file === 'string' && (o.file.startsWith('http') || o.file.startsWith('/')) ? o.file : '#');
+    const hasValidUrl = fileUrl !== '#';
+
     if (body) {
         body.innerHTML = `
             <div class="space-y-1"><strong>Order ID:</strong> <span class="font-mono">${o.id}</span></div>
@@ -722,8 +735,26 @@ function openReviewSpecsModal(orderId) {
             <div class="space-y-1"><strong>Color Mode:</strong> ${o.colorMode || 'Full Color'}</div>
             <div class="space-y-1"><strong>Payment Method:</strong> ${o.payment}</div>
             <div class="space-y-1"><strong>Total Amount:</strong> ₱${parseFloat(o.total || 0).toFixed(2)}</div>
-            <div class="space-y-1"><strong>Attached File:</strong> ${o.file || 'Document.pdf'}</div>
             <div class="space-y-1"><strong>Submitted Time:</strong> ${o.orderDate || 'Today'}</div>
+            
+            <div class="pt-3 border-t border-slate-100 space-y-2">
+                <strong class="text-slate-800">Attached Customer File:</strong>
+                <div class="p-3 bg-blue-50/60 border border-blue-200 rounded-2xl flex items-center justify-between gap-2">
+                    <div class="flex items-center gap-2 overflow-hidden">
+                        <i class="fas fa-file-alt text-blue-600 text-base flex-shrink-0"></i>
+                        <span class="font-bold text-slate-800 text-xs truncate" title="${fileName}">${fileName}</span>
+                    </div>
+                    ${hasValidUrl ? `
+                        <a href="${fileUrl}" target="_blank" download class="bg-blue-600 hover:bg-blue-700 text-white font-bold text-[11px] px-3 py-1.5 rounded-xl transition flex items-center gap-1 flex-shrink-0 shadow-2xs">
+                            <i class="fas fa-external-link-alt text-[10px]"></i> Open File
+                        </a>
+                    ` : `
+                        <button onclick="alert('File Name: ${fileName}\\nNote: Walang direct web URL na naka-link.')" class="bg-slate-700 hover:bg-slate-800 text-white font-bold text-[11px] px-3 py-1.5 rounded-xl transition flex items-center gap-1 flex-shrink-0">
+                            <i class="fas fa-info-circle text-[10px]"></i> File Info
+                        </button>
+                    `}
+                </div>
+            </div>
         `;
     }
     document.getElementById('reviewSpecsModal').classList.remove('hidden');
