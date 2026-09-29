@@ -148,12 +148,9 @@ def api_signup():
 def handle_orders():
     if request.method == 'POST':
         try:
-            # Babasahin ang parehong JSON payload at HTML Form payload
             data = request.json or request.form.to_dict() or {}
-            
-            # Kukuha ng in-upload na file (kung mayroon)
             uploaded_file = request.files.get('file') or request.files.get('document')
-            file_name = uploaded_file.filename if uploaded_file else data.get('file', 'Document.pdf')
+            file_name = uploaded_file.filename if uploaded_file else data.get('file', 'Item_Purchase.pdf')
 
             order_id = f"PRNT-{datetime.datetime.now().strftime('%M%S%f')[:6]}"
             
@@ -163,28 +160,28 @@ def handle_orders():
                 
             cust_email = session.get('email') or data.get('email') or f"{cust_name}@gmail.com"
 
-            # Pag-compute ng Total Amount
             total_val = data.get('totalAmount') or data.get('total') or data.get('calculatedTotal')
             try:
                 total_amount = float(total_val)
             except (TypeError, ValueError):
                 total_amount = 35.00
 
-            file_url_val = data.get('fileUrl') or data.get('file_url') or ''
-            if not file_url_val:
-                file_url_val = f"Local Attached File: {file_name}"
+            file_url_val = data.get('fileUrl') or data.get('file_url') or f"Local Attached File: {file_name}"
+
+            qty_val = int(data.get('quantity') or data.get('copies') or 1)
 
             new_order = {
                 "id": order_id,
                 "customerId": data.get('customerId', 'CUST-101'),
                 "customer": cust_name,
                 "email": cust_email,
-                "service": data.get('service') or data.get('selectedService') or 'Standard A4 Print',
-                "quantity": int(data.get('quantity') or data.get('copies') or 1),
+                "service": data.get('service') or data.get('selectedService') or 'Store Supply Item',
+                "quantity": qty_val,
+                "copies": qty_val,
                 "pages": int(data.get('pages', 1)),
-                "paperSize": data.get('paperSize') or data.get('size') or 'A4 Standard',
-                "colorMode": data.get('colorMode', 'Full Color'),
-                "sides": data.get('sides', 'Single-Sided'),
+                "paperSize": data.get('paperSize') or data.get('size') or 'Store Supply',
+                "colorMode": data.get('colorMode', 'N/A'),
+                "sides": data.get('sides', 'N/A'),
                 "payment": data.get('payment') or data.get('paymentMethod') or 'GCash Online',
                 "total": total_amount,
                 "status": "Order Submitted",
@@ -197,7 +194,7 @@ def handle_orders():
             
             create_order(new_order)
 
-            # Magse-set ng Notification para sa Order Submission
+            # Notification
             try:
                 create_notification({
                     "id": f"NOTIF-{int(datetime.datetime.now().timestamp())}",
@@ -221,13 +218,15 @@ def handle_orders():
             customer_filter = request.args.get('user') or request.args.get('customer') or request.args.get('email')
             
             if customer_filter and customer_filter.lower() not in ['admin', 'staff', 'all']:
+                filter_clean = customer_filter.lower().split('@')[0]
                 orders = [
                     o for o in orders 
-                    if str(o.get('customer', '')).lower() == customer_filter.lower() or 
-                    str(o.get('email', '')).lower() == customer_filter.lower() or
-                    str(o.get('customerId', '')).lower() == customer_filter.lower()
+                    if filter_clean in str(o.get('customer', '')).lower() or 
+                    filter_clean in str(o.get('email', '')).lower() or
+                    filter_clean in str(o.get('customerId', '')).lower()
                 ]
             
+            orders.sort(key=lambda x: str(x.get('createdAt') or x.get('timestamp') or x.get('orderDate') or ''))
             return jsonify(orders), 200
         except Exception as e:
             return jsonify({"success": False, "error": str(e)}), 500
@@ -242,37 +241,13 @@ def update_status(order_id):
         
         final_status = f"Rejected: {reason}" if new_status == 'Rejected' and reason else new_status
         
-        orders = get_orders()
-        target_order = next((o for o in orders if str(o.get('id')) == str(order_id)), None)
-        
-        update_order_status(order_id, final_status)
-        
-        if new_status in ['Approved', 'Completed'] and target_order:
-            service_desc = target_order.get('service', '')
-            products = get_store_products()
-            stock_updated = False
-            
-            for prod in products:
-                prod_name = prod.get('name', '')
-                if prod_name and prod_name in service_desc:
-                    qty_to_deduct = 1
-                    if f"{prod_name} (" in service_desc:
-                        try:
-                            part = service_desc.split(f"{prod_name} (")[1]
-                            qty_str = part.split('x)')[0]
-                            qty_to_deduct = int(qty_str)
-                        except Exception:
-                            qty_to_deduct = int(target_order.get('quantity', 1))
-                    else:
-                        qty_to_deduct = int(target_order.get('quantity', 1))
-                    
-                    prod['stock'] = max(0, int(prod.get('stock', 0)) - qty_to_deduct)
-                    stock_updated = True
-            
-            if stock_updated:
-                save_store_products(products)
+        # Isasagawa ang update at automatic stock deduction
+        success = update_order_status(order_id, final_status)
 
-        return jsonify({"success": True}), 200
+        if success:
+            return jsonify({"success": True, "message": f"Order status updated to {final_status}"}), 200
+        else:
+            return jsonify({"success": False, "error": "Order not found"}), 404
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
 

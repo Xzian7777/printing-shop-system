@@ -141,28 +141,48 @@
 
     <!-- 2. MY ORDERS & STATUS TRACKER TAB CONTENT -->
     <div id="custSection-myOrders" class="cust-section-content hidden bg-white rounded-2xl border border-slate-200 p-6 space-y-6 shadow-xs">
-        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-slate-100 pb-4">
+        <!-- HEADER CONTROLS BAR -->
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-slate-100 pb-5">
             <div>
-                <h3 class="font-bold text-xs text-slate-900 uppercase tracking-wider">My Active Orders & Live Status Tracker</h3>
-                <p class="text-[11px] text-slate-500">Subaybayan ang real-time production status ng iyong print jobs step-by-step</p>
+                <h3 class="font-black text-sm text-slate-900 tracking-tight uppercase flex items-center gap-2">
+                    <span class="w-2.5 h-2.5 rounded-full bg-blue-600"></span>
+                    My Active Orders & Live Status Tracker
+                </h3>
+                <p class="text-xs text-slate-500 pt-0.5">Subaybayan ang real-time production status ng iyong print jobs step-by-step</p>
             </div>
-            <button onclick="fetchCustomerOrders()" class="text-blue-600 hover:text-blue-700 text-xs font-semibold flex items-center gap-1.5 cursor-pointer bg-blue-50 px-3.5 py-2 rounded-xl border border-blue-100 transition shadow-2xs hover:bg-blue-100">
-                <i class="fas fa-sync-alt"></i> Refresh Status
-            </button>
+            
+            <div class="flex items-center gap-2 w-full md:w-auto">
+                <div class="relative flex-1 md:w-60">
+                    <select id="custServiceCategoryFilter" onchange="renderCustomerFilteredOrders()" class="w-full bg-slate-50 border border-slate-200 text-xs font-bold text-slate-700 py-2.5 px-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 transition shadow-2xs">
+                        <option value="ALL">All Services & Store Items</option>
+                        <option value="STORE">🛒 Store Supply / In-Store Items</option>
+                        <option value="PRINT">🖨️ Standard Printing</option>
+                        <option value="CARD">💳 Business Cards</option>
+                        <option value="TARP">🚩 Tarpaulins</option>
+                        <option value="STICKER">🏷️ Stickers & Labels</option>
+                        <option value="SHIRT">👕 Shirt & Mugs</option>
+                    </select>
+                </div>
+
+                <button onclick="fetchCustomerOrders()" class="text-blue-600 hover:text-blue-700 text-xs font-bold flex items-center gap-1.5 cursor-pointer bg-blue-50 hover:bg-blue-100/80 px-4 py-2.5 rounded-xl border border-blue-100 transition shadow-2xs">
+                    <i class="fas fa-sync-alt"></i> <span>Refresh</span>
+                </button>
+            </div>
         </div>
 
         <!-- FILTER SUBCATEGORIES PILLS -->
-        <div class="flex items-center gap-2 overflow-x-auto pb-2 text-xs font-bold">
-            <button onclick="filterCustomerOrders('all')" id="custFilter-all" class="cust-filter-btn px-4 py-2 rounded-xl bg-blue-600 text-white transition cursor-pointer whitespace-nowrap">All Orders</button>
-            <button onclick="filterCustomerOrders('approval')" id="custFilter-approval" class="cust-filter-btn px-4 py-2 rounded-xl bg-slate-100 text-slate-600 hover:bg-slate-200 transition cursor-pointer whitespace-nowrap">For Approval</button>
-            <button onclick="filterCustomerOrders('in-progress')" id="custFilter-in-progress" class="cust-filter-btn px-4 py-2 rounded-xl bg-slate-100 text-slate-600 hover:bg-slate-200 transition cursor-pointer whitespace-nowrap">Approved & Printing</button>
-            <button onclick="filterCustomerOrders('pickup')" id="custFilter-pickup" class="cust-filter-btn px-4 py-2 rounded-xl bg-slate-100 text-slate-600 hover:bg-slate-200 transition cursor-pointer whitespace-nowrap">Ready for Pickup</button>
-            <button onclick="filterCustomerOrders('completed')" id="custFilter-completed" class="cust-filter-btn px-4 py-2 rounded-xl bg-slate-100 text-slate-600 hover:bg-slate-200 transition cursor-pointer whitespace-nowrap">Completed</button>
-            <button onclick="filterCustomerOrders('rejected')" id="custFilter-rejected" class="cust-filter-btn px-4 py-2 rounded-xl bg-slate-100 text-slate-600 hover:bg-slate-200 transition cursor-pointer whitespace-nowrap">Rejected / Cancelled</button>
+        <div class="flex items-center gap-2 overflow-x-auto pb-2 text-xs font-bold no-scrollbar">
+            <button onclick="filterCustomerOrders('all')" id="custFilter-all" class="cust-filter-btn px-4 py-2.5 rounded-xl bg-blue-600 text-white shadow-2xs transition cursor-pointer whitespace-nowrap">All Orders</button>
+            <button onclick="filterCustomerOrders('approval')" id="custFilter-approval" class="cust-filter-btn px-4 py-2.5 rounded-xl bg-slate-100 text-slate-600 hover:bg-slate-200/70 transition cursor-pointer whitespace-nowrap">For Approval</button>
+            <button onclick="filterCustomerOrders('in-progress')" id="custFilter-in-progress" class="cust-filter-btn px-4 py-2.5 rounded-xl bg-slate-100 text-slate-600 hover:bg-slate-200/70 transition cursor-pointer whitespace-nowrap">Approved & Printing</button>
+            <button onclick="filterCustomerOrders('pickup')" id="custFilter-pickup" class="cust-filter-btn px-4 py-2.5 rounded-xl bg-slate-100 text-slate-600 hover:bg-slate-200/70 transition cursor-pointer whitespace-nowrap">Ready for Pickup</button>
+            <button onclick="filterCustomerOrders('completed')" id="custFilter-completed" class="cust-filter-btn px-4 py-2.5 rounded-xl bg-slate-100 text-slate-600 hover:bg-slate-200/70 transition cursor-pointer whitespace-nowrap">Completed</button>
+            <button onclick="filterCustomerOrders('rejected')" id="custFilter-rejected" class="cust-filter-btn px-4 py-2.5 rounded-xl bg-slate-100 text-slate-600 hover:bg-slate-200/70 transition cursor-pointer whitespace-nowrap">Rejected / Cancelled</button>
         </div>
 
+        <!-- ORDERS CARDS CONTAINER -->
         <div id="customerOrderList" class="space-y-4">
-            <div class="text-xs text-slate-500 py-6 text-center">Loading orders and tracker...</div>
+            <div class="text-xs text-slate-500 py-10 text-center font-medium">Loading orders and tracker...</div>
         </div>
     </div>
 
@@ -781,6 +801,7 @@ function submitOrderToBackend() {
     const orderData = {
         customerId: "CUST-101",
         customer: loggedUser.email.split('@')[0],
+        email: loggedUser.email,
         service: serviceName,
         pages: parseInt(document.getElementById('specPages')?.value || document.getElementById('custPageCount')?.value) || 1,
         copies: parseInt(document.getElementById('specQty')?.value || document.getElementById('custQtyCount')?.value) || 1,
@@ -823,16 +844,7 @@ function getStatusStepIndex(status) {
 }
 
 function fetchCustomerOrders() {
-    const userStr = localStorage.getItem("kcz_logged_user");
-    let username = "maria";
-    if (userStr) {
-        try {
-            const user = JSON.parse(userStr);
-            username = user.email ? user.email.split('@')[0] : "maria";
-        } catch(e){}
-    }
-
-    fetch(`/api/orders?user=${encodeURIComponent(username)}`)
+    fetch(`/api/orders?user=all`)
     .then(res => res.json())
     .then(orders => {
         allCustomerOrdersCache = orders || [];
@@ -847,11 +859,11 @@ function fetchCustomerOrders() {
 function filterCustomerOrders(filterKey) {
     currentCustFilter = filterKey;
     document.querySelectorAll('.cust-filter-btn').forEach(btn => {
-        btn.className = "cust-filter-btn px-4 py-2 rounded-xl bg-slate-100 text-slate-600 hover:bg-slate-200 transition cursor-pointer whitespace-nowrap";
+        btn.className = "cust-filter-btn px-4 py-2.5 rounded-xl bg-slate-100 text-slate-600 hover:bg-slate-200/70 transition cursor-pointer whitespace-nowrap";
     });
     const activeBtn = document.getElementById(`custFilter-${filterKey}`);
     if (activeBtn) {
-        activeBtn.className = "cust-filter-btn px-4 py-2 rounded-xl bg-blue-600 text-white transition cursor-pointer whitespace-nowrap";
+        activeBtn.className = "cust-filter-btn px-4 py-2.5 rounded-xl bg-blue-600 text-white shadow-2xs transition cursor-pointer whitespace-nowrap";
     }
     renderCustomerFilteredOrders();
 }
@@ -860,11 +872,32 @@ function renderCustomerFilteredOrders() {
     const container = document.getElementById('customerOrderList');
     if (!container) return;
 
+    const catFilter = (document.getElementById('custServiceCategoryFilter')?.value || 'ALL').toUpperCase();
+
     const filtered = allCustomerOrdersCache.filter(o => {
         const s = (o.status || '').toLowerCase();
+        const serviceText = (o.service || '').toUpperCase();
+        const fileText = (o.file || '').toUpperCase();
+        const paperSizeText = (o.paperSize || '').toUpperCase();
         const isCompleted = s.includes('complete');
         
-        // If viewing 'all', hide completed orders (as requested: pag na-complete na, ilalagay sa completed at matatanggal sa all orders)
+        let passCategory = true;
+        if (catFilter === 'STORE') {
+            passCategory = paperSizeText.includes('STORE') || serviceText.includes('STORE') || serviceText.includes('PEN') || serviceText.includes('SUPPLY') || serviceText.includes('IN-STORE') || fileText.includes('RECEIPT') || fileText.includes('ITEM');
+        } else if (catFilter === 'PRINT') {
+            passCategory = serviceText.includes('PRINT') || serviceText.includes('A4') || serviceText.includes('DOCUMENT');
+        } else if (catFilter === 'CARD') {
+            passCategory = serviceText.includes('BUSINESS CARD') || serviceText.includes('CARD');
+        } else if (catFilter === 'TARP') {
+            passCategory = serviceText.includes('TARPAULIN') || serviceText.includes('BANNER');
+        } else if (catFilter === 'STICKER') {
+            passCategory = serviceText.includes('STICKER') || serviceText.includes('LABEL');
+        } else if (catFilter === 'SHIRT') {
+            passCategory = serviceText.includes('SHIRT') || serviceText.includes('MUG');
+        }
+
+        if (!passCategory) return false;
+
         if (currentCustFilter === 'all') {
             return !isCompleted;
         }
@@ -878,39 +911,40 @@ function renderCustomerFilteredOrders() {
     });
 
     if (filtered.length === 0) {
-        container.innerHTML = `<div class="text-xs text-slate-400 py-12 text-center">No orders found under "${currentCustFilter}" filter.</div>`;
+        container.innerHTML = `<div class="text-xs text-slate-400 py-12 text-center bg-slate-50/50 rounded-2xl border border-dashed border-slate-200">No active orders found under "${currentCustFilter}" filter.</div>`;
         return;
     }
 
     const stages = [
-        { key: 0, label: "Submitted", icon: "📝" },
-        { key: 1, label: "Approved", icon: "✅" },
-        { key: 2, label: "Printing", icon: "🖨️" },
-        { key: 3, label: "Ready", icon: "📦" },
-        { key: 4, label: "Completed", icon: "🎉" }
+        { key: 0, label: "Submitted", icon: "fas fa-file-invoice" },
+        { key: 1, label: "Approved", icon: "fas fa-check-circle" },
+        { key: 2, label: "Printing", icon: "fas fa-print" },
+        { key: 3, label: "Ready", icon: "fas fa-box-open" },
+        { key: 4, label: "Completed", icon: "fas fa-flag-checkered" }
     ];
 
     container.innerHTML = filtered.map(o => {
         const isGCash = o.payment === 'GCash' || o.payment === 'GCash Online';
-        const payBadgeClass = isGCash ? 'bg-blue-50 text-blue-700 border-blue-200' : 'bg-amber-50 text-amber-700 border-amber-200';
+        const payBadgeClass = isGCash ? 'bg-blue-50 text-blue-700 border-blue-200/80' : 'bg-amber-50 text-amber-700 border-amber-200/80';
         const payIcon = isGCash ? '📲 GCash' : '💵 Cash Pickup';
         const isRejected = (o.status || '').toLowerCase().includes('reject');
 
-        const serviceCategoryBadge = (o.paperSize === 'Store Supply' || (o.service && o.service.includes('In-Store')))
-            ? '<span class="bg-amber-100 text-amber-800 border border-amber-200 px-2 py-0.5 rounded-full font-bold text-[9px]">🛒 Store</span>'
-            : '<span class="bg-blue-100 text-blue-800 border border-blue-200 px-2 py-0.5 rounded-full font-bold text-[9px]">🖨️ Print</span>';
+        const isStoreItem = (o.paperSize === 'Store Supply' || (o.service && (o.service.includes('In-Store') || o.service.includes('Store Supply') || o.service.includes('Pen'))));
+        const serviceCategoryBadge = isStoreItem
+            ? '<span class="bg-amber-50 text-amber-700 border border-amber-200 px-2.5 py-0.5 rounded-lg font-bold text-[10px]">🛒 Store Item</span>'
+            : '<span class="bg-blue-50 text-blue-700 border border-blue-200 px-2.5 py-0.5 rounded-lg font-bold text-[10px]">🖨️ Print Job</span>';
 
         if (isRejected) {
             return `
-                <div class="bg-white border-2 border-rose-200 rounded-xl p-3.5 shadow-2xs space-y-2">
-                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-1.5 border-b border-slate-100 pb-2">
+                <div class="bg-white border-2 border-rose-100 rounded-2xl p-4 shadow-2xs space-y-3 hover:border-rose-200 transition">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 border-b border-slate-100 pb-3">
                         <div class="flex items-center gap-2 flex-wrap">
                             <span class="font-mono font-bold text-slate-900 text-xs">${o.id}</span>
                             ${serviceCategoryBadge}
                             <span class="text-[10px] text-slate-400 font-medium">🕒 ${o.orderDate || 'Today'}</span>
                         </div>
                         <div class="flex items-center gap-2">
-                            <span class="bg-rose-100 text-rose-800 border border-rose-200 px-2.5 py-0.5 rounded-full text-[10px] font-bold">
+                            <span class="bg-rose-50 text-rose-700 border border-rose-200 px-3 py-0.5 rounded-full text-[10px] font-bold">
                                 ❌ ${o.status}
                             </span>
                             <button onclick="deleteCustomerOrder('${o.id}')" class="text-slate-400 hover:text-rose-600 p-1.5 rounded-lg hover:bg-rose-50 transition cursor-pointer" title="Delete Order">
@@ -922,18 +956,20 @@ function renderCustomerFilteredOrders() {
                         <div>
                             <div class="font-bold text-slate-800 text-xs">${o.service}</div>
                         </div>
-                        <div class="text-right font-mono font-extrabold text-slate-900 text-xs">₱${parseFloat(o.total || 0).toFixed(2)}</div>
+                        <div class="text-right font-mono font-extrabold text-slate-900 text-sm">₱${parseFloat(o.total || 0).toFixed(2)}</div>
                     </div>
                 </div>
             `;
         }
 
         const currentIndex = getStatusStepIndex(o.status);
+        const progressWidthPct = Math.min(100, Math.max(0, (currentIndex / (stages.length - 1)) * 100));
 
         const progressStepsHTML = stages.map((st, idx) => {
             const isDone = idx <= currentIndex;
             const isCurrent = idx === currentIndex;
-            let circleClass = "w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-bold border transition-all ";
+
+            let circleClass = "w-7 h-7 rounded-full flex items-center justify-center text-[10px] border-2 transition-all relative z-10 ";
 
             if (isDone) {
                 circleClass += "bg-blue-600 border-blue-600 text-white shadow-2xs";
@@ -942,46 +978,55 @@ function renderCustomerFilteredOrders() {
             }
 
             if (isCurrent) {
-                circleClass += " ring-2 ring-blue-100 animate-pulse";
+                circleClass += " ring-4 ring-blue-100 animate-pulse";
             }
 
             return `
                 <div class="flex flex-col items-center flex-1 relative">
-                    <div class="${circleClass}">${st.icon}</div>
-                    <span class="text-[8px] font-bold text-slate-600 pt-0.5 text-center">${st.label}</span>
+                    <div class="${circleClass}">
+                        <i class="${st.icon}"></i>
+                    </div>
+                    <span class="text-[10px] font-bold ${isDone ? 'text-blue-700' : 'text-slate-400'} pt-1.5 text-center">${st.label}</span>
                 </div>
             `;
         }).join('');
 
         return `
-            <div class="bg-white border border-slate-200 rounded-xl p-3.5 shadow-2xs space-y-2.5">
-                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-1.5 border-b border-slate-100 pb-2">
-                    <div class="flex items-center gap-2 flex-wrap">
-                        <span class="font-mono font-bold text-slate-900 text-xs">${o.id}</span>
+            <div class="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-2xs hover:border-blue-200 hover:shadow-xs transition space-y-4">
+                <!-- TOP HEADER BAR -->
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 border-b border-slate-100 pb-3">
+                    <div class="flex items-center gap-2.5 flex-wrap">
+                        <span class="font-mono font-bold text-slate-900 text-xs bg-slate-100 px-2.5 py-1 rounded-lg">${o.id}</span>
                         ${serviceCategoryBadge}
-                        <span class="border px-2 py-0.5 rounded-full text-[9px] font-bold ${payBadgeClass}">${payIcon}</span>
-                        <span class="text-[10px] text-slate-400 font-medium">🕒 ${o.orderDate || 'Today'}</span>
+                        <span class="border px-2.5 py-0.5 rounded-lg text-[10px] font-bold ${payBadgeClass}">${payIcon}</span>
+                        <span class="text-[11px] text-slate-400 font-medium ms-1"><i class="far fa-clock"></i> ${o.orderDate || 'Today'}</span>
                     </div>
-                    <div class="flex items-center gap-3">
+                    <div class="flex items-center gap-3 self-end sm:self-auto">
                         <div class="text-right">
-                            <div class="font-mono font-extrabold text-slate-900 text-xs">₱${parseFloat(o.total || 0).toFixed(2)}</div>
+                            <div class="font-mono font-black text-slate-900 text-base">₱${parseFloat(o.total || 0).toFixed(2)}</div>
                         </div>
-                        <button onclick="deleteCustomerOrder('${o.id}')" class="text-slate-400 hover:text-rose-600 p-1.5 rounded-lg hover:bg-rose-50 transition cursor-pointer" title="Delete Order">
+                        <button onclick="deleteCustomerOrder('${o.id}')" class="text-slate-300 hover:text-rose-600 p-1.5 rounded-lg hover:bg-rose-50 transition cursor-pointer ms-1" title="Delete Order">
                             <i class="fas fa-trash-alt text-xs"></i>
                         </button>
                     </div>
                 </div>
 
+                <!-- ITEM DETAILS -->
                 <div class="flex justify-between items-center text-xs">
                     <div>
-                        <div class="font-bold text-slate-900 text-xs">${o.service}</div>
-                        <div class="text-[10px] text-slate-500">${o.paperSize || 'Custom'} • ${o.copies || 1} copies/pcs • ${o.file || 'Design.pdf'}</div>
+                        <div class="font-bold text-slate-900 text-sm">${o.service}</div>
+                        <div class="text-[11px] text-slate-500 pt-0.5">${o.paperSize || 'Custom'} • ${o.copies || o.quantity || 1} copies/pcs • <span class="font-semibold text-slate-600">${o.file || 'Item_Purchase.pdf'}</span></div>
                     </div>
                 </div>
 
-                <!-- Compact Step-by-Step Tracker Bar -->
-                <div class="pt-1 pb-0.5 bg-slate-50/50 p-2 rounded-lg border border-slate-100">
-                    <div class="flex items-center justify-between">
+                <!-- CONNECTED STEPPER TRACKER BAR -->
+                <div class="pt-3 pb-2 px-3 bg-slate-50/70 rounded-xl border border-slate-100 relative">
+                    <!-- BACKGROUND PROGRESS LINE -->
+                    <div class="absolute top-6 left-8 right-8 h-0.5 bg-slate-200 -z-0"></div>
+                    <!-- FILLED ACTIVE LINE -->
+                    <div class="absolute top-6 left-8 h-0.5 bg-blue-600 transition-all duration-500 -z-0" style="width: calc(${progressWidthPct}% - 16px);"></div>
+
+                    <div class="flex items-center justify-between relative z-10">
                         ${progressStepsHTML}
                     </div>
                 </div>
@@ -992,8 +1037,6 @@ function renderCustomerFilteredOrders() {
 
 function deleteCustomerOrder(orderId) {
     if (confirm(`Sigurado ka bang nais mong tanggalin ang order #${orderId}?`)) {
-        fetch(`/api/notifications/${orderId}`, { method: 'DELETE' }) // or order endpoint if implemented, for client view:
-        // We can simulate deleting from cache and re-rendering
         allCustomerOrdersCache = allCustomerOrdersCache.filter(o => o.id !== orderId);
         renderCustomerFilteredOrders();
         alert(`Order #${orderId} has been removed from your tracker.`);
@@ -1060,4 +1103,4 @@ function simulateRfidTapAction() {
     });
 }
 </script>
-{% endblock %}  
+{% endblock %}
