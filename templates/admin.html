@@ -69,10 +69,10 @@
                     <input type="text" id="adminSearchInput" oninput="filterAdminOrders()" placeholder="Search Order #, Client Name, or Item..." class="w-full bg-slate-50 border border-slate-200 pl-9 pr-4 py-2 rounded-xl text-xs text-slate-800 focus:outline-none focus:border-blue-600 font-medium">
                 </div>
 
-                <!-- Service Type Dropdown Filter -->
+                <!-- Service Type Dropdown Filter (KUMPLETONG 11 SERVICES) -->
                 <div class="flex items-center gap-3 w-full md:w-auto">
                     <div class="relative flex-1 md:flex-initial">
-                        <select id="adminServiceDropdown" onchange="filterAdminOrders()" class="w-full bg-slate-50 border border-slate-200 px-4 py-2 rounded-xl text-xs font-bold text-slate-700 focus:outline-none focus:border-blue-600 cursor-pointer">
+                        <select id="adminServiceDropdown" onchange="filterAdminOrders()" class="w-full bg-slate-50 border border-slate-200 px-4 py-2 rounded-xl text-xs font-bold text-slate-700 focus:outline-none focus:border-blue-600 cursor-pointer shadow-2xs">
                             <option value="all">All Services</option>
                             <option value="Standard A4 Print">Standard A4 Print</option>
                             <option value="Business Cards">Business Cards</option>
@@ -81,10 +81,10 @@
                             <option value="Stickers & Labels">Stickers & Labels</option>
                             <option value="Invitations">Invitations</option>
                             <option value="Shirt Printing">Shirt Printing</option>
-                            <option value="Photo & Canvas">Photo & Canvas</option>
+                            <option value="Photo & Canvas">Photo & Canvas Prints</option>
                             <option value="Booklets & Menus">Booklets & Menus</option>
                             <option value="Mug Printing">Mug Printing</option>
-                            <option value="In-Store Supplies">In-Store Supplies</option>
+                            <option value="In-Store Supplies">In-Store School & Art Supplies</option>
                         </select>
                     </div>
 
@@ -307,7 +307,7 @@
 
 </div>
 
-<!-- MODAL 1: REVIEW SPECS MODAL (UPDATED WITH CLICKABLE FILE DOWNLOAD/OPEN BUTTON) -->
+<!-- MODAL 1: REVIEW SPECS MODAL -->
 <div id="reviewSpecsModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 hidden flex items-center justify-center p-4" onclick="if(event.target===this) closeSpecsModal()">
     <div class="bg-white rounded-3xl max-w-md w-full p-6 space-y-5 shadow-2xl border border-slate-200">
         <div class="flex items-center justify-between border-b border-slate-100 pb-3">
@@ -486,10 +486,37 @@ function renderAdminOrders() {
         const s = (o.status || '').toLowerCase();
         const matchesSearch = (o.id || '').toLowerCase().includes(searchTerm) || (o.customer || '').toLowerCase().includes(searchTerm) || (o.service || '').toLowerCase().includes(searchTerm);
         
+        // SMART FLEXIBLE SERVICE FILTERING (WALANG LUSOT / HINDI NA "NO MATCHING ORDERS FOUND")
         let matchesService = true;
         if (serviceFilter !== 'all') {
-            if (serviceFilter === 'In-Store Supplies') matchesService = (o.service || '').includes('In-Store');
-            else matchesService = (o.service || '').includes(serviceFilter);
+            const sName = (o.service || o.serviceType || o.paperSize || '').toLowerCase();
+            const filterVal = serviceFilter.toLowerCase();
+
+            if (filterVal.includes('standard') || filterVal.includes('a4')) {
+                matchesService = sName.includes('standard') || sName.includes('a4');
+            } else if (filterVal.includes('card')) {
+                matchesService = sName.includes('card') || sName.includes('business');
+            } else if (filterVal.includes('tarp')) {
+                matchesService = sName.includes('tarp') || sName.includes('banner');
+            } else if (filterVal.includes('flyer')) {
+                matchesService = sName.includes('flyer') || sName.includes('leaflet');
+            } else if (filterVal.includes('sticker')) {
+                matchesService = sName.includes('sticker') || sName.includes('label');
+            } else if (filterVal.includes('invitation')) {
+                matchesService = sName.includes('invitat');
+            } else if (filterVal.includes('shirt')) {
+                matchesService = sName.includes('shirt') || sName.includes('dtf') || sName.includes('sublimat');
+            } else if (filterVal.includes('photo') || filterVal.includes('canvas')) {
+                matchesService = sName.includes('photo') || sName.includes('canvas');
+            } else if (filterVal.includes('booklet') || filterVal.includes('menu')) {
+                matchesService = sName.includes('booklet') || sName.includes('menu');
+            } else if (filterVal.includes('mug')) {
+                matchesService = sName.includes('mug');
+            } else if (filterVal.includes('store') || filterVal.includes('supply') || filterVal.includes('in-store')) {
+                matchesService = sName.includes('store') || sName.includes('supply') || sName.includes('in-store') || (o.paperSize || '').toLowerCase().includes('store');
+            } else {
+                matchesService = sName.includes(filterVal);
+            }
         }
 
         let matchesStatus = true;
@@ -504,7 +531,7 @@ function renderAdminOrders() {
     });
 
     if (filtered.length === 0) {
-        container.innerHTML = `<div class="p-12 text-center text-slate-400 text-xs">No orders found matching selected filters.</div>`;
+        container.innerHTML = `<div class="p-12 text-center text-slate-400 text-xs font-semibold">No matching orders found under "${serviceFilter}" filter.</div>`;
         return;
     }
 
@@ -715,7 +742,6 @@ function updateOrderStatusFromBackend(orderId, newStatus) {
     });
 }
 
-// FUNCTION NA NAGLALAGAY NG OPEN/DOWNLOAD FILE BUTTON SA MODAL
 function openReviewSpecsModal(orderId) {
     const o = allAdminOrdersCache.find(item => item.id === orderId);
     if (!o) return;

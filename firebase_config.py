@@ -1,5 +1,6 @@
 import firebase_admin
 from firebase_admin import credentials, firestore
+import datetime
 
 # Initialize Firebase Admin SDK
 try:
@@ -123,31 +124,89 @@ def save_customer_profile(username, profile_data):
     except Exception:
         return False
 
+# ---------------------------------------------------------------------------
+# STORE PRODUCTS MANAGEMENT (FIRESTORE DOCUMENTS SYNC)
+# ---------------------------------------------------------------------------
+
 def get_store_products():
     try:
-        ref = db.collection('artifacts').document('printcraft-pro').collection('public').document('data').collection('store_products')
-        docs = ref.get()
-        prods = []
-        for doc in docs:
-            d = doc.to_dict()
-            d['id'] = doc.id
-            prods.append(d)
-        return prods
-    except Exception as e:
-        print(f"Error getting store products: {e}")
+        if db is not None:
+            products = []
+            
+            # 1. Basahin ang mga items sa root 'products' collection (mula sa screenshot mo)
+            docs = db.collection('products').stream()
+            for doc in docs:
+                p_data = doc.to_dict()
+                if 'id' not in p_data or not p_data['id']:
+                    p_data['id'] = doc.id
+                products.append(p_data)
+
+            # 2. Kung walang nahanap, tingnan din ang subcollection 'store_products'
+            if not products:
+                docs = db.collection('artifacts') \
+                          .document('printcraft-pro') \
+                          .collection('public') \
+                          .document('data') \
+                          .collection('store_products') \
+                          .stream()
+                for doc in docs:
+                    p_data = doc.to_dict()
+                    if 'id' not in p_data or not p_data['id']:
+                        p_data['id'] = doc.id
+                    products.append(p_data)
+
+            return products
         return []
+    except Exception as e:
+        print(f"Error fetching store products: {e}")
+        return []
+
 
 def save_store_products(products_list):
     try:
-        ref = db.collection('artifacts').document('printcraft-pro').collection('public').document('data').collection('store_products')
-        for prod in products_list:
-            prod_id = str(prod.get('id') or prod.get('name', 'item')).replace(' ', '_').lower()
-            ref.document(prod_id).set(prod, merge=True)
-        return True
+        if db is not None:
+            for prod in products_list:
+                prod_id = str(prod.get('id', f"p-{int(datetime.datetime.now().timestamp())}"))
+                # Save sa root 'products' collection
+                db.collection('products').document(prod_id).set(prod, merge=True)
+                
+                # Backup save sa subcollection
+                db.collection('artifacts') \
+                  .document('printcraft-pro') \
+                  .collection('public') \
+                  .document('data') \
+                  .collection('store_products') \
+                  .document(prod_id) \
+                  .set(prod, merge=True)
+            print("✅ Store products synced to Firestore!")
+            return True
+        return False
     except Exception as e:
         print(f"Error saving store products: {e}")
         return False
 
+
+def delete_store_product(prod_id):
+    try:
+        if db is not None:
+            str_id = str(prod_id)
+            # Permanenteng burahin ang Document sa root 'products' collection
+            db.collection('products').document(str_id).delete()
+            
+            # Burahin din sa subcollection kung mayroon
+            db.collection('artifacts') \
+              .document('printcraft-pro') \
+              .collection('public') \
+              .document('data') \
+              .collection('store_products') \
+              .document(str_id).delete()
+            print(f"✅ Product {str_id} deleted permanently from Firestore!")
+            return True
+        return False
+    except Exception as e:
+        print(f"Error deleting product: {e}")
+        return False
+    
 def get_inventory():
     return get_store_products()
 

@@ -281,6 +281,16 @@ def handle_store_products():
             return jsonify({"success": False, "error": str(e)}), 500
 
 
+@app.route('/api/store/products/<prod_id>', methods=['DELETE'])
+def delete_store_product_route(prod_id):
+    try:
+        from firebase_config import delete_store_product
+        success = delete_store_product(prod_id)
+        return jsonify({"success": success, "message": f"Product {prod_id} deleted"}), 200
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
 @app.route('/api/analytics', methods=['GET'])
 def get_analytics():
     try:

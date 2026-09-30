@@ -17,3 +17,173 @@
     100% { transform: translateY(0px) scale(1); opacity: 1; }
 }
 .animate-tap { animation: tapCard 0.3s ease-out forwards; }
+
+/* ==========================================================================
+   REFACTORED GLOBAL DESIGN SYSTEM & UI CLASSES
+   ========================================================================== */
+
+/* Main Containers & Cards */
+.kcz-card {
+    background-color: #ffffff;
+    border: 1px solid rgba(226, 232, 240, 0.8);
+    border-radius: 1rem;
+    padding: 1.25rem;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    transition: all 0.2s ease-in-out;
+}
+.kcz-card:hover {
+    border-color: #bfdbfe;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+/* Tab Action Buttons */
+.kcz-tab-btn-active {
+    background-color: #2563eb;
+    color: #ffffff;
+    padding: 0.75rem 1.25rem;
+    border-radius: 0.75rem;
+    font-weight: 700;
+    font-size: 0.75rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    transition: all 0.2s;
+}
+.kcz-tab-btn-inactive {
+    background-color: transparent;
+    color: #475569;
+    padding: 0.75rem 1.25rem;
+    border-radius: 0.75rem;
+    font-weight: 700;
+    font-size: 0.75rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.kcz-tab-btn-inactive:hover {
+    background-color: #f1f5f9;
+}
+
+/* Filter Subcategory Pills */
+.kcz-filter-pill-active {
+    background-color: #2563eb;
+    color: #ffffff;
+    padding: 0.625rem 1rem;
+    border-radius: 0.75rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.kcz-filter-pill-inactive {
+    background-color: #f1f5f9;
+    color: #475569;
+    padding: 0.625rem 1rem;
+    border-radius: 0.75rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.kcz-filter-pill-inactive:hover {
+    background-color: rgba(226, 232, 240, 0.7);
+}
+
+/* Stepper Progress Bar */
+.kcz-stepper-container {
+    padding-top: 0.75rem;
+    padding-bottom: 0.5rem;
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+    background-color: rgba(248, 250, 252, 0.7);
+    border-radius: 0.75rem;
+    border: 1px solid #f1f5f9;
+    position: relative;
+}
+.kcz-stepper-bg-line {
+    position: absolute;
+    top: 1.5rem;
+    left: 2rem;
+    right: 2rem;
+    height: 0.125rem;
+    background-color: #e2e8f0;
+    z-index: 0;
+}
+.kcz-stepper-active-line {
+    position: absolute;
+    top: 1.5rem;
+    left: 2rem;
+    height: 0.125rem;
+    background-color: #2563eb;
+    transition: width 0.5s ease-in-out;
+    z-index: 0;
+}
+
+/* Stepper Circles */
+.kcz-step-circle {
+    width: 1.75rem;
+    height: 1.75rem;
+    border-radius: 9999px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.625rem;
+    border-width: 2px;
+    transition: all 0.2s;
+    position: relative;
+    z-index: 10;
+}
+.kcz-step-circle-done {
+    background-color: #2563eb;
+    border-color: #2563eb;
+    color: #ffffff;
+}
+.kcz-step-circle-pending {
+    background-color: #ffffff;
+    border-color: #e2e8f0;
+    color: #94a3b8;
+}
+
+/* Badges & Labels */
+.kcz-badge-store {
+    background-color: #fffbebf5;
+    color: #b45309;
+    border: 1px solid #fde68a;
+    padding: 0.125rem 0.625rem;
+    border-radius: 0.5rem;
+    font-weight: 700;
+    font-size: 0.625rem;
+}
+.kcz-badge-print {
+    background-color: #eff6ff;
+    color: #1d4ed8;
+    border: 1px solid #bfdbfe;
+    padding: 0.125rem 0.625rem;
+    border-radius: 0.5rem;
+    font-weight: 700;
+    font-size: 0.625rem;
+}
+.kcz-badge-gcash {
+    background-color: #eff6ff;
+    color: #1d4ed8;
+    border: 1px solid rgba(191, 219, 254, 0.8);
+    padding: 0.125rem 0.625rem;
+    border-radius: 0.5rem;
+    font-weight: 700;
+    font-size: 0.625rem;
+}
+.kcz-badge-cop {
+    background-color: #fffbebf5;
+    color: #b45309;
+    border: 1px solid rgba(253, 230, 138, 0.8);
+    padding: 0.125rem 0.625rem;
+    border-radius: 0.5rem;
+    font-weight: 700;
+    font-size: 0.625rem;
+}

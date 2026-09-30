@@ -625,15 +625,18 @@ async function executeProductDeletion() {
     }
 
     try {
-        await fetch(`/api/store/products/${prodId}`, { method: 'DELETE' });
+        // 1. Alisin ang item sa lokal na array
         STORE_PRODUCTS = STORE_PRODUCTS.filter(p => String(p.id) !== String(prodId));
+        
+        // 2. Isave ang updated array sa Firestore database
         await saveProductsToBackend();
+        
         closeDeleteConfirmModal();
+        renderStoreProducts();
     } catch (err) {
         console.error("Error executing deletion:", err);
-        STORE_PRODUCTS = STORE_PRODUCTS.filter(p => String(p.id) !== String(prodId));
-        await saveProductsToBackend();
         closeDeleteConfirmModal();
+        renderStoreProducts();
     } finally {
         if (btn) {
             btn.disabled = false;
