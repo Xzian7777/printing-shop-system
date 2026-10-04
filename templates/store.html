@@ -53,8 +53,11 @@
 
     <!-- PRODUCTS GRID -->
     <div id="storeProductsGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div class="col-span-full text-center py-12 text-slate-400 text-xs">Loading store products...</div>
+        <div class="col-span-full text-center py-12 text-slate-400 text-xs">Loading store products from database...</div>
     </div>
+
+    <!-- STORE PAGINATION BAR CONTAINER -->
+    <div id="storePaginationContainer" class="bg-white border border-slate-200 rounded-2xl p-4 shadow-xs flex flex-col sm:flex-row justify-between items-center gap-3 text-xs"></div>
 
     <!-- LOGIN REQUIRED MODAL (For Unauthenticated Users) -->
     <div id="loginPromptModalBackdrop" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 hidden flex items-center justify-center p-4">
@@ -343,7 +346,10 @@ let STORE_PRODUCTS = [];
 let cartState = {};
 let currentCategory = 'all';
 
-// KUNIN ANG USER AUTHENTICATION STATE MULA SA FLASK SESSION
+// STORE PAGINATION VARIABLES
+let currentStorePage = 1;
+let storePageSize = 8;
+
 let isLoggedIn = {{ 'true' if session.get('username') else 'false' }};
 let isAdminUser = {{ 'true' if session.get('role') == 'admin' else 'false' }};
 
@@ -372,7 +378,10 @@ function closeLoginPromptModal() {
 
 function fetchStoreProductsFromBackend() {
     fetch('/api/store/products')
-    .then(res => res.json())
+    .then(res => {
+        if (!res.ok) throw new Error("Database o API Route Connection Error");
+        return res.json();
+    })
     .then(data => {
         if (Array.isArray(data)) {
             STORE_PRODUCTS = data;
@@ -381,13 +390,15 @@ function fetchStoreProductsFromBackend() {
         } else {
             STORE_PRODUCTS = [];
         }
+
         renderStoreProducts();
         if (isAdminUser) {
             checkStockAlertsOnLoad();
         }
     })
     .catch(err => {
-        console.error("Error fetching store products:", err);
+        console.error("Error fetching store products directly from database:", err);
+        STORE_PRODUCTS = [];
         renderStoreProducts();
     });
 }
@@ -425,6 +436,7 @@ function triggerAdminNotification(msg) {
 
 function setStoreCategory(cat) {
     currentCategory = cat;
+    currentStorePage = 1; // Reset to page 1
     document.querySelectorAll('.store-cat-btn').forEach(btn => {
         btn.className = "store-cat-btn px-4 py-2 rounded-xl bg-slate-100 text-slate-600 hover:bg-slate-200 transition cursor-pointer";
     });
@@ -434,11 +446,18 @@ function setStoreCategory(cat) {
 }
 
 function filterStoreProducts() {
+    currentStorePage = 1; // Reset to page 1
+    renderStoreProducts();
+}
+
+function changeStorePage(newPage) {
+    currentStorePage = newPage;
     renderStoreProducts();
 }
 
 function renderStoreProducts() {
     const grid = document.getElementById('storeProductsGrid');
+    const paginationContainer = document.getElementById('storePaginationContainer');
     const searchTerm = document.getElementById('storeSearchInput').value.toLowerCase().trim();
 
     if (!Array.isArray(STORE_PRODUCTS)) {
@@ -452,11 +471,25 @@ function renderStoreProducts() {
     });
 
     if (filtered.length === 0) {
-        grid.innerHTML = `<div class="col-span-full text-center py-12 text-slate-400 text-xs">No items found matching search.</div>`;
+        grid.innerHTML = `
+            <div class="col-span-full text-center py-12 text-slate-400 text-xs font-semibold bg-slate-50/50 rounded-3xl border border-dashed border-slate-200 p-6 space-y-2">
+                <div>📦 Walang nahanap na produkto sa database.</div>
+                ${isAdminUser ? '<div class="text-[11px] text-blue-600 font-bold">Pindutin ang "+ Add New Product" sa itaas para magdagdag ng unang item sa iyong store catalog.</div>' : ''}
+            </div>
+        `;
+        if (paginationContainer) paginationContainer.classList.add('hidden');
         return;
     }
 
-    grid.innerHTML = filtered.map(p => {
+    // STORE PAGINATION CALCULATION
+    const totalPages = Math.ceil(filtered.length / storePageSize) || 1;
+    if (currentStorePage > totalPages) currentStorePage = totalPages;
+    if (currentStorePage < 1) currentStorePage = 1;
+
+    const startIndex = (currentStorePage - 1) * storePageSize;
+    const pagedProducts = filtered.slice(startIndex, startIndex + storePageSize);
+
+    grid.innerHTML = pagedProducts.map(p => {
         const cartQty = cartState[p.id] ? cartState[p.id].qty : 0;
         const isOut = p.stock === 0;
         const isLow = p.stock > 0 && p.stock < 50;
@@ -470,7 +503,7 @@ function renderStoreProducts() {
             badgeHTML = '<span class="absolute top-2 right-2 px-2.5 py-1 rounded-full text-[10px] font-bold bg-rose-100 text-rose-800 shadow-xs">❌ Out of Stock</span>';
             cardBorder = 'border-rose-300 bg-rose-50/20';
         } else if (isLow) {
-            badgeHTML = '<span class="absolute top-2 right-2 px-2.5 py-1 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 shadow-xs">⚠️ Low Stock</span>';
+            badgeHTML = '<span class="absolute top-2 right-2 px-2.5 py-1 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 shadow-xs">⚠ Low Stock</span>';
             cardBorder = 'border-amber-300 bg-amber-50/20';
         }
 
@@ -538,7 +571,6 @@ function renderStoreProducts() {
                     </div>
                     
                     <div class="flex items-center gap-2">
-                        <!-- EDITABLE QUANTITY CONTROL (INPUT BOX + BUTTONS) -->
                         <div class="flex items-center border border-slate-200 rounded-xl bg-slate-50 p-1">
                             <button onclick="updateItemQty('${p.id}', -1)" class="w-7 h-7 bg-white text-slate-700 rounded-lg text-xs font-bold hover:bg-slate-200 cursor-pointer flex items-center justify-center">-</button>
                             
@@ -558,6 +590,33 @@ function renderStoreProducts() {
             </div>
         `;
     }).join('');
+
+    // RENDER STORE PAGINATION CONTROLS
+    if (paginationContainer) {
+        paginationContainer.classList.remove('hidden');
+        let paginationBtns = '';
+        for (let i = 1; i <= totalPages; i++) {
+            const isActive = i === currentStorePage;
+            paginationBtns += `
+                <button onclick="changeStorePage(${i})" class="w-8 h-8 rounded-xl text-xs font-bold transition ${isActive ? 'bg-blue-600 text-white' : 'bg-slate-100 hover:bg-slate-200 text-slate-700'}">${i}</button>
+            `;
+        }
+
+        paginationContainer.innerHTML = `
+            <span class="text-slate-500 font-medium">
+                Showing <strong class="text-slate-800">${startIndex + 1}</strong> to <strong class="text-slate-800">${Math.min(startIndex + storePageSize, filtered.length)}</strong> of <strong class="text-slate-800">${filtered.length}</strong> items
+            </span>
+            <div class="flex items-center gap-1.5">
+                <button onclick="changeStorePage(${currentStorePage - 1})" ${currentStorePage === 1 ? 'disabled' : ''} class="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 disabled:opacity-40 disabled:hover:bg-slate-100 text-slate-700 font-bold transition text-xs">
+                    <i class="fas fa-chevron-left text-[10px] mr-1"></i> Prev
+                </button>
+                ${paginationBtns}
+                <button onclick="changeStorePage(${currentStorePage + 1})" ${currentStorePage === totalPages ? 'disabled' : ''} class="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 disabled:opacity-40 disabled:hover:bg-slate-100 text-slate-700 font-bold transition text-xs">
+                    Next <i class="fas fa-chevron-right text-[10px] ml-1"></i>
+                </button>
+            </div>
+        `;
+    }
 }
 
 function openAddProductModal() {
@@ -625,12 +684,8 @@ async function executeProductDeletion() {
     }
 
     try {
-        // 1. Alisin ang item sa lokal na array
         STORE_PRODUCTS = STORE_PRODUCTS.filter(p => String(p.id) !== String(prodId));
-        
-        // 2. Isave ang updated array sa Firestore database
         await saveProductsToBackend();
-        
         closeDeleteConfirmModal();
         renderStoreProducts();
     } catch (err) {
@@ -749,7 +804,6 @@ function submitEditProduct() {
     }
 }
 
-// FUNCTION PARA SA MANUAL DIREKTANG PAG-TYPE NG QUANTITY
 function setItemQtyDirect(prodId, rawValue) {
     if (!isLoggedIn) {
         openLoginPromptModal();
@@ -782,7 +836,6 @@ function setItemQtyDirect(prodId, rawValue) {
 }
 
 function updateItemQty(prodId, delta) {
-    // KUNG HINDI NAKA-LOG IN AT GUSTONG MAGDAGDAG NG ITEM
     if (!isLoggedIn && delta > 0) {
         openLoginPromptModal();
         return;
@@ -814,7 +867,6 @@ function updateItemQty(prodId, delta) {
 }
 
 function addToCartDirect(prodId) {
-    // KUNG HINDI NAKA-LOG IN
     if (!isLoggedIn) {
         openLoginPromptModal();
         return;

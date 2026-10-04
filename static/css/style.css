@@ -187,3 +187,31 @@
     font-weight: 700;
     font-size: 0.625rem;
 }
+
+/* ==========================================================================
+   DROPDOWN & TABLE STACKING OVERLAP FIX
+   ========================================================================== */
+#adminOrdersContainer table,
+#adminOrdersContainer tbody,
+#adminOrdersContainer tr,
+#adminOrdersContainer td {
+    overflow: visible !important;
+}
+
+#adminOrdersContainer tr {
+    position: relative;
+}
+
+/* Elevate row stack order when dropdown inside is visible */
+#adminOrdersContainer tr:has(.status-dropdown-menu:not(.hidden)),
+#adminOrdersContainer tr:has(.action-menu-dropdown:not(.hidden)),
+#adminOrdersContainer tr.dropdown-open {
+    z-index: 100 !important;
+}
+
+/* Force dropdown popups to render above all adjacent rows and buttons */
+.status-dropdown-menu,
+.action-menu-dropdown {
+    z-index: 9999 !important;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.15), 0 8px 10px -6px rgba(0, 0, 0, 0.1) !important;
+}

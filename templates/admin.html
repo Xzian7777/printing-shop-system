@@ -69,7 +69,7 @@
                     <input type="text" id="adminSearchInput" oninput="filterAdminOrders()" placeholder="Search Order #, Client Name, or Item..." class="w-full bg-slate-50 border border-slate-200 pl-9 pr-4 py-2 rounded-xl text-xs text-slate-800 focus:outline-none focus:border-blue-600 font-medium">
                 </div>
 
-                <!-- Service Type Dropdown Filter (KUMPLETONG 11 SERVICES) -->
+                <!-- Service Type Dropdown Filter -->
                 <div class="flex items-center gap-3 w-full md:w-auto">
                     <div class="relative flex-1 md:flex-initial">
                         <select id="adminServiceDropdown" onchange="filterAdminOrders()" class="w-full bg-slate-50 border border-slate-200 px-4 py-2 rounded-xl text-xs font-bold text-slate-700 focus:outline-none focus:border-blue-600 cursor-pointer shadow-2xs">
@@ -113,7 +113,7 @@
         </div>
 
         <!-- Orders Data Table Container -->
-        <div id="adminOrdersContainer" class="bg-white border border-slate-200 rounded-3xl min-h-[400px] pb-32 shadow-xs relative">
+        <div id="adminOrdersContainer" class="bg-white border border-slate-200 rounded-3xl min-h-[400px] pb-12 shadow-xs relative overflow-hidden">
             <div class="p-8 text-center text-slate-400 text-xs">Loading production queue...</div>
         </div>
     </div>
@@ -143,14 +143,14 @@
     <!-- 3. ANALYTICS & STORE INTELLIGENCE TAB CONTENT -->
     <div id="adminTabSection-analytics" class="admin-tab-content hidden space-y-6">
         
-        <!-- Top Metric Summary Cards -->
+        <!-- Top Metric Summary Cards (Formatted with Commas) -->
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
             <div class="bg-white border border-slate-200 rounded-3xl p-4 shadow-xs space-y-1.5">
                 <div class="flex items-center justify-between">
                     <span class="text-slate-400 text-[10px] font-bold uppercase tracking-wider">Total Revenue</span>
                     <span class="w-7 h-7 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center text-xs font-bold">💰</span>
                 </div>
-                <div class="text-2xl font-black font-mono text-emerald-600" id="statTotalSales">₱0.00</div>
+                <div class="text-xl sm:text-2xl font-black font-mono text-emerald-600 truncate" id="statTotalSales">₱0.00</div>
                 <div class="text-[10px] text-slate-400">Print + Store Sales</div>
             </div>
 
@@ -159,7 +159,7 @@
                     <span class="text-slate-400 text-[10px] font-bold uppercase tracking-wider">Total Orders</span>
                     <span class="w-7 h-7 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center text-xs font-bold">📦</span>
                 </div>
-                <div class="text-2xl font-black font-mono text-blue-600" id="statTotalOrders">0</div>
+                <div class="text-xl sm:text-2xl font-black font-mono text-blue-600 truncate" id="statTotalOrders">0</div>
                 <div class="text-[10px] text-slate-400">Submitted print jobs</div>
             </div>
 
@@ -168,7 +168,7 @@
                     <span class="text-slate-400 text-[10px] font-bold uppercase tracking-wider">Pages Printed</span>
                     <span class="w-7 h-7 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center text-xs font-bold">📄</span>
                 </div>
-                <div class="text-2xl font-black font-mono text-indigo-600" id="statTotalPages">0</div>
+                <div class="text-xl sm:text-2xl font-black font-mono text-indigo-600 truncate" id="statTotalPages">0</div>
                 <div class="text-[10px] text-slate-400">Total paper consumption</div>
             </div>
 
@@ -177,7 +177,7 @@
                     <span class="text-slate-400 text-[10px] font-bold uppercase tracking-wider">Total Customers</span>
                     <span class="w-7 h-7 rounded-lg bg-purple-50 text-purple-600 flex items-center justify-center text-xs font-bold">👥</span>
                 </div>
-                <div class="text-2xl font-black font-mono text-purple-600" id="statActiveCust">0</div>
+                <div class="text-xl sm:text-2xl font-black font-mono text-purple-600 truncate" id="statActiveCust">0</div>
                 <div class="text-[10px] text-slate-400">Registered accounts</div>
             </div>
 
@@ -186,7 +186,7 @@
                     <span class="text-slate-400 text-[10px] font-bold uppercase tracking-wider">Avg Order Value</span>
                     <span class="w-7 h-7 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center text-xs font-bold">📊</span>
                 </div>
-                <div class="text-2xl font-black font-mono text-amber-500" id="statAvgOrder">₱0.00</div>
+                <div class="text-xl sm:text-2xl font-black font-mono text-amber-500 truncate" id="statAvgOrder">₱0.00</div>
                 <div class="text-[10px] text-slate-400">Average spent per ticket</div>
             </div>
 
@@ -195,15 +195,13 @@
                     <span class="text-slate-400 text-[10px] font-bold uppercase tracking-wider">Store Revenue</span>
                     <span class="w-7 h-7 rounded-lg bg-orange-50 text-orange-600 flex items-center justify-center text-xs font-bold">🛒</span>
                 </div>
-                <div class="text-2xl font-black font-mono text-orange-600" id="statStoreRevenue">₱0.00</div>
+                <div class="text-xl sm:text-2xl font-black font-mono text-orange-600 truncate" id="statStoreRevenue">₱0.00</div>
                 <div class="text-[10px] text-slate-400">School supplies sales</div>
             </div>
         </div>
 
         <!-- Dynamic Real-Time Chart.js Visualizations -->
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 pt-2">
-            
-            <!-- Chart 1: Order Status Distribution -->
             <div class="bg-white border border-slate-200 rounded-3xl p-5 shadow-xs space-y-3">
                 <div class="flex items-center justify-between border-b border-slate-100 pb-3">
                     <div>
@@ -217,7 +215,6 @@
                 </div>
             </div>
 
-            <!-- Chart 2: Service Volume Breakdown -->
             <div class="bg-white border border-slate-200 rounded-3xl p-5 shadow-xs space-y-3">
                 <div class="flex items-center justify-between border-b border-slate-100 pb-3">
                     <div>
@@ -231,7 +228,6 @@
                 </div>
             </div>
 
-            <!-- Chart 3: Revenue Share Comparison -->
             <div class="bg-white border border-slate-200 rounded-3xl p-5 shadow-xs space-y-3">
                 <div class="flex items-center justify-between border-b border-slate-100 pb-3">
                     <div>
@@ -244,7 +240,6 @@
                     <canvas id="chartRevenueShare" class="w-full h-full"></canvas>
                 </div>
             </div>
-
         </div>
     </div>
 
@@ -316,9 +311,7 @@
                 <i class="fas fa-times text-sm"></i>
             </button>
         </div>
-        <div id="specsModalBody" class="space-y-3 text-xs text-slate-700">
-            <!-- Populated via JS -->
-        </div>
+        <div id="specsModalBody" class="space-y-3 text-xs text-slate-700"></div>
         <button onclick="closeSpecsModal()" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold py-2.5 rounded-xl transition cursor-pointer">
             Close
         </button>
@@ -334,9 +327,7 @@
                 <i class="fas fa-times text-sm"></i>
             </button>
         </div>
-        <div id="printSlipBody" class="p-4 bg-slate-50 border border-slate-200 rounded-2xl font-mono text-xs space-y-2">
-            <!-- Populated via JS -->
-        </div>
+        <div id="printSlipBody" class="p-4 bg-slate-50 border border-slate-200 rounded-2xl font-mono text-xs space-y-2"></div>
         <div class="flex gap-2">
             <button onclick="window.print()" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold py-2.5 rounded-xl transition shadow-xs cursor-pointer">
                 🖨️ Print Ticket
@@ -370,19 +361,31 @@ let allAdminOrdersCache = [];
 let currentAdminStatusFilter = 'all';
 let currentAdminViewMode = 'list';
 
-// Chart.js Object Handles
+// PAGINATION VARIABLES FOR ADMIN
+let currentAdminPage = 1;
+let adminPageSize = 10;
+
 let chartStatusObj = null;
 let chartServicesObj = null;
 let chartRevenueObj = null;
+
+// NUMBER FORMATTER HELPERS
+function formatCurrency(num) {
+    return '₱' + Number(num || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+function formatInteger(num) {
+    return Number(num || 0).toLocaleString('en-US');
+}
 
 document.addEventListener('DOMContentLoaded', () => {
     fetchAdminOrders();
     setInterval(fetchAdminOrders, 10000); // Polling every 10s
 
-    // Click outside to close open status menus
     document.addEventListener('click', (e) => {
         if (!e.target.closest('.status-dropdown-container') && !e.target.closest('.action-menu-container')) {
             document.querySelectorAll('.status-dropdown-menu, .action-menu-dropdown').forEach(m => m.classList.add('hidden'));
+            document.querySelectorAll('#adminOrdersContainer tr').forEach(tr => tr.classList.remove('dropdown-open'));
         }
     });
 });
@@ -410,19 +413,13 @@ function switchAdminTab(tabId) {
 }
 
 function fetchAdminOrders() {
-    fetch('/api/orders')
+    return fetch('/api/orders')
     .then(res => res.json())
     .then(orders => {
-        // FIFO Sort: Oldest at top, newest at bottom
         allAdminOrdersCache = (orders || []).sort((a, b) => new Date(a.timestamp || a.orderDate || 0) - new Date(b.timestamp || b.orderDate || 0));
         updateBadgeCounters();
         renderAdminOrders();
-
-        // Refresh analytics in background if tab is active
-        const analyticsSection = document.getElementById('adminTabSection-analytics');
-        if (analyticsSection && !analyticsSection.classList.contains('hidden')) {
-            fetchAdminAnalytics();
-        }
+        fetchAdminAnalytics();
     })
     .catch(() => {});
 }
@@ -441,21 +438,22 @@ function updateBadgeCounters() {
 
     const activeTotal = approval + printing + ready;
 
-    if (document.getElementById('headerTotalBadge')) document.getElementById('headerTotalBadge').textContent = `${activeTotal} Active Orders`;
-    if (document.getElementById('badgeCountApproval')) document.getElementById('badgeCountApproval').textContent = approval;
-    if (document.getElementById('badgeCountPrinting')) document.getElementById('badgeCountPrinting').textContent = printing;
-    if (document.getElementById('badgeCountReady')) document.getElementById('badgeCountReady').textContent = ready;
+    if (document.getElementById('headerTotalBadge')) document.getElementById('headerTotalBadge').textContent = `${formatInteger(activeTotal)} Active Orders`;
+    if (document.getElementById('badgeCountApproval')) document.getElementById('badgeCountApproval').textContent = formatInteger(approval);
+    if (document.getElementById('badgeCountPrinting')) document.getElementById('badgeCountPrinting').textContent = formatInteger(printing);
+    if (document.getElementById('badgeCountReady')) document.getElementById('badgeCountReady').textContent = formatInteger(ready);
 
-    if (document.getElementById('pillCountAll')) document.getElementById('pillCountAll').textContent = activeTotal;
-    if (document.getElementById('pillCountApproval')) document.getElementById('pillCountApproval').textContent = approval;
-    if (document.getElementById('pillCountPrinting')) document.getElementById('pillCountPrinting').textContent = printing;
-    if (document.getElementById('pillCountPickup')) document.getElementById('pillCountPickup').textContent = ready;
-    if (document.getElementById('pillCountCompleted')) document.getElementById('pillCountCompleted').textContent = completed;
-    if (document.getElementById('pillCountRejected')) document.getElementById('pillCountRejected').textContent = rejected;
+    if (document.getElementById('pillCountAll')) document.getElementById('pillCountAll').textContent = formatInteger(activeTotal);
+    if (document.getElementById('pillCountApproval')) document.getElementById('pillCountApproval').textContent = formatInteger(approval);
+    if (document.getElementById('pillCountPrinting')) document.getElementById('pillCountPrinting').textContent = formatInteger(printing);
+    if (document.getElementById('pillCountPickup')) document.getElementById('pillCountPickup').textContent = formatInteger(ready);
+    if (document.getElementById('pillCountCompleted')) document.getElementById('pillCountCompleted').textContent = formatInteger(completed);
+    if (document.getElementById('pillCountRejected')) document.getElementById('pillCountRejected').textContent = formatInteger(rejected);
 }
 
 function setAdminStatusFilter(statusKey) {
     currentAdminStatusFilter = statusKey;
+    currentAdminPage = 1; // Reset to page 1 on filter change
     document.querySelectorAll('.admin-status-pill').forEach(btn => {
         btn.className = "admin-status-pill px-4 py-1.5 rounded-xl bg-slate-100 text-slate-600 hover:bg-slate-200 transition cursor-pointer whitespace-nowrap";
     });
@@ -465,6 +463,7 @@ function setAdminStatusFilter(statusKey) {
 }
 
 function filterAdminOrders() {
+    currentAdminPage = 1; // Reset page
     renderAdminOrders();
 }
 
@@ -472,6 +471,11 @@ function toggleAdminViewMode(mode) {
     currentAdminViewMode = mode;
     document.getElementById('viewBtn-list').className = mode === 'list' ? 'px-3 py-1.5 rounded-lg bg-white text-slate-900 shadow-2xs cursor-pointer' : 'px-3 py-1.5 rounded-lg text-slate-600 hover:text-slate-900 cursor-pointer';
     document.getElementById('viewBtn-cards').className = mode === 'cards' ? 'px-3 py-1.5 rounded-lg bg-white text-slate-900 shadow-2xs cursor-pointer' : 'px-3 py-1.5 rounded-lg text-slate-600 hover:text-slate-900 cursor-pointer';
+    renderAdminOrders();
+}
+
+function changeAdminPage(newPage) {
+    currentAdminPage = newPage;
     renderAdminOrders();
 }
 
@@ -486,7 +490,6 @@ function renderAdminOrders() {
         const s = (o.status || '').toLowerCase();
         const matchesSearch = (o.id || '').toLowerCase().includes(searchTerm) || (o.customer || '').toLowerCase().includes(searchTerm) || (o.service || '').toLowerCase().includes(searchTerm);
         
-        // SMART FLEXIBLE SERVICE FILTERING (WALANG LUSOT / HINDI NA "NO MATCHING ORDERS FOUND")
         let matchesService = true;
         if (serviceFilter !== 'all') {
             const sName = (o.service || o.serviceType || o.paperSize || '').toLowerCase();
@@ -535,8 +538,18 @@ function renderAdminOrders() {
         return;
     }
 
+    // PAGINATION LOGIC
+    const totalPages = Math.ceil(filtered.length / adminPageSize) || 1;
+    if (currentAdminPage > totalPages) currentAdminPage = totalPages;
+    if (currentAdminPage < 1) currentAdminPage = 1;
+
+    const startIndex = (currentAdminPage - 1) * adminPageSize;
+    const pagedOrders = filtered.slice(startIndex, startIndex + adminPageSize);
+
+    let contentHTML = '';
+
     if (currentAdminViewMode === 'list') {
-        container.innerHTML = `
+        contentHTML = `
             <div class="overflow-x-visible">
                 <table class="w-full text-left text-xs">
                     <thead class="bg-slate-50 border-b border-slate-200 text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">
@@ -551,18 +564,46 @@ function renderAdminOrders() {
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-100">
-                        ${filtered.map(o => renderAdminRowHTML(o)).join('')}
+                        ${pagedOrders.map(o => renderAdminRowHTML(o)).join('')}
                     </tbody>
                 </table>
             </div>
         `;
     } else {
-        container.innerHTML = `
+        contentHTML = `
             <div class="p-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                ${filtered.map(o => renderAdminCardHTML(o)).join('')}
+                ${pagedOrders.map(o => renderAdminCardHTML(o)).join('')}
             </div>
         `;
     }
+
+    // PAGINATION CONTROLS HTML
+    let paginationBtns = '';
+    for (let i = 1; i <= totalPages; i++) {
+        const isActive = i === currentAdminPage;
+        paginationBtns += `
+            <button onclick="changeAdminPage(${i})" class="w-8 h-8 rounded-xl text-xs font-bold transition ${isActive ? 'bg-slate-900 text-white' : 'bg-slate-100 hover:bg-slate-200 text-slate-700'}">${i}</button>
+        `;
+    }
+
+    const paginationHTML = `
+        <div class="p-4 border-t border-slate-100 bg-slate-50/50 flex flex-col sm:flex-row justify-between items-center gap-3 text-xs">
+            <span class="text-slate-500 font-medium">
+                Showing <strong class="text-slate-800">${startIndex + 1}</strong> to <strong class="text-slate-800">${Math.min(startIndex + adminPageSize, filtered.length)}</strong> of <strong class="text-slate-800">${filtered.length}</strong> orders
+            </span>
+            <div class="flex items-center gap-1.5">
+                <button onclick="changeAdminPage(${currentAdminPage - 1})" ${currentAdminPage === 1 ? 'disabled' : ''} class="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 disabled:opacity-40 disabled:hover:bg-slate-100 text-slate-700 font-bold transition text-xs">
+                    <i class="fas fa-chevron-left text-[10px] mr-1"></i> Prev
+                </button>
+                ${paginationBtns}
+                <button onclick="changeAdminPage(${currentAdminPage + 1})" ${currentAdminPage === totalPages ? 'disabled' : ''} class="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 disabled:opacity-40 disabled:hover:bg-slate-100 text-slate-700 font-bold transition text-xs">
+                    Next <i class="fas fa-chevron-right text-[10px] ml-1"></i>
+                </button>
+            </div>
+        </div>
+    `;
+
+    container.innerHTML = contentHTML + paginationHTML;
 }
 
 function renderAdminRowHTML(o) {
@@ -590,8 +631,6 @@ function renderAdminRowHTML(o) {
     }
 
     const isFinished = s.includes('complete') || s.includes('reject');
-
-    // File Link URL
     const fileTarget = o.fileUrl || o.file_url || o.url || (typeof o.file === 'string' && (o.file.startsWith('http') || o.file.startsWith('/')) ? o.file : null);
 
     return `
@@ -600,25 +639,23 @@ function renderAdminRowHTML(o) {
             <td class="p-4 font-bold text-slate-800">${o.customer || 'Guest'}</td>
             <td class="p-4">
                 <div class="font-bold text-slate-900">${o.service}</div>
-                <div class="text-[10px] text-slate-400">${o.paperSize || 'Custom Specs'} • ${o.copies || 1} copies • ${o.orderDate || 'Today'}</div>
+                <div class="text-[10px] text-slate-400">${o.paperSize || 'Custom Specs'} • ${formatInteger(o.copies || 1)} copies • ${o.orderDate || 'Today'}</div>
             </td>
             <td class="p-4"><span class="border px-2.5 py-1 rounded-full text-[10px] font-bold ${payBadge}">${o.payment || 'GCash'}</span></td>
-            <td class="p-4 font-mono font-extrabold text-slate-900">₱${parseFloat(o.total || 0).toFixed(2)}</td>
+            <td class="p-4 font-mono font-extrabold text-slate-900">${formatCurrency(o.total || 0)}</td>
             <td class="p-4">${statusPill}</td>
             <td class="p-4 text-right">
                 <div class="flex items-center justify-end gap-2 relative">
-                    
                     ${!isFinished ? `
-                        <!-- Dynamic Primary Action Button with Chevron Menu -->
-                        <div class="relative inline-flex items-center rounded-xl shadow-2xs status-dropdown-container z-30">
+                        <div class="relative inline-flex items-center rounded-xl shadow-2xs status-dropdown-container">
                             <button onclick="updateOrderStatusFromBackend('${o.id}', '${nextStatus}')" class="${btnBg} text-white font-bold text-xs px-3 py-1.5 rounded-l-xl transition flex items-center gap-1.5 cursor-pointer">
                                 <span>${btnText}</span>
                             </button>
-                            <button onclick="toggleStatusDropdownMenu(event, '${o.id}')" class="${btnBg} text-white font-bold text-xs px-2 py-1.5 rounded-r-xl border-l border-white/20 transition cursor-pointer" title="More status options">
+                            <button onclick="toggleStatusDropdownMenu(event, '${o.id}')" class="${btnBg} text-white font-bold text-xs px-2 py-1.5 rounded-r-xl border-l border-white/20 transition cursor-pointer">
                                 <i class="fas fa-chevron-down text-[9px]"></i>
                             </button>
 
-                            <div id="statusMenu-${o.id}" class="status-dropdown-menu absolute right-0 top-full mt-1 w-44 bg-white rounded-2xl shadow-xl border border-slate-200 hidden z-50 text-left overflow-hidden divide-y divide-slate-100">
+                            <div id="statusMenu-${o.id}" class="status-dropdown-menu absolute right-0 top-full mt-1 w-44 bg-white rounded-2xl shadow-xl border border-slate-200 hidden text-left overflow-hidden divide-y divide-slate-100">
                                 <button onclick="updateOrderStatusFromBackend('${o.id}', 'Approved')" class="w-full px-3.5 py-2 hover:bg-blue-50 text-blue-700 font-bold text-xs text-left block cursor-pointer">✓ Approved</button>
                                 <button onclick="updateOrderStatusFromBackend('${o.id}', 'Printing')" class="w-full px-3.5 py-2 hover:bg-indigo-50 text-indigo-700 font-bold text-xs text-left block cursor-pointer">🖨️ Start Printing</button>
                                 <button onclick="updateOrderStatusFromBackend('${o.id}', 'Ready for Pickup')" class="w-full px-3.5 py-2 hover:bg-amber-50 text-amber-700 font-bold text-xs text-left block cursor-pointer">📦 Ready for Pickup</button>
@@ -627,12 +664,11 @@ function renderAdminRowHTML(o) {
                         </div>
                     ` : ''}
 
-                    <!-- 3-Dots Action Dropdown Menu -->
-                    <div class="relative action-menu-container z-30">
+                    <div class="relative action-menu-container">
                         <button onclick="toggleActionMenuDropdown(event, '${o.id}')" class="w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center transition cursor-pointer">
                             <i class="fas fa-ellipsis-v text-xs"></i>
                         </button>
-                        <div id="actionMenu-${o.id}" class="action-menu-dropdown absolute right-0 top-full mt-1 w-44 bg-white rounded-2xl shadow-xl border border-slate-200 hidden z-50 text-left overflow-hidden divide-y divide-slate-100">
+                        <div id="actionMenu-${o.id}" class="action-menu-dropdown absolute right-0 top-full mt-1 w-44 bg-white rounded-2xl shadow-xl border border-slate-200 hidden text-left overflow-hidden divide-y divide-slate-100">
                             <button onclick="openReviewSpecsModal('${o.id}')" class="w-full px-3.5 py-2 hover:bg-slate-50 text-slate-700 font-medium text-xs text-left flex items-center gap-2 cursor-pointer">
                                 <i class="fas fa-eye text-blue-600"></i> Review Specs & File
                             </button>
@@ -679,13 +715,13 @@ function renderAdminCardHTML(o) {
                 <div>
                     <h4 class="font-bold text-slate-900 text-xs">${o.service}</h4>
                     <p class="text-[10px] text-slate-500">Customer: ${o.customer || 'Guest'}</p>
-                    <p class="text-[10px] text-slate-400 pt-0.5">${o.paperSize || 'Custom Specs'} • ${o.copies || 1} copies</p>
+                    <p class="text-[10px] text-slate-400 pt-0.5">${o.paperSize || 'Custom Specs'} • ${formatInteger(o.copies || 1)} copies</p>
                 </div>
             </div>
 
             <div class="pt-2 border-t border-slate-100 space-y-2">
                 <div class="flex justify-between items-center">
-                    <span class="font-mono font-extrabold text-slate-900 text-xs">₱${parseFloat(o.total || 0).toFixed(2)}</span>
+                    <span class="font-mono font-extrabold text-slate-900 text-xs">${formatCurrency(o.total || 0)}</span>
                     ${statusPill}
                 </div>
                 <div class="flex items-center gap-2 pt-1">
@@ -711,20 +747,40 @@ function getStatusPillHTML(status) {
 
 function toggleStatusDropdownMenu(event, orderId) {
     event.stopPropagation();
+    const targetMenu = document.getElementById(`statusMenu-${orderId}`);
+    const isHidden = targetMenu ? targetMenu.classList.contains('hidden') : true;
+
     document.querySelectorAll('.status-dropdown-menu, .action-menu-dropdown').forEach(m => {
         if (m.id !== `statusMenu-${orderId}`) m.classList.add('hidden');
     });
-    const menu = document.getElementById(`statusMenu-${orderId}`);
-    if (menu) menu.classList.toggle('hidden');
+    document.querySelectorAll('#adminOrdersContainer tr').forEach(tr => tr.classList.remove('dropdown-open'));
+
+    if (targetMenu) {
+        targetMenu.classList.toggle('hidden');
+        if (isHidden) {
+            const tr = targetMenu.closest('tr');
+            if (tr) tr.classList.add('dropdown-open');
+        }
+    }
 }
 
 function toggleActionMenuDropdown(event, orderId) {
     event.stopPropagation();
+    const targetMenu = document.getElementById(`actionMenu-${orderId}`);
+    const isHidden = targetMenu ? targetMenu.classList.contains('hidden') : true;
+
     document.querySelectorAll('.status-dropdown-menu, .action-menu-dropdown').forEach(m => {
         if (m.id !== `actionMenu-${orderId}`) m.classList.add('hidden');
     });
-    const menu = document.getElementById(`actionMenu-${orderId}`);
-    if (menu) menu.classList.toggle('hidden');
+    document.querySelectorAll('#adminOrdersContainer tr').forEach(tr => tr.classList.remove('dropdown-open'));
+
+    if (targetMenu) {
+        targetMenu.classList.toggle('hidden');
+        if (isHidden) {
+            const tr = targetMenu.closest('tr');
+            if (tr) tr.classList.add('dropdown-open');
+        }
+    }
 }
 
 function updateOrderStatusFromBackend(orderId, newStatus) {
@@ -735,9 +791,10 @@ function updateOrderStatusFromBackend(orderId, newStatus) {
     })
     .then(res => res.json())
     .then(data => {
-        if (data && data.success) {
-            fetchAdminOrders();
-            fetchAdminAnalytics();
+        if (data && (data.success || data.status === 'success')) {
+            fetchAdminOrders().then(() => {
+                fetchAdminAnalytics();
+            });
         }
     });
 }
@@ -757,10 +814,10 @@ function openReviewSpecsModal(orderId) {
             <div class="space-y-1"><strong>Customer:</strong> ${o.customer || 'Guest'}</div>
             <div class="space-y-1"><strong>Service:</strong> ${o.service}</div>
             <div class="space-y-1"><strong>Paper Specs:</strong> ${o.paperSize || 'Standard Specs'}</div>
-            <div class="space-y-1"><strong>Copies / Quantity:</strong> ${o.copies || 1}</div>
+            <div class="space-y-1"><strong>Copies / Quantity:</strong> ${formatInteger(o.copies || 1)}</div>
             <div class="space-y-1"><strong>Color Mode:</strong> ${o.colorMode || 'Full Color'}</div>
             <div class="space-y-1"><strong>Payment Method:</strong> ${o.payment}</div>
-            <div class="space-y-1"><strong>Total Amount:</strong> ₱${parseFloat(o.total || 0).toFixed(2)}</div>
+            <div class="space-y-1"><strong>Total Amount:</strong> ${formatCurrency(o.total || 0)}</div>
             <div class="space-y-1"><strong>Submitted Time:</strong> ${o.orderDate || 'Today'}</div>
             
             <div class="pt-3 border-t border-slate-100 space-y-2">
@@ -800,8 +857,8 @@ function openPrintSlipModal(orderId) {
             <div>JOB TICKET #: ${o.id}</div>
             <div>CLIENT: ${o.customer}</div>
             <div>SERVICE: ${o.service}</div>
-            <div>COPIES: ${o.copies || 1} pcs</div>
-            <div>TOTAL: ₱${parseFloat(o.total || 0).toFixed(2)}</div>
+            <div>COPIES: ${formatInteger(o.copies || 1)} pcs</div>
+            <div>TOTAL: ${formatCurrency(o.total || 0)}</div>
             <div>PAYMENT: ${o.payment}</div>
             <div>STATUS: ${o.status}</div>
             <div class="text-right text-[9px] text-slate-400 pt-2">${new Date().toLocaleString()}</div>
@@ -839,27 +896,79 @@ function confirmRejectOrderAction() {
     .then(res => res.json())
     .then(() => {
         closeRejectModal();
-        fetchAdminOrders();
-        fetchAdminAnalytics();
+        fetchAdminOrders().then(() => {
+            fetchAdminAnalytics();
+        });
     });
 }
 
 function fetchAdminAnalytics() {
-    fetch('/api/analytics')
-    .then(res => res.json())
-    .then(data => {
-        if (!data) return;
+    let totalSales = 0;
+    let totalOrders = allAdminOrdersCache.length;
+    let totalPages = 0;
+    let customerSet = new Set();
+    let statusCounts = {};
+    let serviceBreakdown = {};
+    let printRev = 0;
+    let storeRev = 0;
 
-        if (document.getElementById('statTotalSales')) document.getElementById('statTotalSales').textContent = `₱${parseFloat(data.totalSales || 0).toFixed(2)}`;
-        if (document.getElementById('statTotalOrders')) document.getElementById('statTotalOrders').textContent = data.totalOrders || 0;
-        if (document.getElementById('statTotalPages')) document.getElementById('statTotalPages').textContent = (data.totalPagesPrinted || 0).toLocaleString();
-        if (document.getElementById('statAvgOrder')) document.getElementById('statAvgOrder').textContent = `₱${parseFloat(data.avgOrderValue || 0).toFixed(2)}`;
-        if (document.getElementById('statActiveCust')) document.getElementById('statActiveCust').textContent = data.activeCustomers || 0;
-        if (document.getElementById('statStoreRevenue')) document.getElementById('statStoreRevenue').textContent = `₱${parseFloat(data.storeRevenue || 0).toFixed(2)}`;
+    allAdminOrdersCache.forEach(o => {
+        let status = o.status || 'Order Submitted';
+        let service = o.service || 'Standard Print';
+        let price = parseFloat(o.total || o.price || o.amount || 0) || 0;
+        let copies = parseInt(o.copies || o.quantity || o.qty || 1) || 1;
+        let pagesPerCopy = parseInt(o.pages || o.pageCount || 1) || 1;
 
-        renderAnalyticsCharts(data);
-    })
-    .catch(() => {});
+        totalSales += price;
+        totalPages += (copies * pagesPerCopy);
+        
+        if (o.customer || o.email) {
+            customerSet.add(strClean(o.customer || o.email));
+        }
+
+        let cleanStatus = "Order Submitted";
+        let sLower = String(status).toLowerCase();
+        if (sLower.includes('reject')) cleanStatus = "Rejected";
+        else if (sLower.includes('complete')) cleanStatus = "Completed";
+        else if (sLower.includes('ready') || sLower.includes('pickup')) cleanStatus = "Ready for Pickup";
+        else if (sLower.includes('print')) cleanStatus = "Printing";
+        else if (sLower.includes('approve')) cleanStatus = "Approved";
+
+        statusCounts[cleanStatus] = (statusCounts[cleanStatus] || 0) + 1;
+        serviceBreakdown[service] = (serviceBreakdown[service] || 0) + 1;
+
+        let sName = service.toLowerCase();
+        if (sName.includes('store') || sName.includes('supply') || sName.includes('supplies') || sName.includes('in-store') || sName.includes('notebook') || sName.includes('pen')) {
+            storeRev += price;
+        } else {
+            printRev += price;
+        }
+    });
+
+    const computedData = {
+        totalSales: totalSales,
+        totalOrders: totalOrders,
+        totalPagesPrinted: totalPages,
+        avgOrderValue: totalOrders > 0 ? (totalSales / totalOrders) : 0,
+        activeCustomers: customerSet.size || 0,
+        storeRevenue: storeRev,
+        printRevenue: printRev,
+        statusCounts: statusCounts,
+        serviceBreakdown: serviceBreakdown
+    };
+
+    if (document.getElementById('statTotalSales')) document.getElementById('statTotalSales').textContent = formatCurrency(computedData.totalSales);
+    if (document.getElementById('statTotalOrders')) document.getElementById('statTotalOrders').textContent = formatInteger(computedData.totalOrders);
+    if (document.getElementById('statTotalPages')) document.getElementById('statTotalPages').textContent = formatInteger(computedData.totalPagesPrinted);
+    if (document.getElementById('statAvgOrder')) document.getElementById('statAvgOrder').textContent = formatCurrency(computedData.avgOrderValue);
+    if (document.getElementById('statActiveCust')) document.getElementById('statActiveCust').textContent = formatInteger(computedData.activeCustomers);
+    if (document.getElementById('statStoreRevenue')) document.getElementById('statStoreRevenue').textContent = formatCurrency(computedData.storeRevenue);
+
+    renderAnalyticsCharts(computedData);
+}
+
+function strClean(val) {
+    return String(val || '').toLowerCase().trim();
 }
 
 function renderAnalyticsCharts(data) {
@@ -868,9 +977,8 @@ function renderAnalyticsCharts(data) {
         return;
     }
 
-    // Chart 1: Order Status Distribution (Doughnut)
     const statusCtx = document.getElementById('chartOrderStatus')?.getContext('2d');
-    if (statusCtx && data.statusCounts) {
+    if (statusCtx && data.statusCounts && Object.keys(data.statusCounts).length > 0) {
         if (chartStatusObj) chartStatusObj.destroy();
         chartStatusObj = new Chart(statusCtx, {
             type: 'doughnut',
@@ -893,9 +1001,8 @@ function renderAnalyticsCharts(data) {
         });
     }
 
-    // Chart 2: Service Volume Breakdown (Bar)
     const serviceCtx = document.getElementById('chartServiceVolume')?.getContext('2d');
-    if (serviceCtx && data.serviceBreakdown) {
+    if (serviceCtx && data.serviceBreakdown && Object.keys(data.serviceBreakdown).length > 0) {
         if (chartServicesObj) chartServicesObj.destroy();
         chartServicesObj = new Chart(serviceCtx, {
             type: 'bar',
@@ -921,16 +1028,19 @@ function renderAnalyticsCharts(data) {
         });
     }
 
-    // Chart 3: Revenue Share Comparison (Pie)
     const revCtx = document.getElementById('chartRevenueShare')?.getContext('2d');
     if (revCtx) {
         if (chartRevenueObj) chartRevenueObj.destroy();
+        
+        const printVal = data.printRevenue || (data.totalSales - (data.storeRevenue || 0));
+        const storeVal = data.storeRevenue || 0;
+
         chartRevenueObj = new Chart(revCtx, {
             type: 'pie',
             data: {
                 labels: ['Print Services', 'Store Supplies'],
                 datasets: [{
-                    data: [data.printRevenue || 0, data.storeRevenue || 0],
+                    data: [printVal > 0 ? printVal : 1, storeVal],
                     backgroundColor: ['#2563eb', '#ea580c'],
                     borderWidth: 2,
                     borderColor: '#ffffff'

@@ -1,154 +1,489 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="max-w-5xl mx-auto my-8 sm:my-12 bg-white/90 backdrop-blur-md rounded-3xl shadow-2xl border border-slate-100 overflow-hidden flex flex-col md:flex-row">
-
-  <!-- LEFT BANNER WITH OFFICIAL BRAND GRADIENT THEME -->
-  <div class="md:w-1/2 bg-gradient-to-tr from-[#f09433] via-[#dc2743] to-[#bc1888] p-8 sm:p-12 text-white flex flex-col justify-between relative overflow-hidden">
-    <div class="absolute -top-16 -left-16 w-64 h-64 bg-white/10 rounded-full blur-2xl pointer-events-none"></div>
-    <div class="absolute -bottom-16 -right-16 w-64 h-64 bg-black/10 rounded-full blur-2xl pointer-events-none"></div>
-
-    <div class="relative z-10 space-y-4">
-      <div class="inline-flex items-center gap-2 bg-white/20 backdrop-blur-md px-3.5 py-1.5 rounded-full text-xs font-bold text-white border border-white/20">
-        <div class="w-7 h-7 rounded-lg bg-white text-[#dc2743] flex items-center justify-center font-black text-xs shadow-sm">
-          KCZ
+<div class="min-h-[80vh] flex items-center justify-center p-4">
+    <div class="bg-white border border-slate-200 rounded-3xl max-w-md w-full p-8 shadow-2xl space-y-6">
+        
+        <!-- Back to Home Link -->
+        <div>
+            <a href="/" class="text-xs font-bold text-slate-400 hover:text-slate-600 transition flex items-center gap-1">
+                <i class="fas fa-arrow-left text-[10px]"></i> Back to home
+            </a>
         </div>
-        <span>Kez C-Em Zek</span>
-      </div>
 
-      <h2 class="text-2xl sm:text-4xl font-black tracking-tight leading-tight pt-4">
-        Manage your prints, orders, at pickup — in one account.
-      </h2>
-
-      <p class="text-xs sm:text-sm text-white/80 leading-relaxed font-medium">
-        Track order status, i-save ang mga design mo, at bilisan ang pag-reorder. Pickup lang sa shop, bayad online o cash.
-      </p>
-    </div>
-
-    <div class="relative z-10 pt-12 text-[11px] text-white/70 font-medium">
-      &copy; 2026 Kez C-Em Zek Printing Services
-    </div>
-  </div>
-
-  <!-- RIGHT FORM CONTAINER -->
-  <div class="md:w-1/2 p-8 sm:p-12 flex flex-col justify-center bg-white">
-
-    <a href="/" class="text-xs font-bold text-slate-400 hover:text-[#dc2743] transition-colors mb-6 inline-flex items-center gap-1.5">
-      <i class="fa-solid fa-arrow-left text-[10px]"></i> Back to home
-    </a>
-
-    <!-- ERROR ALERT BOX -->
-    <div id="errorAlert" class="hidden mb-6 p-4 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-medium">
-      <div class="flex items-center gap-2 mb-1">
-        <i class="fa-solid fa-circle-exclamation text-sm"></i>
-        <strong class="font-bold">Validation Error</strong>
-      </div>
-      <p id="errorMessage">May error sa server connection.</p>
-    </div>
-
-    <!-- ROLE TOGGLE TABS -->
-    <div class="flex bg-slate-100 p-1.5 rounded-2xl mb-6 text-xs font-bold text-slate-600">
-      <button type="button" id="tabCustomer" onclick="switchRole('customer')" class="flex-1 py-2.5 rounded-xl bg-white text-[#dc2743] shadow-sm flex items-center justify-center gap-2 transition-all cursor-pointer">
-        <i class="fa-solid fa-user"></i> Customer
-      </button>
-      <button type="button" id="tabAdmin" onclick="switchRole('admin')" class="flex-1 py-2.5 rounded-xl text-slate-500 hover:text-slate-800 flex items-center justify-center gap-2 transition-all cursor-pointer">
-        <i class="fa-solid fa-shield-halved"></i> Admin
-      </button>
-    </div>
-
-    <h2 class="text-2xl font-black text-slate-900 tracking-tight mb-1">Welcome back</h2>
-    <p class="text-xs text-slate-500 mb-6">Sign in to track orders and reorder faster.</p>
-
-    <!-- LOGIN FORM -->
-    <form id="loginForm" onsubmit="handleLogin(event)" class="space-y-4">
-      <input type="hidden" id="selectedRole" value="customer">
-
-      <div>
-        <label class="block text-xs font-bold text-slate-700 mb-1">Email</label>
-        <input type="email" id="emailInput" required class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#dc2743] text-xs font-medium bg-slate-50/50" placeholder="customer@kezcemzek.com">
-      </div>
-
-      <div>
-        <div class="flex justify-between items-center mb-1">
-          <label class="block text-xs font-bold text-slate-700">Password</label>
-          <a href="#" class="text-xs text-[#dc2743] font-semibold hover:underline">Forgot password?</a>
+        <!-- Header Titles -->
+        <div class="space-y-1">
+            <h1 class="text-3xl font-black text-slate-900 tracking-tight">Welcome back</h1>
+            <p class="text-xs font-medium text-slate-400">Sign in to track orders and reorder faster.</p>
         </div>
-        <input type="password" id="passwordInput" required class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#dc2743] text-xs font-medium bg-slate-50/50" placeholder="••••••••">
-      </div>
 
-      <button type="submit" id="submitBtn" class="w-full py-3.5 bg-gradient-to-r from-[#f09433] via-[#dc2743] to-[#bc1888] hover:opacity-95 text-white font-bold text-xs rounded-xl transition-all shadow-md cursor-pointer mt-2">
-        Sign In
-      </button>
-    </form>
+        <!-- Alert Notification Message Box -->
+        <div id="loginAlertBox" class="hidden p-3.5 rounded-2xl text-xs font-bold flex items-center gap-2"></div>
 
-    <p class="text-center text-xs text-slate-500 mt-6 font-medium">
-      Wala pang account? <a href="#" class="text-[#dc2743] font-bold hover:underline">Sign up</a>
-    </p>
+        <!-- Single Clean Login Form (No Admin/Customer Choices Toggle) -->
+        <form id="loginForm" onsubmit="handleSingleLoginSubmit(event)" class="space-y-4">
+            <!-- Email Input -->
+            <div class="space-y-1.5">
+                <label for="loginEmail" class="block text-xs font-bold text-slate-700">Email Address (@gmail.com)</label>
+                <input 
+                    type="email" 
+                    id="loginEmail" 
+                    required 
+                    placeholder="customer@gmail.com" 
+                    class="w-full bg-slate-50/80 border border-slate-200 rounded-2xl px-4 py-3 text-xs font-medium text-slate-800 focus:outline-none focus:border-fuchsia-600 focus:bg-white transition"
+                >
+            </div>
 
-  </div>
+            <!-- Password Input -->
+            <div class="space-y-1.5">
+                <div class="flex items-center justify-between">
+                    <label for="loginPassword" class="block text-xs font-bold text-slate-700">Password</label>
+                    <button type="button" onclick="openForgotPasswordModal()" class="text-xs font-bold text-fuchsia-600 hover:text-fuchsia-700 cursor-pointer">Forgot password?</button>
+                </div>
+                <input 
+                    type="password" 
+                    id="loginPassword" 
+                    required 
+                    placeholder="••••••••" 
+                    class="w-full bg-slate-50/80 border border-slate-200 rounded-2xl px-4 py-3 text-xs font-medium text-slate-800 focus:outline-none focus:border-fuchsia-600 focus:bg-white transition"
+                >
+            </div>
+
+            <!-- LOGIN TERMS & CONDITIONS CHECKBOX -->
+            <div class="flex items-center gap-2 pt-1">
+                <input type="checkbox" id="loginTerms" required class="w-4 h-4 rounded border-slate-300 text-rose-600 focus:ring-rose-500 cursor-pointer">
+                <label for="loginTerms" class="text-xs font-semibold text-slate-600 cursor-pointer select-none">
+                    Sumasang-ayon ako sa <button type="button" onclick="openTermsModal()" class="font-extrabold text-rose-600 hover:underline cursor-pointer">Terms & Conditions</button>
+                </label>
+            </div>
+
+            <!-- Submit Button -->
+            <button 
+                type="submit" 
+                id="loginSubmitBtn" 
+                class="w-full bg-gradient-to-r from-amber-500 via-rose-500 to-fuchsia-600 hover:opacity-95 text-white font-extrabold text-sm py-3.5 rounded-2xl transition shadow-lg shadow-rose-500/20 cursor-pointer mt-2"
+            >
+                Sign In
+            </button>
+        </form>
+
+        <!-- Bottom Sign Up Redirection Link -->
+        <div class="text-center pt-2">
+            <p class="text-xs font-semibold text-slate-500">
+                Wala pang account? 
+                <button type="button" onclick="openSignUpModal()" class="font-extrabold text-rose-600 hover:underline cursor-pointer">Sign up</button>
+            </p>
+        </div>
+
+    </div>
+</div>
+
+<!-- MODAL 1: CREATE ACCOUNT / SIGN UP MODAL -->
+<div id="signUpModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-md w-full p-6 space-y-4 shadow-2xl border border-slate-200">
+        <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+            <h3 class="font-extrabold text-slate-900 text-sm">Create New Account</h3>
+            <button type="button" onclick="closeSignUpModal()" class="text-slate-400 hover:text-slate-600 p-1 cursor-pointer">
+                <i class="fas fa-times text-sm"></i>
+            </button>
+        </div>
+
+        <div id="signUpAlert" class="hidden p-3 rounded-xl text-xs font-bold"></div>
+
+        <!-- STEP 1: Enter Registration Details & Terms -->
+        <div id="signUpStep1" class="space-y-3 text-xs">
+            <div>
+                <label class="font-bold text-slate-700 block mb-1">Full Name</label>
+                <input type="text" id="signUpName" required placeholder="Juan Dela Cruz" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 focus:outline-none focus:border-fuchsia-600">
+            </div>
+            <div>
+                <label class="font-bold text-slate-700 block mb-1">Contact Number</label>
+                <input type="text" id="signUpContact" required placeholder="09171234567" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 focus:outline-none focus:border-fuchsia-600">
+            </div>
+            <div>
+                <label class="font-bold text-slate-700 block mb-1">Gmail Address (*.gmail.com)</label>
+                <input type="email" id="signUpEmail" required placeholder="juan@gmail.com" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 focus:outline-none focus:border-fuchsia-600">
+            </div>
+            <div>
+                <label class="font-bold text-slate-700 block mb-1">Password</label>
+                <input type="password" id="signUpPassword" required placeholder="••••••••" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 focus:outline-none focus:border-fuchsia-600">
+            </div>
+
+            <!-- SIGN UP TERMS & CONDITIONS CHECKBOX -->
+            <div class="flex items-start gap-2 pt-1">
+                <input type="checkbox" id="signUpTerms" required class="w-4 h-4 rounded border-slate-300 text-rose-600 focus:ring-rose-500 cursor-pointer mt-0.5">
+                <label for="signUpTerms" class="text-[11px] font-semibold text-slate-600 cursor-pointer select-none leading-tight">
+                    Sumasang-ayon ako sa <button type="button" onclick="openTermsModal()" class="font-extrabold text-rose-600 hover:underline cursor-pointer">Terms & Conditions</button> (Ang hindi mai-claim na prints sa loob ng 30 araw ay ida-dispose na).
+                </label>
+            </div>
+
+            <div class="flex gap-2 pt-2">
+                <button type="button" onclick="requestSignUpOTP()" id="btnSendSignUpOTP" class="flex-1 bg-fuchsia-600 hover:bg-fuchsia-700 text-white font-bold py-2.5 rounded-xl transition cursor-pointer">
+                    Send Verification Code
+                </button>
+                <button type="button" onclick="closeSignUpModal()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-4 py-2.5 rounded-xl transition cursor-pointer">
+                    Cancel
+                </button>
+            </div>
+        </div>
+
+        <!-- STEP 2: Input OTP Verification Code -->
+        <div id="signUpStep2" class="hidden space-y-3 text-xs">
+            <p class="text-slate-500">Ipasok ang 6-digit verification code na ipinadala sa iyong Gmail address.</p>
+            <div>
+                <label class="font-bold text-slate-700 block mb-1">6-Digit OTP Code</label>
+                <input type="text" id="signUpOTP" placeholder="123456" maxlength="6" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-center font-mono font-bold tracking-widest focus:outline-none focus:border-fuchsia-600">
+            </div>
+            <div class="flex gap-2 pt-2">
+                <button type="button" onclick="verifyAndCompleteSignUp()" id="btnCompleteSignUp" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 rounded-xl transition cursor-pointer">
+                    Verify & Create Account
+                </button>
+                <button type="button" onclick="backToSignUpStep1()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-3 py-2.5 rounded-xl transition cursor-pointer">
+                    Back
+                </button>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<!-- MODAL 2: FORGOT PASSWORD (OTP SMTP) MODAL -->
+<div id="forgotModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-sm w-full p-6 space-y-4 shadow-2xl border border-slate-200">
+        <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+            <h3 class="font-extrabold text-slate-900 text-sm">Forgot Password</h3>
+            <button type="button" onclick="closeForgotPasswordModal()" class="text-slate-400 hover:text-slate-600 p-1 cursor-pointer">
+                <i class="fas fa-times text-sm"></i>
+            </button>
+        </div>
+
+        <div id="forgotAlert" class="hidden p-3 rounded-xl text-xs font-bold"></div>
+
+        <!-- STEP 1: Enter Email to Request OTP -->
+        <div id="forgotStep1" class="space-y-3 text-xs">
+            <p class="text-slate-500">Ipasok ang iyong nakarehistrong Gmail address para magpadala kami ng 6-digit OTP code.</p>
+            <div>
+                <label class="font-bold text-slate-700 block mb-1">Your Registered Gmail Address</label>
+                <input type="email" id="forgotEmail" placeholder="juan@gmail.com" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 focus:outline-none focus:border-rose-600">
+            </div>
+            <button type="button" onclick="requestResetOTP()" id="btnSendOTP" class="w-full bg-rose-600 hover:bg-rose-700 text-white font-bold py-2.5 rounded-xl transition cursor-pointer">
+                Send OTP Code
+            </button>
+        </div>
+
+        <!-- STEP 2: Enter OTP and New Password -->
+        <div id="forgotStep2" class="hidden space-y-3 text-xs">
+            <p class="text-slate-500">Ipasok ang OTP code na ipinadala sa iyong Gmail at ilagay ang bagong password.</p>
+            <div>
+                <label class="font-bold text-slate-700 block mb-1">6-Digit OTP Code</label>
+                <input type="text" id="forgotOTP" placeholder="123456" maxlength="6" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-center font-mono font-bold tracking-widest focus:outline-none focus:border-rose-600">
+            </div>
+            <div>
+                <label class="font-bold text-slate-700 block mb-1">New Password</label>
+                <input type="password" id="forgotNewPass" placeholder="••••••••" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 focus:outline-none focus:border-rose-600">
+            </div>
+            <button type="button" onclick="submitNewPasswordWithOTP()" id="btnResetPass" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 rounded-xl transition cursor-pointer">
+                Change Password
+            </button>
+        </div>
+    </div>
 </div>
 
 <script>
-  let currentRole = 'customer';
+// HELPER CLIENT-SIDE GMAIL VALIDATOR
+function isValidGmailFormat(email) {
+    const gmailRegex = /^[a-zA-Z0-9._%+-]+@gmail\.com$/;
+    return gmailRegex.test(email.trim().toLowerCase());
+}
 
-  function switchRole(role) {
-    currentRole = role;
-    document.getElementById('selectedRole').value = role;
-    
-    const btnCust = document.getElementById('tabCustomer');
-    const btnAdmin = document.getElementById('tabAdmin');
+function handleSingleLoginSubmit(event) {
+    event.preventDefault();
+    const email = document.getElementById('loginEmail').value.trim();
+    const password = document.getElementById('loginPassword').value.trim();
+    const loginTerms = document.getElementById('loginTerms');
+    const alertBox = document.getElementById('loginAlertBox');
+    const submitBtn = document.getElementById('loginSubmitBtn');
 
-    if (role === 'admin') {
-      btnAdmin.className = "flex-1 py-2.5 rounded-xl bg-gradient-to-r from-[#f09433] via-[#dc2743] to-[#bc1888] text-white shadow-sm font-bold flex items-center justify-center gap-2 transition-all cursor-pointer";
-      btnCust.className = "flex-1 py-2.5 rounded-xl text-slate-500 hover:text-slate-800 flex items-center justify-center gap-2 transition-all cursor-pointer";
-    } else {
-      btnCust.className = "flex-1 py-2.5 rounded-xl bg-white text-[#dc2743] shadow-sm font-bold flex items-center justify-center gap-2 transition-all cursor-pointer";
-      btnAdmin.className = "flex-1 py-2.5 rounded-xl text-slate-500 hover:text-slate-800 flex items-center justify-center gap-2 transition-all cursor-pointer";
+    if (!email || !password) return;
+
+    if (!isValidGmailFormat(email)) {
+        alertBox.className = "p-3.5 rounded-2xl text-xs font-bold flex items-center gap-2 bg-rose-50 text-rose-700 border border-rose-200";
+        alertBox.innerHTML = `<i class="fas fa-exclamation-circle"></i> Siguraduhing valid na @gmail.com address ang gagamitin.`;
+        alertBox.classList.remove('hidden');
+        return;
     }
-  }
 
-  async function handleLogin(e) {
-    e.preventDefault();
-    
-    const alertBox = document.getElementById('errorAlert');
-    const errorMsg = document.getElementById('errorMessage');
-    const submitBtn = document.getElementById('submitBtn');
+    if (!loginTerms || !loginTerms.checked) {
+        alertBox.className = "p-3.5 rounded-2xl text-xs font-bold flex items-center gap-2 bg-rose-50 text-rose-700 border border-rose-200";
+        alertBox.innerHTML = `<i class="fas fa-exclamation-circle"></i> Paki-check at tanggapin ang Terms & Conditions.`;
+        alertBox.classList.remove('hidden');
+        return;
+    }
 
-    alertBox.classList.add('hidden');
     submitBtn.disabled = true;
-    submitBtn.innerText = "Signing in...";
+    submitBtn.textContent = 'Signing in...';
 
-    const email = document.getElementById('emailInput').value.trim();
-    const password = document.getElementById('passwordInput').value.trim();
-
-    try {
-      const response = await fetch('/login', {
+    fetch('/api/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          username: email,
-          email: email,
-          password: password,
-          role: currentRole
-        })
-      });
+        body: JSON.stringify({ email: email, password: password })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data && (data.success || data.status === 'success')) {
+            alertBox.className = "p-3.5 rounded-2xl text-xs font-bold flex items-center gap-2 bg-emerald-50 text-emerald-700 border border-emerald-200";
+            alertBox.innerHTML = `<i class="fas fa-check-circle"></i> Login successful! Redirecting...`;
+            alertBox.classList.remove('hidden');
 
-      const data = await response.json();
-
-      if (response.ok && data.status === 'success') {
-        window.location.href = data.redirect_url;
-      } else {
-        errorMsg.innerText = data.message || 'Maling credentials. Subukan ulit.';
+            setTimeout(() => {
+                window.location.href = data.redirect || data.redirectUrl || (email.toLowerCase().includes('admin') ? '/admin' : '/customer');
+            }, 800);
+        } else {
+            alertBox.className = "p-3.5 rounded-2xl text-xs font-bold flex items-center gap-2 bg-rose-50 text-rose-700 border border-rose-200";
+            alertBox.innerHTML = `<i class="fas fa-exclamation-circle"></i> ${data.message || 'May mali sa credentials.'}`;
+            alertBox.classList.remove('hidden');
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Sign In';
+        }
+    })
+    .catch(() => {
+        alertBox.className = "p-3.5 rounded-2xl text-xs font-bold flex items-center gap-2 bg-rose-50 text-rose-700 border border-rose-200";
+        alertBox.innerHTML = `<i class="fas fa-exclamation-circle"></i> Connection error. Try again.`;
         alertBox.classList.remove('hidden');
-      }
-    } catch (err) {
-      console.error("Login Exception:", err);
-      errorMsg.innerText = "May error sa server connection. Siguraduhing tumatakbo ang Flask server.";
-      alertBox.classList.remove('hidden');
-    } finally {
-      submitBtn.disabled = false;
-      submitBtn.innerText = "Sign In";
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Sign In';
+    });
+}
+
+// ---------------------------------------------------------------------------
+// CREATE ACCOUNT (SIGN UP WITH EMAIL OTP) FUNCTIONS
+// ---------------------------------------------------------------------------
+function openSignUpModal() {
+    document.getElementById('signUpStep1').classList.remove('hidden');
+    document.getElementById('signUpStep2').classList.add('hidden');
+    document.getElementById('signUpAlert').classList.add('hidden');
+    document.getElementById('signUpModal').classList.remove('hidden');
+}
+function closeSignUpModal() {
+    document.getElementById('signUpModal').classList.add('hidden');
+}
+function backToSignUpStep1() {
+    document.getElementById('signUpStep2').classList.add('hidden');
+    document.getElementById('signUpStep1').classList.remove('hidden');
+    document.getElementById('signUpAlert').classList.add('hidden');
+}
+
+function requestSignUpOTP() {
+    const name = document.getElementById('signUpName').value.trim();
+    const contact = document.getElementById('signUpContact').value.trim();
+    const email = document.getElementById('signUpEmail').value.trim();
+    const password = document.getElementById('signUpPassword').value.trim();
+    const signUpTerms = document.getElementById('signUpTerms');
+    const alertBox = document.getElementById('signUpAlert');
+    const btn = document.getElementById('btnSendSignUpOTP');
+
+    if (!name || !contact || !email || !password) {
+        alertBox.className = "p-3 rounded-xl text-xs font-bold bg-rose-50 text-rose-700 border border-rose-200";
+        alertBox.textContent = "Pakilagay ang lahat ng kinakailangang impormasyon.";
+        alertBox.classList.remove('hidden');
+        return;
     }
-  }
+
+    if (!isValidGmailFormat(email)) {
+        alertBox.className = "p-3 rounded-xl text-xs font-bold bg-rose-50 text-rose-700 border border-rose-200";
+        alertBox.textContent = "Maling email format! Dapat ay valid na @gmail.com address.";
+        alertBox.classList.remove('hidden');
+        return;
+    }
+
+    if (!signUpTerms || !signUpTerms.checked) {
+        alertBox.className = "p-3 rounded-xl text-xs font-bold bg-rose-50 text-rose-700 border border-rose-200";
+        alertBox.textContent = "Kailangang sumang-ayon sa Terms & Conditions.";
+        alertBox.classList.remove('hidden');
+        return;
+    }
+
+    btn.disabled = true;
+    btn.textContent = "Checking Database & Sending OTP...";
+
+    fetch('/api/request-signup-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: email })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            alertBox.className = "p-3 rounded-xl text-xs font-bold bg-blue-50 text-blue-700 border border-blue-200";
+            alertBox.textContent = data.message || "Ipinadala na ang verification OTP code sa iyong email.";
+            alertBox.classList.remove('hidden');
+
+            document.getElementById('signUpStep1').classList.add('hidden');
+            document.getElementById('signUpStep2').classList.remove('hidden');
+        } else {
+            alertBox.className = "p-3 rounded-xl text-xs font-bold bg-rose-50 text-rose-700 border border-rose-200";
+            alertBox.textContent = data.message || "May error sa pag-request ng verification code.";
+            alertBox.classList.remove('hidden');
+        }
+        btn.disabled = false;
+        btn.textContent = "Send Verification Code";
+    })
+    .catch(() => {
+        alertBox.className = "p-3 rounded-xl text-xs font-bold bg-rose-50 text-rose-700 border border-rose-200";
+        alertBox.textContent = "Connection error. Try again.";
+        alertBox.classList.remove('hidden');
+        btn.disabled = false;
+        btn.textContent = "Send Verification Code";
+    });
+}
+
+function verifyAndCompleteSignUp() {
+    const name = document.getElementById('signUpName').value.trim();
+    const contact = document.getElementById('signUpContact').value.trim();
+    const email = document.getElementById('signUpEmail').value.trim();
+    const password = document.getElementById('signUpPassword').value.trim();
+    const otp = document.getElementById('signUpOTP').value.trim();
+    const alertBox = document.getElementById('signUpAlert');
+    const btn = document.getElementById('btnCompleteSignUp');
+
+    if (!otp) {
+        alertBox.className = "p-3 rounded-xl text-xs font-bold bg-rose-50 text-rose-700 border border-rose-200";
+        alertBox.textContent = "Pakilagay ang 6-digit OTP code.";
+        alertBox.classList.remove('hidden');
+        return;
+    }
+
+    btn.disabled = true;
+    btn.textContent = "Creating Account...";
+
+    fetch('/api/signup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ fullName: name, contact: contact, email: email, password: password, otp: otp })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success || data.status === 'success') {
+            alertBox.className = "p-3 rounded-xl text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200";
+            alertBox.textContent = data.message || "Account registered successfully!";
+            alertBox.classList.remove('hidden');
+            setTimeout(() => {
+                closeSignUpModal();
+                document.getElementById('loginEmail').value = email;
+            }, 1500);
+        } else {
+            alertBox.className = "p-3 rounded-xl text-xs font-bold bg-rose-50 text-rose-700 border border-rose-200";
+            alertBox.textContent = data.message || "Maling OTP code o nagkaroon ng error.";
+            alertBox.classList.remove('hidden');
+            btn.disabled = false;
+            btn.textContent = "Verify & Create Account";
+        }
+    })
+    .catch(() => {
+        alertBox.className = "p-3 rounded-xl text-xs font-bold bg-rose-50 text-rose-700 border border-rose-200";
+        alertBox.textContent = "Connection error. Try again.";
+        alertBox.classList.remove('hidden');
+        btn.disabled = false;
+        btn.textContent = "Verify & Create Account";
+    });
+}
+
+// ---------------------------------------------------------------------------
+// FORGOT PASSWORD (OTP SMTP) FUNCTIONS
+// ---------------------------------------------------------------------------
+function openForgotPasswordModal() {
+    document.getElementById('forgotStep1').classList.remove('hidden');
+    document.getElementById('forgotStep2').classList.add('hidden');
+    document.getElementById('forgotAlert').classList.add('hidden');
+    document.getElementById('forgotModal').classList.remove('hidden');
+}
+function closeForgotPasswordModal() {
+    document.getElementById('forgotModal').classList.add('hidden');
+}
+
+function requestResetOTP() {
+    const email = document.getElementById('forgotEmail').value.trim();
+    const alertBox = document.getElementById('forgotAlert');
+    const btn = document.getElementById('btnSendOTP');
+
+    if (!email) {
+        alertBox.className = "p-3 rounded-xl text-xs font-bold bg-rose-50 text-rose-700 border border-rose-200";
+        alertBox.textContent = "Pakilagay ang iyong Gmail address.";
+        alertBox.classList.remove('hidden');
+        return;
+    }
+
+    if (!isValidGmailFormat(email)) {
+        alertBox.className = "p-3 rounded-xl text-xs font-bold bg-rose-50 text-rose-700 border border-rose-200";
+        alertBox.textContent = "Maling email format! Siguraduhing valid na @gmail.com address ang ipapasok.";
+        alertBox.classList.remove('hidden');
+        return;
+    }
+
+    btn.disabled = true;
+    btn.textContent = "Checking Database & Sending OTP...";
+
+    fetch('/api/forgot-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: email })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            alertBox.className = "p-3 rounded-xl text-xs font-bold bg-blue-50 text-blue-700 border border-blue-200";
+            alertBox.textContent = data.message;
+            alertBox.classList.remove('hidden');
+
+            document.getElementById('forgotStep1').classList.add('hidden');
+            document.getElementById('forgotStep2').classList.remove('hidden');
+        } else {
+            alertBox.className = "p-3 rounded-xl text-xs font-bold bg-rose-50 text-rose-700 border border-rose-200";
+            alertBox.textContent = data.message || "Ang email na ito ay HINDI nakarehistro sa aming system.";
+            alertBox.classList.remove('hidden');
+        }
+        btn.disabled = false;
+        btn.textContent = "Send OTP Code";
+    })
+    .catch(() => {
+        alertBox.className = "p-3 rounded-xl text-xs font-bold bg-rose-50 text-rose-700 border border-rose-200";
+        alertBox.textContent = "Connection error. Try again.";
+        alertBox.classList.remove('hidden');
+        btn.disabled = false;
+        btn.textContent = "Send OTP Code";
+    });
+}
+
+function submitNewPasswordWithOTP() {
+    const email = document.getElementById('forgotEmail').value.trim();
+    const otp = document.getElementById('forgotOTP').value.trim();
+    const newPass = document.getElementById('forgotNewPass').value.trim();
+    const alertBox = document.getElementById('forgotAlert');
+
+    if (!otp || !newPass) return;
+
+    fetch('/api/reset-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: email, otp: otp, newPassword: newPass })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            alertBox.className = "p-3 rounded-xl text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200";
+            alertBox.textContent = data.message;
+            alertBox.classList.remove('hidden');
+
+            setTimeout(() => {
+                closeForgotPasswordModal();
+                document.getElementById('loginEmail').value = email;
+            }, 1800);
+        } else {
+            alertBox.className = "p-3 rounded-xl text-xs font-bold bg-rose-50 text-rose-700 border border-rose-200";
+            alertBox.textContent = data.message;
+            alertBox.classList.remove('hidden');
+        }
+    });
+}
 </script>
 {% endblock %}
