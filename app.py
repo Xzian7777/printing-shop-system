@@ -14,6 +14,10 @@ import string
 import re
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 app = Flask(__name__)
 app.secret_key = "printingshop_secret_key"
@@ -21,8 +25,8 @@ app.secret_key = "printingshop_secret_key"
 # ---------------------------------------------------------------------------
 # ADMIN ACCOUNT CREDENTIALS
 # ---------------------------------------------------------------------------
-ADMIN_EMAIL = "supernovaelectrodog@gmail.com"        # Admin Gmail
-ADMIN_PASSWORD = "admin123"                          # Admin Password
+ADMIN_EMAIL = os.getenv("ADMIN_EMAIL")
+ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD")                         # Admin Password
 
 # ---------------------------------------------------------------------------
 # SMTP EMAIL CONFIGURATION
