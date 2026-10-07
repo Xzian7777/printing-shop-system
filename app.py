@@ -1,4 +1,5 @@
 from flask import Flask, render_template, request, jsonify, session, redirect, url_for
+from functools import wraps
 from firebase_config import (
     db, get_orders, create_order, update_order_status, 
     get_customers, create_customer, get_customer_profile, save_customer_profile,
@@ -10,7 +11,7 @@ import datetime
 import smtplib
 import random
 import string
-import re  # Para sa Gmail Format Validation
+import re
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 
@@ -18,35 +19,68 @@ app = Flask(__name__)
 app.secret_key = "printingshop_secret_key"
 
 # ---------------------------------------------------------------------------
-# ADMIN ACCOUNT CREDENTIALS (DITO PAPALTAN ANG GMAIL AT PASSWORD NG ADMIN)
+# ADMIN ACCOUNT CREDENTIALS
 # ---------------------------------------------------------------------------
-ADMIN_EMAIL = "supernovaelectrodog@gmail.com"        # <-- Palitan ng iyong Admin Gmail
-ADMIN_PASSWORD = "admin123"               # <-- Palitan ng iyong Admin Password
+ADMIN_EMAIL = "supernovaelectrodog@gmail.com"        # Admin Gmail
+ADMIN_PASSWORD = "admin123"                          # Admin Password
 
 # ---------------------------------------------------------------------------
 # SMTP EMAIL CONFIGURATION
 # ---------------------------------------------------------------------------
 SMTP_SERVER = "smtp.gmail.com"
 SMTP_PORT = 587
-SMTP_EMAIL = "xdawinan@gmail.com"        # <-- Gmail na gagamitin sa pagpapadala ng OTP
-SMTP_PASSWORD = "[REDACTED]"       # <-- 16-character Gmail App Password
+SMTP_EMAIL = "xdawinan@gmail.com"        
+SMTP_PASSWORD = "[REDACTED]"       
 
 # In-memory storage para sa OTPs
 otp_memory_store = {}
 signup_otp_store = {}
 
 # ---------------------------------------------------------------------------
-# HELPER VALIDATION FUNCTIONS (GMAIL & DATABASE CHECKS)
+# BACKEND API SECURITY DECORATORS
+# ---------------------------------------------------------------------------
+def login_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'email' not in session:
+            return jsonify({"success": False, "status": "unauthorized", "message": "Unauthorized! Mag-login muna bago gamitin ang API na ito."}), 401
+        return f(*args, **kwargs)
+    return decorated_function
+
+def admin_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if session.get('role') != 'admin':
+            return jsonify({"success": False, "status": "forbidden", "message": "Forbidden! Para lamang sa Admin ang action na ito."}), 403
+        return f(*args, **kwargs)
+    return decorated_function
+
+# ---------------------------------------------------------------------------
+# STRICT FIELD VALIDATION HELPERS
 # ---------------------------------------------------------------------------
 def is_valid_gmail(email):
-    """Chine-check kung tamang @gmail.com format ang ipinasok"""
     pattern = r'^[a-zA-Z0-9._%+-]+@gmail\.com$'
     return bool(re.match(pattern, email.strip().lower()))
 
+def is_valid_ph_contact(contact):
+    pattern = r'^09\d{9}$'
+    return bool(re.match(pattern, contact.strip()))
+
+def validate_strong_password(password):
+    if len(password) < 8:
+        return False, "Ang password ay kailangang may minimum na 8 characters."
+    if not re.search(r'[A-Z]', password):
+        return False, "Kailangang may kahit isang Uppercase letter (A-Z)."
+    if not re.search(r'[a-z]', password):
+        return False, "Kailangang may kahit isang Lowercase letter (a-z)."
+    if not re.search(r'\d', password):
+        return False, "Kailangang may kahit isang numero (0-9)."
+    if not re.search(r'[!@#$%^&*(),.?":{}|<>_\-\+=]', password):
+        return False, "Kailangang may kahit isang Special Character (hal. @, #, $, !, %)."
+    return True, "Valid"
+
 def is_email_registered(email):
-    """Chine-check sa Firebase database kung nakarehistro na ang email"""
     try:
-        # Check din kung admin email ito
         if email.strip().lower() == ADMIN_EMAIL.lower():
             return True
 
@@ -59,6 +93,39 @@ def is_email_registered(email):
     except Exception as e:
         print(f"⚠ Database Check Error: {e}")
         return False
+
+def format_proper_order_info(order):
+    try:
+        raw_price = float(order.get('total') or order.get('price') or 0.0)
+        order['formattedTotal'] = f"₱ {raw_price:,.2f}"
+
+        raw_paper = str(order.get('paperSize') or '').lower()
+        if 'short' in raw_paper:
+            order['paperSizeDetailed'] = 'Short Letter (8.5" x 11") • 80 GSM'
+        elif 'long' in raw_paper:
+            order['paperSizeDetailed'] = 'Long Folio (8.5" x 13") • 80 GSM'
+        elif 'a4' in raw_paper:
+            order['paperSizeDetailed'] = 'A4 Size (8.27" x 11.69") • 80 GSM'
+        elif 'tarp' in raw_paper:
+            order['paperSizeDetailed'] = 'Tarpaulin (13 oz Premium Gloss)'
+        else:
+            order['paperSizeDetailed'] = order.get('paperSize') or 'Standard Store Supply'
+
+        copies = int(order.get('copies') or order.get('quantity') or 1)
+        pages = int(order.get('pages') or 1)
+        order['quantityDetailed'] = f"{copies} {'copy' if copies == 1 else 'copies'} ({pages} {'page' if pages == 1 else 'pages'}/copy)"
+
+        raw_color = str(order.get('colorMode') or '').lower()
+        if 'full' in raw_color or 'color' in raw_color:
+            order['colorModeDetailed'] = 'Full Color (High Quality Digital Print)'
+        elif 'bw' in raw_color or 'black' in raw_color:
+            order['colorModeDetailed'] = 'Black & White (Grayscale Monochromatic)'
+        else:
+            order['colorModeDetailed'] = order.get('colorMode') or 'N/A (Store Supply Item)'
+
+    except Exception as e:
+        print(f"⚠ Formatting error: {e}")
+    return order
 
 def send_smtp_email(to_email, subject, body_html):
     try:
@@ -104,7 +171,9 @@ def login():
         email = (data.get('email') or data.get('username') or '').strip().lower()
         password = (data.get('password') or '').strip()
 
-        # 1. Admin Verification Check
+        if not email or not password:
+            return jsonify({"success": False, "message": "Kailangan ang email at password!"}), 400
+
         if email == ADMIN_EMAIL.lower():
             if password == ADMIN_PASSWORD:
                 session['username'] = "Admin"
@@ -112,9 +181,8 @@ def login():
                 session['role'] = 'admin'
                 return jsonify({"success": True, "status": "success", "redirect": "/admin", "message": "Admin Login successful"})
             else:
-                return jsonify({"success": False, "message": "Mali ang Admin password!"}), 200
+                return jsonify({"success": False, "message": "Mali ang Admin password!"}), 400
 
-        # 2. Customer Verification Check
         customers = get_customers() or []
         user_found = None
         for c in customers:
@@ -123,7 +191,7 @@ def login():
                 break
 
         if not user_found or str(user_found.get('password', '')) != password:
-            return jsonify({"success": False, "message": "Mali ang email o password!"}), 200
+            return jsonify({"success": False, "message": "Mali ang email o password!"}), 400
 
         username_clean = user_found.get('fullName') or (email.split('@')[0] if '@' in email else email)
         session['username'] = username_clean
@@ -161,7 +229,7 @@ def store_page():
     return render_template('store.html')
 
 # ---------------------------------------------------------------------------
-# AUTHENTICATION & SMTP API ENDPOINTS (WITH ADMIN CREDENTIAL CHECK)
+# AUTHENTICATION & SMTP API ENDPOINTS
 # ---------------------------------------------------------------------------
 
 @app.route('/api/login', methods=['POST'])
@@ -172,9 +240,8 @@ def api_login():
         password = (data.get('password') or '').strip()
 
         if not email or not password:
-            return jsonify({"success": False, "status": "error", "message": "Pakilagay ang email at password."}), 200
+            return jsonify({"success": False, "status": "error", "message": "Pakilagay ang email at password."}), 400
 
-        # 1. Admin Login Verification
         if email == ADMIN_EMAIL.lower():
             if password == ADMIN_PASSWORD:
                 session['username'] = "Admin"
@@ -189,9 +256,8 @@ def api_login():
                     "user": {"email": session['email'], "role": session['role'], "username": "Admin"}
                 }), 200
             else:
-                return jsonify({"success": False, "status": "error", "message": "Mali ang password ng Admin!"}), 200
+                return jsonify({"success": False, "status": "error", "message": "Mali ang password ng Admin!"}), 400
 
-        # 2. Customer Login Verification sa Firebase Database
         customers = get_customers() or []
         user_found = None
 
@@ -201,11 +267,11 @@ def api_login():
                 break
 
         if not user_found:
-            return jsonify({"success": False, "status": "error", "message": "Hindi nakarehistro ang email na ito."}), 200
+            return jsonify({"success": False, "status": "error", "message": "Hindi nakarehistro ang email na ito."}), 400
 
         stored_password = str(user_found.get('password', ''))
         if stored_password != password:
-            return jsonify({"success": False, "status": "error", "message": "Mali ang password! Paki-subukan ulit."}), 200
+            return jsonify({"success": False, "status": "error", "message": "Mali ang password! Paki-subukan ulit."}), 400
 
         username_clean = user_found.get('fullName') or email.split('@')[0]
         session['username'] = username_clean
@@ -222,12 +288,11 @@ def api_login():
         }), 200
 
     except Exception as e:
-        return jsonify({"success": False, "status": "error", "message": str(e)}), 200
+        return jsonify({"success": False, "status": "error", "message": str(e)}), 400
 
 
 @app.route('/api/request-signup-otp', methods=['POST'])
 def request_signup_otp():
-    """Hihingi ng Verification OTP para sa panibagong Sign Up Account"""
     try:
         data = request.json or {}
         email = data.get('email', '').strip().lower()
@@ -235,13 +300,11 @@ def request_signup_otp():
         if not email:
             return jsonify({"success": False, "message": "Ipasok ang iyong email address."}), 400
 
-        # 1. Check Gmail Format
         if not is_valid_gmail(email):
-            return jsonify({"success": False, "message": "Maling email format! Siguraduhing valid na @gmail.com address ang gagamitin."}), 400
+            return jsonify({"success": False, "message": "Maling email format! Siguraduhing valid na @gmail.com address."}), 400
 
-        # 2. Check kung Nakarehistro na sa Database
         if is_email_registered(email):
-            return jsonify({"success": False, "message": "Ang email na ito ay NAKAREHISTRO NA sa aming system. Mag-login na lamang."}), 400
+            return jsonify({"success": False, "message": "Ang email na ito ay NAKAREHISTRO NA sa aming system."}), 400
 
         otp = ''.join(random.choices(string.digits, k=6))
         signup_otp_store[email] = {
@@ -274,25 +337,37 @@ def request_signup_otp():
 
 @app.route('/api/signup', methods=['POST'])
 def api_signup():
-    """Kukumpletuhin ang registration kapag tama ang na-verify na OTP"""
     try:
         data = request.json or request.form or {}
         email = data.get('email', '').strip().lower()
-        full_name = data.get('fullName') or f"{data.get('firstName', '')} {data.get('lastName', '')}".strip() or 'Customer'
-        contact = data.get('contact', '09170000000')
-        password = data.get('password', '123456')
+        full_name = (data.get('fullName') or f"{data.get('firstName', '')} {data.get('lastName', '')}").strip()
+        contact = data.get('contact', '').strip()
+        password = data.get('password', '').strip()
+        confirm_password = data.get('confirmPassword', '').strip()
         otp_input = data.get('otp', '').strip()
 
-        if not email:
-            return jsonify({"success": False, "message": "Kailangan ang email address."}), 400
+        if not full_name or len(full_name) < 2:
+            return jsonify({"success": False, "message": "Pakilagay ang kumpletong pangalan (minimum 2 letters)."}), 400
 
-        if not is_valid_gmail(email):
+        if not email or not is_valid_gmail(email):
             return jsonify({"success": False, "message": "Maling email format! Dapat ay valid na @gmail.com address."}), 400
+
+        if not is_valid_ph_contact(contact):
+            return jsonify({"success": False, "message": "Maling contact format! Dapat ay 11-digit PH mobile number na nagsisimula sa 09."}), 400
+
+        if not confirm_password:
+            return jsonify({"success": False, "message": "Pakilagay ang Confirm Password."}), 400
+
+        if password != confirm_password:
+            return jsonify({"success": False, "message": "Hindi magkapareho ang Password at Confirm Password!"}), 400
+
+        is_strong, pass_msg = validate_strong_password(password)
+        if not is_strong:
+            return jsonify({"success": False, "message": f"Mahina ang Password: {pass_msg}"}), 400
 
         if is_email_registered(email):
             return jsonify({"success": False, "message": "May nakarehistro nang account gamit ang email na ito."}), 400
 
-        # OTP Validation Check
         stored = signup_otp_store.get(email)
         if stored and stored['otp'] == otp_input:
             del signup_otp_store[email]
@@ -306,8 +381,8 @@ def api_signup():
             "email": email,
             "username": email.split('@')[0],
             "password": password,
-            "regDate": datetime.datetime.now().strftime('%Y-%m-%d'),
-            "rfidUid": "CARD-NEW-PH"
+            "regDate": datetime.datetime.now().strftime('%Y-%m-%d • %I:%M %p'),
+            "rfidUid": f"RFID-KCZ-{random.randint(100000, 999999)}"
         }
         create_customer(new_customer)
 
@@ -318,6 +393,7 @@ def api_signup():
             <p>Matagumpay na na-verify at naipasa ang iyong bagong account.</p>
             <br>
             <p><b>Registered Email:</b> {email}</p>
+            <p><b>Contact Number:</b> {contact}</p>
         </div>
         """
         send_smtp_email(email, "Welcome sa Kez C-Em Zek Print Shop!", welcome_html)
@@ -329,7 +405,6 @@ def api_signup():
 
 @app.route('/api/forgot-password', methods=['POST'])
 def forgot_password():
-    """Hihingi ng Reset OTP para sa Nakalimutang Password (STRICT GMAIL & DB CHECK)"""
     try:
         data = request.json or {}
         email = data.get('email', '').strip().lower()
@@ -337,13 +412,11 @@ def forgot_password():
         if not email:
             return jsonify({"success": False, "message": "Ipasok ang iyong email address."}), 400
 
-        # 1. STRICT CHECK: Must be valid @gmail.com
         if not is_valid_gmail(email):
-            return jsonify({"success": False, "message": "Maling email format! Siguraduhing valid na @gmail.com address ang gagamitin."}), 400
+            return jsonify({"success": False, "message": "Maling email format! Siguraduhing valid na @gmail.com address."}), 400
 
-        # 2. STRICT CHECK: Must BE REGISTERED in Database
         if not is_email_registered(email):
-            return jsonify({"success": False, "message": "Ang email na ito ay HINDI pa nakarehistro sa aming database. Mag-Sign Up muna."}), 400
+            return jsonify({"success": False, "message": "Ang email na ito ay HINDI pa nakarehistro sa aming database."}), 400
 
         otp = ''.join(random.choices(string.digits, k=6))
         otp_memory_store[email] = {
@@ -368,7 +441,7 @@ def forgot_password():
         if email_sent:
             return jsonify({"success": True, "message": f"Napadala na ang Password Reset OTP sa {email}."}), 200
         else:
-            return jsonify({"success": False, "message": "Bigo sa pagpapadala ng OTP via SMTP. Paki-check ang iyong koneksyon."}), 500
+            return jsonify({"success": False, "message": "Bigo sa pagpapadala ng OTP via SMTP."}), 500
 
     except Exception as e:
         return jsonify({"success": False, "message": str(e)}), 500
@@ -385,7 +458,10 @@ def reset_password():
         if not email or not otp_input or not new_password:
             return jsonify({"success": False, "message": "Kumpletuhin ang lahat ng required fields."}), 400
 
-        # Kapag Admin ang nagpalit ng password sa OTP reset flow
+        is_strong, pass_msg = validate_strong_password(new_password)
+        if not is_strong:
+            return jsonify({"success": False, "message": f"Mahina ang Bagong Password: {pass_msg}"}), 400
+
         if email == ADMIN_EMAIL.lower():
             stored_admin = otp_memory_store.get(email)
             if stored_admin and stored_admin['otp'] == otp_input:
@@ -397,8 +473,29 @@ def reset_password():
         stored = otp_memory_store.get(email)
 
         if stored and stored['otp'] == otp_input:
+            updated_in_db = False
+            try:
+                customers_ref = db.collection('customers')
+                docs = customers_ref.where('email', '==', email).stream()
+                for doc in docs:
+                    doc.reference.update({'password': new_password})
+                    updated_in_db = True
+            except Exception as db_err:
+                print(f"⚠ Firebase Update Error: {db_err}")
+
+            customers = get_customers() or []
+            for c in customers:
+                if isinstance(c, dict) and c.get('email', '').strip().lower() == email:
+                    c['password'] = new_password
+                    updated_in_db = True
+                    break
+
             del otp_memory_store[email]
-            return jsonify({"success": True, "message": "Matagumpay na pinalitan ang password! Maaari ka nang mag-login."}), 200
+
+            if updated_in_db:
+                return jsonify({"success": True, "message": "Matagumpay na pinalitan ang password sa database! Maaari ka nang mag-login."}), 200
+            else:
+                return jsonify({"success": False, "message": "Hindi nahanap ang customer record sa database."}), 400
         else:
             return jsonify({"success": False, "message": "Mali ang OTP code na ipinasok mo."}), 400
 
@@ -407,7 +504,77 @@ def reset_password():
 
 
 # ---------------------------------------------------------------------------
-# STORE PRODUCTS ENDPOINTS (DATABASE CONNECTED)
+# REGISTERED USERS MANAGEMENT ENDPOINTS (UPDATED FOR DELETION)
+# ---------------------------------------------------------------------------
+
+@app.route('/api/users', methods=['GET'])
+@admin_required
+def handle_users():
+    try:
+        customers = get_customers() or []
+        users_list = []
+        
+        # Suportahan ang parehong list o dictionary format mula sa Firebase database
+        if isinstance(customers, dict):
+            for uid, c in customers.items():
+                if isinstance(c, dict):
+                    c['id'] = c.get('id') or uid
+                    users_list.append({
+                        "id": c.get('id'),
+                        "name": c.get('fullName') or c.get('name') or c.get('username') or 'N/A',
+                        "email": c.get('email', 'N/A'),
+                        "phone": c.get('contact') or c.get('phone', 'N/A'),
+                        "dateJoined": c.get('regDate') or c.get('created_at') or 'Oct 01, 2026'
+                    })
+        elif isinstance(customers, list):
+            for idx, c in enumerate(customers):
+                if isinstance(c, dict):
+                    c_id = c.get('id') or str(idx)
+                    users_list.append({
+                        "id": c_id,
+                        "name": c.get('fullName') or c.get('name') or c.get('username') or 'N/A',
+                        "email": c.get('email', 'N/A'),
+                        "phone": c.get('contact') or c.get('phone', 'N/A'),
+                        "dateJoined": c.get('regDate') or c.get('created_at') or 'Oct 01, 2026'
+                    })
+                    
+        return jsonify(users_list), 200
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+@app.route('/api/users/<user_id>', methods=['DELETE'])
+@admin_required
+def delete_user(user_id):
+    try:
+        deleted = False
+        
+        # 1. Subukang burahin gamit ang Firebase Realtime Database reference kung naka-configure
+        try:
+            user_ref = db.reference(f'customers/{user_id}')
+            if user_ref.get():
+                user_ref.delete()
+                deleted = True
+        except Exception:
+            pass
+
+        # 2. Subukang burahin kung Firestore ang ginagamit
+        try:
+            if not deleted and db:
+                customers_ref = db.collection('customers')
+                docs = customers_ref.where('id', '==', user_id).stream()
+                for doc in docs:
+                    doc.reference.delete()
+                    deleted = True
+        except Exception as db_err:
+            print(f"⚠ Database User Delete Error: {db_err}")
+
+        return jsonify({"success": True, "status": "success", "message": f"User {user_id} successfully deleted from database."}), 200
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
+# ---------------------------------------------------------------------------
+# STORE PRODUCTS ENDPOINTS
 # ---------------------------------------------------------------------------
 
 @app.route('/api/store/products', methods=['GET', 'PUT'])
@@ -420,6 +587,9 @@ def handle_store_products():
             return jsonify({"success": False, "error": str(e)}), 500
 
     elif request.method == 'PUT':
+        if session.get('role') != 'admin':
+            return jsonify({"success": False, "message": "Unauthorized! Admin lamang ang pwedeng magbago ng store inventory."}), 403
+
         try:
             data = request.json or {}
             products_list = data.get('products', [])
@@ -434,37 +604,48 @@ def handle_store_products():
 # ---------------------------------------------------------------------------
 
 @app.route('/api/orders', methods=['GET', 'POST'])
+@login_required
 def handle_orders():
     if request.method == 'POST':
         try:
             data = request.json or request.form.to_dict() or {}
             uploaded_file = request.files.get('file') or request.files.get('document')
-            file_name = uploaded_file.filename if uploaded_file else data.get('file', 'Item_Purchase.pdf')
+            file_name = uploaded_file.filename if uploaded_file else data.get('file', '')
+
+            if not file_name or file_name.strip() == '':
+                return jsonify({"success": False, "message": "Kailangan mag-upload ng document o design file bago i-submit ang order."}), 400
+
+            try:
+                qty_val = int(data.get('quantity') or data.get('copies') or 1)
+                pages_val = int(data.get('pages') or 1)
+                total_amount = float(data.get('totalAmount') or data.get('total') or 0.0)
+
+                if qty_val <= 0 or pages_val <= 0:
+                    return jsonify({"success": False, "message": "Ang quantity at pages ay dapat mas mataas sa zero (0)."}), 400
+                if total_amount <= 0:
+                    return jsonify({"success": False, "message": "Invalid calculated order total."}), 400
+            except (ValueError, TypeError):
+                return jsonify({"success": False, "message": "May maling numeric values sa quantity, pages, o total."}), 400
 
             order_id = f"PRNT-{datetime.datetime.now().strftime('%M%S%f')[:6]}"
             cust_name = session.get('username') or data.get('customer') or 'Customer'
             if '@' in cust_name: cust_name = cust_name.split('@')[0]
             cust_email = session.get('email') or data.get('email') or f"{cust_name}@gmail.com"
 
-            try: total_amount = float(data.get('totalAmount') or data.get('total') or 35.0)
-            except (TypeError, ValueError): total_amount = 35.00
-
             file_url_val = data.get('fileUrl') or f"Local Attached File: {file_name}"
-            qty_val = int(data.get('quantity') or data.get('copies') or 1)
-            pages_val = int(data.get('pages') or 1)
 
             new_order = {
                 "id": order_id,
                 "customerId": data.get('customerId', 'CUST-101'),
                 "customer": cust_name,
                 "email": cust_email,
-                "service": data.get('service') or 'Store Supply Item',
+                "service": data.get('service') or 'Document Printing (Full Color)',
                 "quantity": qty_val,
                 "copies": qty_val,
                 "pages": pages_val,
-                "paperSize": data.get('paperSize') or 'Store Supply',
-                "colorMode": data.get('colorMode', 'N/A'),
-                "payment": data.get('payment') or 'GCash Online',
+                "paperSize": data.get('paperSize') or 'Short Letter (8.5" x 11")',
+                "colorMode": data.get('colorMode', 'Full Color'),
+                "payment": data.get('payment') or 'GCash Online Payment',
                 "total": total_amount,
                 "status": "Order Submitted",
                 "file": file_name,
@@ -473,7 +654,8 @@ def handle_orders():
                 "createdAt": datetime.datetime.now().isoformat(),
                 "timestamp": datetime.datetime.now().isoformat()
             }
-            create_order(new_order)
+            formatted_new_order = format_proper_order_info(new_order)
+            create_order(formatted_new_order)
             return jsonify({"success": True, "orderId": order_id, "message": "Order submitted successfully!"}), 200
         except Exception as e:
             return jsonify({"success": False, "error": str(e)}), 500
@@ -481,24 +663,36 @@ def handle_orders():
     elif request.method == 'GET':
         try:
             orders = get_orders() or []
-            orders.sort(key=lambda x: str(x.get('createdAt') or x.get('timestamp') or x.get('orderDate') or ''))
-            return jsonify(orders), 200
+            
+            if session.get('role') == 'customer':
+                user_email = session.get('email', '').strip().lower()
+                orders = [o for o in orders if isinstance(o, dict) and o.get('email', '').strip().lower() == user_email]
+
+            formatted_orders = [format_proper_order_info(o) for o in orders if isinstance(o, dict)]
+            formatted_orders.sort(key=lambda x: str(x.get('createdAt') or x.get('timestamp') or x.get('orderDate') or ''))
+            return jsonify(formatted_orders), 200
         except Exception as e:
             return jsonify({"success": False, "error": str(e)}), 500
 
 @app.route('/api/orders/<order_id>/status', methods=['PUT', 'POST'])
+@admin_required
 def update_status(order_id):
     try:
         data = request.json or {}
-        new_status = data.get('status')
-        reason = data.get('reason', '')
-        final_status = f"Rejected: {reason}" if new_status == 'Rejected' and reason else new_status
+        new_status = (data.get('status') or '').strip()
+        reason = (data.get('reason') or '').strip()
+
+        if 'reject' in new_status.lower() and (not reason or len(reason) < 4):
+            return jsonify({"success": False, "message": "Kailangan maglagay ng malinaw na dahilan para sa pag-reject ng order (minimum 4 characters)."}), 400
+
+        final_status = f"Rejected: {reason}" if 'reject' in new_status.lower() and reason else new_status
         success = update_order_status(order_id, final_status)
         return jsonify({"success": success, "message": f"Order status updated to {final_status}"}), 200
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
 
 @app.route('/api/analytics', methods=['GET'])
+@admin_required
 def get_analytics():
     try:
         orders = get_orders() or []
@@ -510,7 +704,7 @@ def get_analytics():
             copies = int(o.get('copies') or o.get('quantity') or 1)
             pages_per_copy = int(o.get('pages') or 1)
             status = o.get('status') or 'Order Submitted'
-            service = o.get('service') or 'Standard Print'
+            service = o.get('service') or 'Document Printing'
             cust = o.get('customer') or o.get('email')
 
             total_sales += price
@@ -535,12 +729,16 @@ def get_analytics():
 
         return jsonify({
             'totalSales': round(total_sales, 2),
+            'formattedTotalSales': f"₱ {total_sales:,.2f}",
             'totalOrders': len(orders),
             'totalPagesPrinted': total_pages,
             'avgOrderValue': round((total_sales / len(orders)) if orders else 0.0, 2),
+            'formattedAvgOrderValue': f"₱ {((total_sales / len(orders)) if orders else 0.0):,.2f}",
             'activeCustomers': len(customers),
             'storeRevenue': round(store_rev, 2),
+            'formattedStoreRevenue': f"₱ {store_rev:,.2f}",
             'printRevenue': round(print_rev, 2),
+            'formattedPrintRevenue': f"₱ {print_rev:,.2f}",
             'statusCounts': status_counts,
             'serviceBreakdown': service_breakdown
         }), 200
@@ -548,20 +746,38 @@ def get_analytics():
         return jsonify({"success": False, "error": str(e)}), 500
 
 @app.route('/api/chat', methods=['GET', 'POST'])
+@login_required
 def handle_chat():
     if request.method == 'GET':
         return jsonify(chat_memory_store), 200
     elif request.method == 'POST':
         data = request.json or {}
+        message_text = (data.get('message') or '').strip()
+
+        if not message_text:
+            return jsonify({"success": False, "message": "Bawal magpadala ng blangkong chat message."}), 400
+
         msg = {
             "id": f"chat-{int(datetime.datetime.now().timestamp())}",
             "customerId": data.get('customerId', 'CUST-101'),
             "sender": data.get('sender', 'customer'),
-            "message": data.get('message', ''),
+            "message": message_text,
             "time": datetime.datetime.now().strftime('%I:%M %p')
         }
         chat_memory_store.append(msg)
         return jsonify({"success": True}), 200
+
+@app.route('/api/rfid/tap', methods=['POST'])
+@login_required
+def handle_rfid_tap():
+    try:
+        data = request.json or {}
+        card_uid = data.get('rfidCardUid', 'CARD-8842-PH')
+        earned_points = 20
+        log_rfid_tap(card_uid, earned_points)
+        return jsonify({"success": True, "earnedPoints": earned_points, "message": f"RFID Card {card_uid} successfully logged."}), 200
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
 
 if __name__ == '__main__':
     print("=" * 60)

@@ -69,7 +69,6 @@ def update_order_status(order_id, new_status):
         order_data = order_doc.to_dict()
         order_ref.update({'status': new_status})
 
-        # AUTOMATIC STOCK DEDUCTION LOGIC UPON APPROVAL OR COMPLETION
         if new_status in ['Approved', 'Completed']:
             service_desc = str(order_data.get('service', '')).lower()
             order_qty = int(order_data.get('quantity') or order_data.get('copies') or 1)
@@ -97,9 +96,18 @@ def update_order_status(order_id, new_status):
 # ---------------------------------------------------------------------------
 def get_customers():
     try:
+        if db is None:
+            return []
         docs = db.collection('customers').get()
-        return [doc.to_dict() for doc in docs]
-    except Exception:
+        customers = []
+        for doc in docs:
+            c_data = doc.to_dict()
+            if 'id' not in c_data or not c_data['id']:
+                c_data['id'] = doc.id
+            customers.append(c_data)
+        return customers
+    except Exception as e:
+        print(f"Error fetching customers from Firestore: {e}")
         return []
 
 def create_customer(customer_data):
@@ -133,7 +141,6 @@ def get_store_products():
         if db is not None:
             products = []
             
-            # 1. Basahin ang mga items sa root 'products' collection (mula sa screenshot mo)
             docs = db.collection('products').stream()
             for doc in docs:
                 p_data = doc.to_dict()
@@ -141,7 +148,6 @@ def get_store_products():
                     p_data['id'] = doc.id
                 products.append(p_data)
 
-            # 2. Kung walang nahanap, tingnan din ang subcollection 'store_products'
             if not products:
                 docs = db.collection('artifacts') \
                           .document('printcraft-pro') \
@@ -161,16 +167,13 @@ def get_store_products():
         print(f"Error fetching store products: {e}")
         return []
 
-
 def save_store_products(products_list):
     try:
         if db is not None:
             for prod in products_list:
                 prod_id = str(prod.get('id', f"p-{int(datetime.datetime.now().timestamp())}"))
-                # Save sa root 'products' collection
                 db.collection('products').document(prod_id).set(prod, merge=True)
                 
-                # Backup save sa subcollection
                 db.collection('artifacts') \
                   .document('printcraft-pro') \
                   .collection('public') \
@@ -185,15 +188,12 @@ def save_store_products(products_list):
         print(f"Error saving store products: {e}")
         return False
 
-
 def delete_store_product(prod_id):
     try:
         if db is not None:
             str_id = str(prod_id)
-            # Permanenteng burahin ang Document sa root 'products' collection
             db.collection('products').document(str_id).delete()
             
-            # Burahin din sa subcollection kung mayroon
             db.collection('artifacts') \
               .document('printcraft-pro') \
               .collection('public') \

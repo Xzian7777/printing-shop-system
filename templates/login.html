@@ -20,33 +20,43 @@
         <!-- Alert Notification Message Box -->
         <div id="loginAlertBox" class="hidden p-3.5 rounded-2xl text-xs font-bold flex items-center gap-2"></div>
 
-        <!-- Single Clean Login Form (No Admin/Customer Choices Toggle) -->
+        <!-- Single Clean Login Form -->
         <form id="loginForm" onsubmit="handleSingleLoginSubmit(event)" class="space-y-4">
             <!-- Email Input -->
             <div class="space-y-1.5">
-                <label for="loginEmail" class="block text-xs font-bold text-slate-700">Email Address (@gmail.com)</label>
+                <label for="loginEmail" class="block text-xs font-bold text-slate-700">Gmail Address (@gmail.com)</label>
                 <input 
                     type="email" 
                     id="loginEmail" 
                     required 
-                    placeholder="customer@gmail.com" 
+                    placeholder="e.g. juan.delacruz@gmail.com" 
                     class="w-full bg-slate-50/80 border border-slate-200 rounded-2xl px-4 py-3 text-xs font-medium text-slate-800 focus:outline-none focus:border-fuchsia-600 focus:bg-white transition"
                 >
             </div>
 
-            <!-- Password Input -->
+            <!-- Password Input (MAY EYE BUTTON NA) -->
             <div class="space-y-1.5">
                 <div class="flex items-center justify-between">
                     <label for="loginPassword" class="block text-xs font-bold text-slate-700">Password</label>
                     <button type="button" onclick="openForgotPasswordModal()" class="text-xs font-bold text-fuchsia-600 hover:text-fuchsia-700 cursor-pointer">Forgot password?</button>
                 </div>
-                <input 
-                    type="password" 
-                    id="loginPassword" 
-                    required 
-                    placeholder="••••••••" 
-                    class="w-full bg-slate-50/80 border border-slate-200 rounded-2xl px-4 py-3 text-xs font-medium text-slate-800 focus:outline-none focus:border-fuchsia-600 focus:bg-white transition"
-                >
+                <div class="relative">
+                    <input 
+                        type="password" 
+                        id="loginPassword" 
+                        required 
+                        placeholder="••••••••" 
+                        class="w-full bg-slate-50/80 border border-slate-200 rounded-2xl pl-4 pr-11 py-3 text-xs font-medium text-slate-800 focus:outline-none focus:border-fuchsia-600 focus:bg-white transition"
+                    >
+                    <button 
+                        type="button" 
+                        onclick="togglePasswordVisibility('loginPassword', 'loginPasswordEye')" 
+                        class="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-1 cursor-pointer focus:outline-none transition"
+                        title="Show/Hide Password"
+                    >
+                        <i id="loginPasswordEye" class="fas fa-eye text-xs"></i>
+                    </button>
+                </div>
             </div>
 
             <!-- LOGIN TERMS & CONDITIONS CHECKBOX -->
@@ -79,8 +89,8 @@
 </div>
 
 <!-- MODAL 1: CREATE ACCOUNT / SIGN UP MODAL -->
-<div id="signUpModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 hidden flex items-center justify-center p-4">
-    <div class="bg-white rounded-3xl max-w-md w-full p-6 space-y-4 shadow-2xl border border-slate-200">
+<div id="signUpModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 hidden flex items-center justify-center p-4 overflow-y-auto">
+    <div class="bg-white rounded-3xl max-w-md w-full p-6 space-y-4 shadow-2xl border border-slate-200 my-8">
         <div class="flex items-center justify-between border-b border-slate-100 pb-3">
             <h3 class="font-extrabold text-slate-900 text-sm">Create New Account</h3>
             <button type="button" onclick="closeSignUpModal()" class="text-slate-400 hover:text-slate-600 p-1 cursor-pointer">
@@ -93,20 +103,79 @@
         <!-- STEP 1: Enter Registration Details & Terms -->
         <div id="signUpStep1" class="space-y-3 text-xs">
             <div>
-                <label class="font-bold text-slate-700 block mb-1">Full Name</label>
-                <input type="text" id="signUpName" required placeholder="Juan Dela Cruz" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 focus:outline-none focus:border-fuchsia-600">
+                <label class="font-bold text-slate-700 block mb-0.5">Full Name</label>
+                <input type="text" id="signUpName" oninput="checkPasswordStrength()" required placeholder="e.g. Juan A. Dela Cruz" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 focus:outline-none focus:border-fuchsia-600">
             </div>
             <div>
-                <label class="font-bold text-slate-700 block mb-1">Contact Number</label>
-                <input type="text" id="signUpContact" required placeholder="09171234567" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 focus:outline-none focus:border-fuchsia-600">
+                <label class="font-bold text-slate-700 block mb-0.5">Contact Number (For SMS Alerts)</label>
+                <input type="tel" id="signUpContact" required placeholder="09171234567" maxlength="11" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 focus:outline-none focus:border-fuchsia-600">
+                <span class="text-[10px] text-slate-400">Format: 11-digit PH mobile number starting with 09</span>
             </div>
             <div>
-                <label class="font-bold text-slate-700 block mb-1">Gmail Address (*.gmail.com)</label>
-                <input type="email" id="signUpEmail" required placeholder="juan@gmail.com" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 focus:outline-none focus:border-fuchsia-600">
+                <label class="font-bold text-slate-700 block mb-0.5">Gmail Address (*.gmail.com)</label>
+                <input type="email" id="signUpEmail" oninput="checkPasswordStrength()" required placeholder="juan.delacruz@gmail.com" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 focus:outline-none focus:border-fuchsia-600">
             </div>
+
+            <!-- PASSWORD FIELD WITH LIVE STRENGTH UI -->
             <div>
-                <label class="font-bold text-slate-700 block mb-1">Password</label>
-                <input type="password" id="signUpPassword" required placeholder="••••••••" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 focus:outline-none focus:border-fuchsia-600">
+                <label class="font-bold text-slate-700 block mb-0.5">Password <span class="text-rose-500">*</span></label>
+                <div class="relative">
+                    <input type="password" id="signUpPassword" oninput="checkPasswordStrength()" required placeholder="Enter strong password" class="w-full bg-slate-50 border border-slate-200 rounded-xl pl-3 pr-10 py-2.5 focus:outline-none focus:border-fuchsia-600">
+                    <button 
+                        type="button" 
+                        onclick="togglePasswordVisibility('signUpPassword', 'signUpPasswordEye')" 
+                        class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-1 cursor-pointer focus:outline-none"
+                    >
+                        <i id="signUpPasswordEye" class="fas fa-eye text-xs"></i>
+                    </button>
+                </div>
+
+                <!-- STRENGTH METER BAR & TEXT -->
+                <div class="mt-2 space-y-1">
+                    <div class="flex items-center justify-between">
+                        <span id="passStrengthText" class="text-[11px] font-bold text-slate-400"></span>
+                    </div>
+                    <div class="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
+                        <div id="passStrengthMeter" class="h-full w-0 transition-all duration-300 rounded-full bg-slate-200"></div>
+                    </div>
+                </div>
+
+                <!-- REAL-TIME REQUIREMENTS CHECKLIST -->
+                <div class="bg-slate-50 border border-slate-100 rounded-xl p-3 mt-2 space-y-1.5">
+                    <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Password Requirements:</p>
+                    <ul class="space-y-1">
+                        <li id="reqLength" class="text-[11px] font-semibold text-slate-400 flex items-center gap-1.5">
+                            <i class="fas fa-times-circle text-rose-400 text-xs"></i> Must be at least 8 characters
+                        </li>
+                        <li id="reqUpperLower" class="text-[11px] font-semibold text-slate-400 flex items-center gap-1.5">
+                            <i class="fas fa-times-circle text-rose-400 text-xs"></i> Must have Uppercase (A-Z) and Lowercase (a-z)
+                        </li>
+                        <li id="reqNumSymbol" class="text-[11px] font-semibold text-slate-400 flex items-center gap-1.5">
+                            <i class="fas fa-times-circle text-rose-400 text-xs"></i> Must have at least one symbol or number
+                        </li>
+                        <li id="reqNoSpace" class="text-[11px] font-semibold text-slate-400 flex items-center gap-1.5">
+                            <i class="fas fa-times-circle text-rose-400 text-xs"></i> Can't contain spaces
+                        </li>
+                        <li id="reqNoUserInfo" class="text-[11px] font-semibold text-slate-400 flex items-center gap-1.5">
+                            <i class="fas fa-times-circle text-rose-400 text-xs"></i> Can't include your name or email address
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- CONFIRM PASSWORD FIELD -->
+            <div>
+                <label class="font-bold text-slate-700 block mb-0.5">Confirm Password <span class="text-rose-500">*</span></label>
+                <div class="relative">
+                    <input type="password" id="signUpConfirmPassword" required placeholder="Re-enter password" class="w-full bg-slate-50 border border-slate-200 rounded-xl pl-3 pr-10 py-2.5 focus:outline-none focus:border-fuchsia-600">
+                    <button 
+                        type="button" 
+                        onclick="togglePasswordVisibility('signUpConfirmPassword', 'signUpConfirmPasswordEye')" 
+                        class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-1 cursor-pointer focus:outline-none"
+                    >
+                        <i id="signUpConfirmPasswordEye" class="fas fa-eye text-xs"></i>
+                    </button>
+                </div>
             </div>
 
             <!-- SIGN UP TERMS & CONDITIONS CHECKBOX -->
@@ -164,7 +233,7 @@
             <p class="text-slate-500">Ipasok ang iyong nakarehistrong Gmail address para magpadala kami ng 6-digit OTP code.</p>
             <div>
                 <label class="font-bold text-slate-700 block mb-1">Your Registered Gmail Address</label>
-                <input type="email" id="forgotEmail" placeholder="juan@gmail.com" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 focus:outline-none focus:border-rose-600">
+                <input type="email" id="forgotEmail" placeholder="juan.delacruz@gmail.com" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 focus:outline-none focus:border-rose-600">
             </div>
             <button type="button" onclick="requestResetOTP()" id="btnSendOTP" class="w-full bg-rose-600 hover:bg-rose-700 text-white font-bold py-2.5 rounded-xl transition cursor-pointer">
                 Send OTP Code
@@ -180,7 +249,16 @@
             </div>
             <div>
                 <label class="font-bold text-slate-700 block mb-1">New Password</label>
-                <input type="password" id="forgotNewPass" placeholder="••••••••" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 focus:outline-none focus:border-rose-600">
+                <div class="relative">
+                    <input type="password" id="forgotNewPass" placeholder="••••••••" class="w-full bg-slate-50 border border-slate-200 rounded-xl pl-3 pr-10 py-2.5 focus:outline-none focus:border-rose-600">
+                    <button 
+                        type="button" 
+                        onclick="togglePasswordVisibility('forgotNewPass', 'forgotNewPassEye')" 
+                        class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-1 cursor-pointer focus:outline-none"
+                    >
+                        <i id="forgotNewPassEye" class="fas fa-eye text-xs"></i>
+                    </button>
+                </div>
             </div>
             <button type="button" onclick="submitNewPasswordWithOTP()" id="btnResetPass" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 rounded-xl transition cursor-pointer">
                 Change Password
@@ -190,10 +268,117 @@
 </div>
 
 <script>
-// HELPER CLIENT-SIDE GMAIL VALIDATOR
+// SHOW / HIDE PASSWORD TOGGLE FUNCTION
+function togglePasswordVisibility(inputId, iconId) {
+    const passwordInput = document.getElementById(inputId);
+    const eyeIcon = document.getElementById(iconId);
+    
+    if (passwordInput && eyeIcon) {
+        if (passwordInput.type === 'password') {
+            passwordInput.type = 'text';
+            eyeIcon.classList.remove('fa-eye');
+            eyeIcon.classList.add('fa-eye-slash');
+        } else {
+            passwordInput.type = 'password';
+            eyeIcon.classList.remove('fa-eye-slash');
+            eyeIcon.classList.add('fa-eye');
+        }
+    }
+}
+
+// REAL-TIME PASSWORD STRENGTH CHECKER FUNCTION
+function checkPasswordStrength() {
+    const password = document.getElementById('signUpPassword')?.value || '';
+    const name = (document.getElementById('signUpName')?.value || '').trim().toLowerCase();
+    const email = (document.getElementById('signUpEmail')?.value || '').trim().toLowerCase();
+
+    // 1. EVALUATE CRITERIA
+    const hasLength = password.length >= 8;
+    const hasUpper = /[A-Z]/.test(password);
+    const hasLower = /[a-z]/.test(password);
+    const hasUpperLower = hasUpper && hasLower;
+    const hasNumSymbol = /[\d!@#$%^&*(),.?":{}|<>_\-\+=]/.test(password);
+    const hasNoSpace = !/\s/.test(password) && password.length > 0;
+
+    // USER INFO INCLUSION CHECK
+    const emailPrefix = email.split('@')[0];
+    let hasNoUserInfo = true;
+    if (password.length > 0) {
+        if (name.length >= 3 && password.toLowerCase().includes(name)) hasNoUserInfo = false;
+        if (emailPrefix.length >= 3 && password.toLowerCase().includes(emailPrefix)) hasNoUserInfo = false;
+    }
+
+    // 2. UPDATE CHECKLIST ICONS & STYLES
+    updateChecklistItem('reqLength', hasLength);
+    updateChecklistItem('reqUpperLower', hasUpperLower);
+    updateChecklistItem('reqNumSymbol', hasNumSymbol);
+    updateChecklistItem('reqNoSpace', hasNoSpace);
+    updateChecklistItem('reqNoUserInfo', hasNoUserInfo);
+
+    // 3. CALCULATE STRENGTH SCORE
+    let score = 0;
+    if (hasLength) score++;
+    if (hasUpperLower) score++;
+    if (hasNumSymbol) score++;
+    if (hasNoSpace) score++;
+    if (hasNoUserInfo) score++;
+
+    // 4. UPDATE STRENGTH METER BAR & TEXT
+    const meter = document.getElementById('passStrengthMeter');
+    const text = document.getElementById('passStrengthText');
+
+    if (!meter || !text) return;
+
+    if (password.length === 0) {
+        meter.style.width = '0%';
+        meter.className = 'h-full w-0 transition-all duration-300 rounded-full bg-slate-200';
+        text.textContent = '';
+        text.className = 'text-[11px] font-bold text-slate-400';
+    } else if (score <= 2) {
+        meter.style.width = '33%';
+        meter.className = 'h-full transition-all duration-300 rounded-full bg-rose-500';
+        text.textContent = 'Password strength: Weak';
+        text.className = 'text-[11px] font-bold text-rose-500';
+    } else if (score <= 4) {
+        meter.style.width = '66%';
+        meter.className = 'h-full transition-all duration-300 rounded-full bg-amber-500';
+        text.textContent = 'Password strength: Medium';
+        text.className = 'text-[11px] font-bold text-amber-500';
+    } else {
+        meter.style.width = '100%';
+        meter.className = 'h-full transition-all duration-300 rounded-full bg-emerald-500';
+        text.textContent = 'Password strength: Strong';
+        text.className = 'text-[11px] font-bold text-emerald-500';
+    }
+}
+
+function updateChecklistItem(elementId, isValid) {
+    const el = document.getElementById(elementId);
+    if (!el) return;
+    const icon = el.querySelector('i');
+    if (isValid) {
+        el.className = "text-[11px] font-semibold text-emerald-600 flex items-center gap-1.5 transition-colors";
+        icon.className = "fas fa-check-circle text-emerald-500 text-xs";
+    } else {
+        el.className = "text-[11px] font-semibold text-slate-400 flex items-center gap-1.5 transition-colors";
+        icon.className = "fas fa-times-circle text-rose-400 text-xs";
+    }
+}
+
+// CLIENT-SIDE VALIDATIONS
 function isValidGmailFormat(email) {
     const gmailRegex = /^[a-zA-Z0-9._%+-]+@gmail\.com$/;
     return gmailRegex.test(email.trim().toLowerCase());
+}
+
+function isValidPHContact(contact) {
+    const phoneRegex = /^09\d{9}$/;
+    return phoneRegex.test(contact.trim());
+}
+
+function isStrongPassword(password) {
+    const strongPasswordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*(),.?":{}|<>_\-\+=]).{8,}$/;
+    return strongPasswordRegex.test(password.trim());
 }
 
 function handleSingleLoginSubmit(event) {
@@ -236,7 +421,7 @@ function handleSingleLoginSubmit(event) {
             alertBox.classList.remove('hidden');
 
             setTimeout(() => {
-                window.location.href = data.redirect || data.redirectUrl || (email.toLowerCase().includes('admin') ? '/admin' : '/customer');
+                window.location.href = data.redirect || data.redirectUrl || '/customer';
             }, 800);
         } else {
             alertBox.className = "p-3.5 rounded-2xl text-xs font-bold flex items-center gap-2 bg-rose-50 text-rose-700 border border-rose-200";
@@ -255,9 +440,6 @@ function handleSingleLoginSubmit(event) {
     });
 }
 
-// ---------------------------------------------------------------------------
-// CREATE ACCOUNT (SIGN UP WITH EMAIL OTP) FUNCTIONS
-// ---------------------------------------------------------------------------
 function openSignUpModal() {
     document.getElementById('signUpStep1').classList.remove('hidden');
     document.getElementById('signUpStep2').classList.add('hidden');
@@ -278,13 +460,21 @@ function requestSignUpOTP() {
     const contact = document.getElementById('signUpContact').value.trim();
     const email = document.getElementById('signUpEmail').value.trim();
     const password = document.getElementById('signUpPassword').value.trim();
+    const confirmPassword = document.getElementById('signUpConfirmPassword').value.trim();
     const signUpTerms = document.getElementById('signUpTerms');
     const alertBox = document.getElementById('signUpAlert');
     const btn = document.getElementById('btnSendSignUpOTP');
 
-    if (!name || !contact || !email || !password) {
+    if (!name || !contact || !email || !password || !confirmPassword) {
         alertBox.className = "p-3 rounded-xl text-xs font-bold bg-rose-50 text-rose-700 border border-rose-200";
         alertBox.textContent = "Pakilagay ang lahat ng kinakailangang impormasyon.";
+        alertBox.classList.remove('hidden');
+        return;
+    }
+
+    if (!isValidPHContact(contact)) {
+        alertBox.className = "p-3 rounded-xl text-xs font-bold bg-rose-50 text-rose-700 border border-rose-200";
+        alertBox.textContent = "Maling contact format! Dapat ay 11-digit mobile number starting with 09 (e.g. 09171234567).";
         alertBox.classList.remove('hidden');
         return;
     }
@@ -292,6 +482,20 @@ function requestSignUpOTP() {
     if (!isValidGmailFormat(email)) {
         alertBox.className = "p-3 rounded-xl text-xs font-bold bg-rose-50 text-rose-700 border border-rose-200";
         alertBox.textContent = "Maling email format! Dapat ay valid na @gmail.com address.";
+        alertBox.classList.remove('hidden');
+        return;
+    }
+
+    if (password !== confirmPassword) {
+        alertBox.className = "p-3 rounded-xl text-xs font-bold bg-rose-50 text-rose-700 border border-rose-200";
+        alertBox.textContent = "Hindi magkapareho ang Password at Confirm Password!";
+        alertBox.classList.remove('hidden');
+        return;
+    }
+
+    if (!isStrongPassword(password)) {
+        alertBox.className = "p-3 rounded-xl text-xs font-bold bg-rose-50 text-rose-700 border border-rose-200";
+        alertBox.textContent = "Mahina ang Password! Siguraduhing nasunod ang lahat ng password requirements.";
         alertBox.classList.remove('hidden');
         return;
     }
@@ -342,6 +546,7 @@ function verifyAndCompleteSignUp() {
     const contact = document.getElementById('signUpContact').value.trim();
     const email = document.getElementById('signUpEmail').value.trim();
     const password = document.getElementById('signUpPassword').value.trim();
+    const confirmPassword = document.getElementById('signUpConfirmPassword').value.trim();
     const otp = document.getElementById('signUpOTP').value.trim();
     const alertBox = document.getElementById('signUpAlert');
     const btn = document.getElementById('btnCompleteSignUp');
@@ -359,7 +564,14 @@ function verifyAndCompleteSignUp() {
     fetch('/api/signup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ fullName: name, contact: contact, email: email, password: password, otp: otp })
+        body: JSON.stringify({ 
+            fullName: name, 
+            contact: contact, 
+            email: email, 
+            password: password, 
+            confirmPassword: confirmPassword, 
+            otp: otp 
+        })
     })
     .then(res => res.json())
     .then(data => {
@@ -388,9 +600,6 @@ function verifyAndCompleteSignUp() {
     });
 }
 
-// ---------------------------------------------------------------------------
-// FORGOT PASSWORD (OTP SMTP) FUNCTIONS
-// ---------------------------------------------------------------------------
 function openForgotPasswordModal() {
     document.getElementById('forgotStep1').classList.remove('hidden');
     document.getElementById('forgotStep2').classList.add('hidden');
@@ -461,6 +670,13 @@ function submitNewPasswordWithOTP() {
     const alertBox = document.getElementById('forgotAlert');
 
     if (!otp || !newPass) return;
+
+    if (!isStrongPassword(newPass)) {
+        alertBox.className = "p-3 rounded-xl text-xs font-bold bg-rose-50 text-rose-700 border border-rose-200";
+        alertBox.textContent = "Mahina ang bagong password! Dapat may min. 8 chars, 1 uppercase (A-Z), 1 lowercase (a-z), 1 numero (0-9), at 1 special char (@,#,$,!,%).";
+        alertBox.classList.remove('hidden');
+        return;
+    }
 
     fetch('/api/reset-password', {
         method: 'POST',
