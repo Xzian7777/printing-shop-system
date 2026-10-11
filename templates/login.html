@@ -1,90 +1,190 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="min-h-[80vh] flex items-center justify-center p-4">
-    <div class="bg-white border border-slate-200 rounded-3xl max-w-md w-full p-8 shadow-2xl space-y-6">
+<div class="min-h-[85vh] flex items-center justify-center p-4 sm:p-6 lg:p-8">
+    <div class="bg-white border border-slate-200/90 rounded-3xl max-w-4xl w-full shadow-2xl overflow-hidden grid grid-cols-1 lg:grid-cols-12">
         
-        <!-- Back to Home Link -->
-        <div>
-            <a href="/" class="text-xs font-bold text-slate-400 hover:text-slate-600 transition flex items-center gap-1">
-                <i class="fas fa-arrow-left text-[10px]"></i> Back to home
-            </a>
-        </div>
+        <!-- ================= LEFT BRAND SIDEBAR ================= -->
+        <div class="lg:col-span-5 bg-gradient-to-br from-[#1e1b4b] via-[#4c0519] to-[#831843] p-8 lg:p-10 text-white flex flex-col justify-between relative overflow-hidden">
+            <!-- Background decorative glow -->
+            <div class="absolute -top-24 -left-24 w-72 h-72 bg-rose-500/30 rounded-full blur-3xl pointer-events-none"></div>
+            <div class="absolute -bottom-24 -right-24 w-72 h-72 bg-amber-500/20 rounded-full blur-3xl pointer-events-none"></div>
+            
+            <div class="relative z-10 space-y-6">
+                <!-- Brand Header -->
+                <div class="flex items-center gap-3">
+                    <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-[#f09433] via-[#dc2743] to-[#bc1888] flex items-center justify-center text-white font-black text-xl shadow-lg shadow-rose-500/30">
+                        KCZ
+                    </div>
+                    <div>
+                        <h2 class="font-extrabold text-lg text-white leading-tight">Kez C-Em Zek</h2>
+                        <span class="text-[11px] font-semibold text-rose-200 uppercase tracking-wider">Printing Shop System</span>
+                    </div>
+                </div>
 
-        <!-- Header Titles -->
-        <div class="space-y-1">
-            <h1 class="text-3xl font-black text-slate-900 tracking-tight">Welcome back</h1>
-            <p class="text-xs font-medium text-slate-400">Sign in to track orders and reorder faster.</p>
-        </div>
+                <!-- Headline / Value Proposition -->
+                <div class="pt-2 space-y-2">
+                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md text-rose-200 text-[11px] font-bold border border-white/10">
+                        <i class="fas fa-sparkles text-amber-300"></i> Fast, Smart & Reliable
+                    </span>
+                    <h3 class="text-2xl font-black text-white leading-tight">
+                        Lahat ng Printing Needs Mo, Nasa Isang Pindot Lang.
+                    </h3>
+                    <p class="text-xs text-rose-100/80 leading-relaxed">
+                        Subaybayan ang iyong mga documents, flyers, stickers, tarpaulin orders, at RFID tap-and-pay transactions nang real-time.
+                    </p>
+                </div>
 
-        <!-- Alert Notification Message Box -->
-        <div id="loginAlertBox" class="hidden p-3.5 rounded-2xl text-xs font-bold flex items-center gap-2"></div>
+                <!-- Feature highlights -->
+                <div class="space-y-3 pt-2">
+                    <div class="flex items-start gap-3 bg-white/5 backdrop-blur-sm p-3 rounded-2xl border border-white/10">
+                        <div class="w-8 h-8 rounded-xl bg-amber-400/20 text-amber-300 flex items-center justify-center shrink-0">
+                            <i class="fas fa-bolt text-sm"></i>
+                        </div>
+                        <div>
+                            <h4 class="text-xs font-bold text-white">Instant Order Tracking</h4>
+                            <p class="text-[11px] text-rose-100/70">Mula printing hanggang ready for pick-up o delivery.</p>
+                        </div>
+                    </div>
 
-        <!-- Single Clean Login Form -->
-        <form id="loginForm" onsubmit="handleSingleLoginSubmit(event)" class="space-y-4">
-            <!-- Email Input -->
-            <div class="space-y-1.5">
-                <label for="loginEmail" class="block text-xs font-bold text-slate-700">Gmail Address (@gmail.com)</label>
-                <input 
-                    type="email" 
-                    id="loginEmail" 
-                    required 
-                    placeholder="e.g. juan.delacruz@gmail.com" 
-                    class="w-full bg-slate-50/80 border border-slate-200 rounded-2xl px-4 py-3 text-xs font-medium text-slate-800 focus:outline-none focus:border-fuchsia-600 focus:bg-white transition"
-                >
+                    <div class="flex items-start gap-3 bg-white/5 backdrop-blur-sm p-3 rounded-2xl border border-white/10">
+                        <div class="w-8 h-8 rounded-xl bg-rose-400/20 text-rose-300 flex items-center justify-center shrink-0">
+                            <i class="fas fa-id-card text-sm"></i>
+                        </div>
+                        <div>
+                            <h4 class="text-xs font-bold text-white">RFID Tap & Pay Ready</h4>
+                            <p class="text-[11px] text-rose-100/70">Mag-tap ng card para sa mabilisang in-store payment.</p>
+                        </div>
+                    </div>
+
+                    <div class="flex items-start gap-3 bg-white/5 backdrop-blur-sm p-3 rounded-2xl border border-white/10">
+                        <div class="w-8 h-8 rounded-xl bg-fuchsia-400/20 text-fuchsia-300 flex items-center justify-center shrink-0">
+                            <i class="fab fa-google text-sm"></i>
+                        </div>
+                        <div>
+                            <h4 class="text-xs font-bold text-white">One-Click Google Sign-In</h4>
+                            <p class="text-[11px] text-rose-100/70">Walang hassle, direktang konektado sa iyong Google account.</p>
+                        </div>
+                    </div>
+                </div>
             </div>
 
-            <!-- Password Input (MAY EYE BUTTON NA) -->
-            <div class="space-y-1.5">
-                <div class="flex items-center justify-between">
-                    <label for="loginPassword" class="block text-xs font-bold text-slate-700">Password</label>
-                    <button type="button" onclick="openForgotPasswordModal()" class="text-xs font-bold text-fuchsia-600 hover:text-fuchsia-700 cursor-pointer">Forgot password?</button>
-                </div>
-                <div class="relative">
+            <!-- Sidebar Footer / Trust badge -->
+            <div class="relative z-10 pt-6 mt-6 border-t border-white/10 flex items-center justify-between text-[11px] text-rose-200/80">
+                <span class="flex items-center gap-1.5 font-medium">
+                    <i class="fas fa-shield-halved text-emerald-400"></i> Secure & Protected
+                </span>
+                <span class="font-bold text-white/90">v2.0 • Pro Edition</span>
+            </div>
+        </div>
+
+        <!-- ================= RIGHT FORM PANEL ================= -->
+        <div class="lg:col-span-7 p-8 lg:p-10 flex flex-col justify-center space-y-5">
+            <!-- Back to Home Link -->
+            <div>
+                <a href="/" class="text-xs font-bold text-slate-400 hover:text-slate-600 transition inline-flex items-center gap-1.5">
+                    <i class="fas fa-arrow-left text-[10px]"></i> Back to home
+                </a>
+            </div>
+
+            <!-- Header Titles -->
+            <div class="space-y-1">
+                <h1 class="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">Welcome back</h1>
+                <p class="text-xs font-medium text-slate-400">Sign in to track orders and reorder faster.</p>
+            </div>
+
+            <!-- Alert Notification Message Box -->
+            <div id="loginAlertBox" class="hidden p-3.5 rounded-2xl text-xs font-bold flex items-center gap-2"></div>
+
+            <!-- Single Clean Login Form -->
+            <form id="loginForm" onsubmit="handleSingleLoginSubmit(event)" class="space-y-4">
+                <!-- Email Input -->
+                <div class="space-y-1.5">
+                    <label for="loginEmail" class="block text-xs font-bold text-slate-700">Gmail Address (@gmail.com)</label>
                     <input 
-                        type="password" 
-                        id="loginPassword" 
+                        type="email" 
+                        id="loginEmail" 
                         required 
-                        placeholder="••••••••" 
-                        class="w-full bg-slate-50/80 border border-slate-200 rounded-2xl pl-4 pr-11 py-3 text-xs font-medium text-slate-800 focus:outline-none focus:border-fuchsia-600 focus:bg-white transition"
+                        placeholder="e.g. juan.delacruz@gmail.com" 
+                        class="w-full bg-slate-50/80 border border-slate-200 rounded-2xl px-4 py-3 text-xs font-medium text-slate-800 focus:outline-none focus:border-fuchsia-600 focus:bg-white transition"
                     >
-                    <button 
-                        type="button" 
-                        onclick="togglePasswordVisibility('loginPassword', 'loginPasswordEye')" 
-                        class="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-1 cursor-pointer focus:outline-none transition"
-                        title="Show/Hide Password"
-                    >
-                        <i id="loginPasswordEye" class="fas fa-eye text-xs"></i>
-                    </button>
                 </div>
+
+                <!-- Password Input (MAY EYE BUTTON NA) -->
+                <div class="space-y-1.5">
+                    <div class="flex items-center justify-between">
+                        <label for="loginPassword" class="block text-xs font-bold text-slate-700">Password</label>
+                        <button type="button" onclick="openForgotPasswordModal()" class="text-xs font-bold text-fuchsia-600 hover:text-fuchsia-700 cursor-pointer">Forgot password?</button>
+                    </div>
+                    <div class="relative">
+                        <input 
+                            type="password" 
+                            id="loginPassword" 
+                            required 
+                            placeholder="••••••••" 
+                            class="w-full bg-slate-50/80 border border-slate-200 rounded-2xl pl-4 pr-11 py-3 text-xs font-medium text-slate-800 focus:outline-none focus:border-fuchsia-600 focus:bg-white transition"
+                        >
+                        <button 
+                            type="button" 
+                            onclick="togglePasswordVisibility('loginPassword', 'loginPasswordEye')" 
+                            class="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-1 cursor-pointer focus:outline-none transition"
+                            title="Show/Hide Password"
+                        >
+                            <i id="loginPasswordEye" class="fas fa-eye text-xs"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- LOGIN TERMS & CONDITIONS CHECKBOX -->
+                <div class="flex items-center gap-2 pt-1">
+                    <input type="checkbox" id="loginTerms" required class="w-4 h-4 rounded border-slate-300 text-rose-600 focus:ring-rose-500 cursor-pointer">
+                    <label for="loginTerms" class="text-xs font-semibold text-slate-600 cursor-pointer select-none">
+                        Sumasang-ayon ako sa <button type="button" onclick="openTermsModal()" class="font-extrabold text-rose-600 hover:underline cursor-pointer">Terms & Conditions</button>
+                    </label>
+                </div>
+
+                <!-- Submit Button -->
+                <button 
+                    type="submit" 
+                    id="loginSubmitBtn" 
+                    class="w-full bg-gradient-to-r from-amber-500 via-rose-500 to-fuchsia-600 hover:opacity-95 text-white font-extrabold text-sm py-3.5 rounded-2xl transition shadow-lg shadow-rose-500/20 cursor-pointer mt-2"
+                >
+                    Sign In
+                </button>
+            </form>
+
+            <!-- Divider -->
+            <div class="relative flex items-center justify-center my-1">
+                <div class="border-t border-slate-200 w-full"></div>
+                <span class="bg-white px-3 text-[11px] font-bold text-slate-400 uppercase tracking-wider">o kaya</span>
+                <div class="border-t border-slate-200 w-full"></div>
             </div>
 
-            <!-- LOGIN TERMS & CONDITIONS CHECKBOX -->
-            <div class="flex items-center gap-2 pt-1">
-                <input type="checkbox" id="loginTerms" required class="w-4 h-4 rounded border-slate-300 text-rose-600 focus:ring-rose-500 cursor-pointer">
-                <label for="loginTerms" class="text-xs font-semibold text-slate-600 cursor-pointer select-none">
-                    Sumasang-ayon ako sa <button type="button" onclick="openTermsModal()" class="font-extrabold text-rose-600 hover:underline cursor-pointer">Terms & Conditions</button>
-                </label>
-            </div>
-
-            <!-- Submit Button -->
+            <!-- Google Sign In Button -->
             <button 
-                type="submit" 
-                id="loginSubmitBtn" 
-                class="w-full bg-gradient-to-r from-amber-500 via-rose-500 to-fuchsia-600 hover:opacity-95 text-white font-extrabold text-sm py-3.5 rounded-2xl transition shadow-lg shadow-rose-500/20 cursor-pointer mt-2"
+                type="button" 
+                onclick="handleGoogleSignIn()" 
+                id="googleSignInBtn" 
+                class="w-full flex items-center justify-center gap-3 bg-white hover:bg-slate-50 active:bg-slate-100 text-slate-700 font-bold text-xs sm:text-sm py-3.5 px-4 rounded-2xl border border-slate-200 hover:border-slate-300 shadow-xs hover:shadow-md transition cursor-pointer active:scale-[0.99]"
             >
-                Sign In
+                <svg class="w-5 h-5 shrink-0" viewBox="0 0 24 24">
+                    <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                    <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                    <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
+                    <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+                </svg>
+                <span id="googleSignInBtnText">Sign in with Google</span>
             </button>
-        </form>
 
-        <!-- Bottom Sign Up Redirection Link -->
-        <div class="text-center pt-2">
-            <p class="text-xs font-semibold text-slate-500">
-                Wala pang account? 
-                <button type="button" onclick="openSignUpModal()" class="font-extrabold text-rose-600 hover:underline cursor-pointer">Sign up</button>
-            </p>
+            <!-- Bottom Sign Up Redirection Link -->
+            <div class="text-center pt-2">
+                <p class="text-xs font-semibold text-slate-500">
+                    Wala pang account? 
+                    <button type="button" onclick="openSignUpModal()" class="font-extrabold text-rose-600 hover:underline cursor-pointer">Sign up</button>
+                </p>
+            </div>
+
         </div>
-
     </div>
 </div>
 
@@ -194,6 +294,27 @@
                     Cancel
                 </button>
             </div>
+
+            <!-- Divider & Google Sign-up Option -->
+            <div class="relative flex items-center justify-center pt-2">
+                <div class="border-t border-slate-200 w-full"></div>
+                <span class="bg-white px-2 text-[10px] font-bold text-slate-400 uppercase tracking-wider">o kaya</span>
+                <div class="border-t border-slate-200 w-full"></div>
+            </div>
+
+            <button 
+                type="button" 
+                onclick="handleGoogleSignIn()" 
+                class="w-full flex items-center justify-center gap-2.5 bg-slate-50 hover:bg-slate-100 active:bg-slate-200 text-slate-700 font-bold text-xs py-2.5 px-3 rounded-xl border border-slate-200 hover:border-slate-300 transition cursor-pointer"
+            >
+                <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24">
+                    <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                    <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                    <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
+                    <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+                </svg>
+                <span>Mag-sign up gamit ang Google</span>
+            </button>
         </div>
 
         <!-- STEP 2: Input OTP Verification Code -->
@@ -266,6 +387,10 @@
         </div>
     </div>
 </div>
+
+<!-- Firebase SDKs -->
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
 
 <script>
 // SHOW / HIDE PASSWORD TOGGLE FUNCTION
@@ -700,6 +825,132 @@ function submitNewPasswordWithOTP() {
             alertBox.classList.remove('hidden');
         }
     });
+}
+
+// ---------------------------------------------------------------------------
+// FIREBASE CLIENT INITIALIZATION & GOOGLE SIGN-IN HANDLER
+// ---------------------------------------------------------------------------
+const firebaseConfig = {
+    apiKey: "AIzaSyBDk0kto8_VpvtzkQBdjrVP2YHOuUZ17rQ",
+    authDomain: "printingshop-7fd66.firebaseapp.com",
+    projectId: "printingshop-7fd66",
+    storageBucket: "printingshop-7fd66.firebasestorage.app",
+    messagingSenderId: "800500466642",
+    appId: "1:800500466642:web:762350381a60650b16fe0b",
+    measurementId: "G-31W5D136X8"
+};
+
+try {
+    if (typeof firebase !== 'undefined' && !firebase.apps.length) {
+        firebase.initializeApp(firebaseConfig);
+    }
+} catch (e) {
+    console.error("Firebase init error:", e);
+}
+
+function resetGoogleBtn() {
+    const btn = document.getElementById('googleSignInBtn');
+    if (!btn) return;
+    btn.disabled = false;
+    btn.innerHTML = `
+        <svg class="w-5 h-5 shrink-0" viewBox="0 0 24 24">
+            <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+            <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+            <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
+            <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+        </svg>
+        <span id="googleSignInBtnText">Sign in with Google</span>
+    `;
+}
+
+async function handleGoogleSignIn() {
+    const alertBox = document.getElementById('loginAlertBox');
+    const googleBtn = document.getElementById('googleSignInBtn');
+
+    // Auto-check terms when logging in via Google
+    const loginTerms = document.getElementById('loginTerms');
+    if (loginTerms) {
+        loginTerms.checked = true;
+    }
+
+    if (typeof firebase === 'undefined' || !firebase.auth) {
+        alertBox.className = "p-3.5 rounded-2xl text-xs font-bold flex items-center gap-2 bg-rose-50 text-rose-700 border border-rose-200";
+        alertBox.innerHTML = `<i class="fas fa-exclamation-circle"></i> Hindi ma-load ang Google authentication library. Paki-refresh ang page.`;
+        alertBox.classList.remove('hidden');
+        return;
+    }
+
+    try {
+        if (googleBtn) {
+            googleBtn.disabled = true;
+            googleBtn.innerHTML = `
+                <i class="fas fa-spinner fa-spin text-sm text-slate-500"></i>
+                <span class="text-xs font-semibold text-slate-600">Nagko-connect sa Google...</span>
+            `;
+        }
+
+        const provider = new firebase.auth.GoogleAuthProvider();
+        provider.setCustomParameters({ prompt: 'select_account' });
+
+        const result = await firebase.auth().signInWithPopup(provider);
+        const user = result.user;
+        const idToken = await user.getIdToken();
+
+        if (googleBtn) {
+            googleBtn.innerHTML = `
+                <i class="fas fa-spinner fa-spin text-sm text-slate-500"></i>
+                <span class="text-xs font-semibold text-slate-600">Nagve-verify sa system...</span>
+            `;
+        }
+
+        const response = await fetch('/api/google-login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                idToken: idToken,
+                email: user.email,
+                fullName: user.displayName,
+                uid: user.uid,
+                photoURL: user.photoURL
+            })
+        });
+
+        const data = await response.json();
+
+        if (data && (data.success || data.status === 'success')) {
+            alertBox.className = "p-3.5 rounded-2xl text-xs font-bold flex items-center gap-2 bg-emerald-50 text-emerald-700 border border-emerald-200";
+            alertBox.innerHTML = `<i class="fas fa-check-circle"></i> Matagumpay ang Google Sign-In! Redirecting...`;
+            alertBox.classList.remove('hidden');
+
+            setTimeout(() => {
+                window.location.href = data.redirect || data.redirectUrl || '/customer';
+            }, 800);
+        } else {
+            alertBox.className = "p-3.5 rounded-2xl text-xs font-bold flex items-center gap-2 bg-rose-50 text-rose-700 border border-rose-200";
+            alertBox.innerHTML = `<i class="fas fa-exclamation-circle"></i> ${data.message || 'Nabigong mag-login gamit ang Google.'}`;
+            alertBox.classList.remove('hidden');
+            resetGoogleBtn();
+        }
+    } catch (err) {
+        console.error("Google Sign-In Error:", err);
+        let errorMsg = 'Nabigo ang Google Sign-In.';
+        if (err.code === 'auth/popup-closed-by-user') {
+            errorMsg = 'Isinara ang Google login popup bago natapos.';
+        } else if (err.code === 'auth/cancelled-popup-request') {
+            errorMsg = 'Nakansela ang nakaraang login popup request.';
+        } else if (err.code === 'auth/popup-blocked') {
+            errorMsg = 'Naharang ng browser ang Google popup window. Paki-allow ang popups.';
+        } else if (err.code === 'auth/unauthorized-domain') {
+            errorMsg = 'Domain not authorized sa Firebase Authentication. Paki-dagdag ang localhost sa Authorized Domains sa Firebase Console.';
+        } else if (err.message) {
+            errorMsg = err.message;
+        }
+
+        alertBox.className = "p-3.5 rounded-2xl text-xs font-bold flex items-center gap-2 bg-rose-50 text-rose-700 border border-rose-200";
+        alertBox.innerHTML = `<i class="fas fa-exclamation-circle"></i> ${errorMsg}`;
+        alertBox.classList.remove('hidden');
+        resetGoogleBtn();
+    }
 }
 </script>
 {% endblock %}

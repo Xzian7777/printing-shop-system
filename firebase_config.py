@@ -1,11 +1,11 @@
 import firebase_admin
-from firebase_admin import credentials, firestore
+from firebase_admin import credentials, firestore, auth
 import datetime
 
 # Initialize Firebase Admin SDK
 try:
     if not firebase_admin._apps:
-        cred = credentials.Certificate("serviceAccountKey.json")
+        cred = credentials.Certificate("firebase-service-account.json")
         firebase_admin.initialize_app(cred)
     db = firestore.client()
 except Exception as e:
@@ -116,6 +116,38 @@ def create_customer(customer_data):
         return True
     except Exception as e:
         print(f"Error creating customer: {e}")
+        return False
+
+
+def create_firebase_customer(email, password):
+    try:
+        user = auth.create_user(
+            email=email,
+            password=password
+        )
+        return user.uid
+    except auth.EmailAlreadyExistsError:
+        return None
+    except Exception as e:
+        print(f"Error creating Firebase Auth user: {e}")
+        return None
+
+
+def delete_firebase_customer(uid):
+    try:
+        auth.delete_user(uid)
+        return True
+    except Exception as e:
+        print(f"Error deleting Firebase Auth user: {e}")
+        return False
+
+
+def delete_firebase_customer(uid):
+    try:
+        auth.delete_user(uid)
+        return True
+    except Exception as e:
+        print(f"Error deleting Firebase Auth user: {e}")
         return False
 
 def get_customer_profile(username):

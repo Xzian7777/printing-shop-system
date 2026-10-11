@@ -3,10 +3,12 @@ from functools import wraps
 from firebase_config import (
     db, get_orders, create_order, update_order_status, 
     get_customers, create_customer, get_customer_profile, save_customer_profile,
+    create_firebase_customer, delete_firebase_customer,
     get_store_products, save_store_products, get_inventory,
     log_rfid_tap, get_notifications, create_notification, mark_all_notifications_read,
     delete_notification, delete_all_notifications
 )
+from firebase_admin import auth as firebase_auth
 import datetime
 import smtplib
 import random
@@ -25,16 +27,15 @@ app.secret_key = "printingshop_secret_key"
 # ---------------------------------------------------------------------------
 # ADMIN ACCOUNT CREDENTIALS
 # ---------------------------------------------------------------------------
-ADMIN_EMAIL = os.getenv("ADMIN_EMAIL")
-ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD")                         # Admin Password
-
+ADMIN_EMAIL = (os.getenv("ADMIN_EMAIL") or "").strip().lower()
+ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD") or ""
 # ---------------------------------------------------------------------------
 # SMTP EMAIL CONFIGURATION
 # ---------------------------------------------------------------------------
 SMTP_SERVER = "smtp.gmail.com"
 SMTP_PORT = 587
-SMTP_EMAIL = "xdawinan@gmail.com"        
-SMTP_PASSWORD = "[REDACTED]"       
+SMTP_EMAIL = os.getenv("SMTP_EMAIL")
+SMTP_PASSWORD = os.getenv("SMTP_PASSWORD")     
 
 # In-memory storage para sa OTPs
 otp_memory_store = {}
@@ -85,7 +86,7 @@ def validate_strong_password(password):
 
 def is_email_registered(email):
     try:
-        if email.strip().lower() == ADMIN_EMAIL.lower():
+        if email.strip().lower() == ADMIN_EMAIL:
             return True
 
         customers = get_customers() or []
@@ -178,7 +179,7 @@ def login():
         if not email or not password:
             return jsonify({"success": False, "message": "Kailangan ang email at password!"}), 400
 
-        if email == ADMIN_EMAIL.lower():
+        if email == ADMIN_EMAIL:
             if password == ADMIN_PASSWORD:
                 session['username'] = "Admin"
                 session['email'] = ADMIN_EMAIL
@@ -246,7 +247,7 @@ def api_login():
         if not email or not password:
             return jsonify({"success": False, "status": "error", "message": "Pakilagay ang email at password."}), 400
 
-        if email == ADMIN_EMAIL.lower():
+        if email == ADMIN_EMAIL:
             if password == ADMIN_PASSWORD:
                 session['username'] = "Admin"
                 session['email'] = ADMIN_EMAIL
@@ -293,6 +294,97 @@ def api_login():
 
     except Exception as e:
         return jsonify({"success": False, "status": "error", "message": str(e)}), 400
+
+
+@app.route('/api/google-login', methods=['POST'])
+def api_google_login():
+    try:
+        data = request.json or {}
+        id_token = data.get('idToken')
+        client_email = (data.get('email') or '').strip().lower()
+        client_name = (data.get('fullName') or '').strip()
+        client_uid = (data.get('uid') or '').strip()
+
+        if not id_token and not client_email:
+            return jsonify({"success": False, "message": "Walang natanggap na Google token o email."}), 400
+
+        email = client_email
+        full_name = client_name
+        uid = client_uid
+
+        # Verify Google ID token gamit ang Firebase Admin SDK
+        if id_token:
+            try:
+                decoded_token = firebase_auth.verify_id_token(id_token)
+                email = decoded_token.get('email', email).strip().lower()
+                uid = decoded_token.get('uid', uid)
+                if not full_name:
+                    full_name = decoded_token.get('name', '')
+            except Exception as e:
+                print(f"Token verification note: {e}")
+                if not email:
+                    return jsonify({"success": False, "message": f"Hindi ma-verify ang Google Token: {str(e)}"}), 401
+
+        if not email:
+            return jsonify({"success": False, "message": "Walang natagpuang email sa Google account."}), 400
+
+        # Check kung Admin account ang nag-sign in
+        if ADMIN_EMAIL and email == ADMIN_EMAIL:
+            session['username'] = "Admin"
+            session['email'] = ADMIN_EMAIL
+            session['role'] = 'admin'
+            return jsonify({
+                "success": True,
+                "status": "success",
+                "message": "Admin Google Login Successful",
+                "redirect": "/admin",
+                "redirectUrl": "/admin",
+                "user": {"email": session['email'], "role": session['role'], "username": "Admin"}
+            }), 200
+
+        # Customer account handling
+        customers = get_customers() or []
+        user_found = None
+        for c in customers:
+            if isinstance(c, dict) and c.get('email', '').strip().lower() == email:
+                user_found = c
+                break
+
+        # Kung bagong user, awtomatikong irehistro sa Firestore
+        if not user_found:
+            username_part = email.split('@')[0]
+            display_name = full_name if full_name else username_part
+            new_customer = {
+                "id": f"CUST-{int(datetime.datetime.now().timestamp())}",
+                "uid": uid or f"google-{int(datetime.datetime.now().timestamp())}",
+                "fullName": display_name,
+                "contact": "",
+                "email": email,
+                "username": username_part,
+                "regDate": datetime.datetime.now().strftime('%Y-%m-%d • %I:%M %p'),
+                "rfidUid": f"RFID-KCZ-{random.randint(100000, 999999)}",
+                "authProvider": "google"
+            }
+            create_customer(new_customer)
+            user_found = new_customer
+
+        username_clean = user_found.get('fullName') or email.split('@')[0]
+        session['username'] = username_clean
+        session['email'] = email
+        session['role'] = 'customer'
+
+        return jsonify({
+            "success": True,
+            "status": "success",
+            "message": "Google Login Successful",
+            "redirect": "/customer",
+            "redirectUrl": "/customer",
+            "user": {"email": session['email'], "role": session['role'], "username": username_clean}
+        }), 200
+
+    except Exception as e:
+        print(f"Error in api_google_login: {e}")
+        return jsonify({"success": False, "message": str(e)}), 500
 
 
 @app.route('/api/request-signup-otp', methods=['POST'])
@@ -378,17 +470,44 @@ def api_signup():
         else:
             return jsonify({"success": False, "message": "Mali o expired ang OTP verification code na ipinasok mo."}), 400
 
+                # Create account in Firebase Authentication
+        firebase_uid = create_firebase_customer(email, password)
+
+        if not firebase_uid:
+            return jsonify({
+                "success": False,
+                "message": "Hindi ma-create ang Firebase Authentication account. Maaaring registered na ang email."
+            }), 400
+
+                # Create user in Firebase Authentication
+        firebase_uid = create_firebase_customer(email, password)
+
+        if not firebase_uid:
+            return jsonify({
+                "success": False,
+                "message": "Hindi ma-create ang Firebase Authentication account. Maaaring registered na ang email."
+            }), 400
+
+        # Save customer profile only — NO PASSWORD
         new_customer = {
             "id": f"CUST-{int(datetime.datetime.now().timestamp())}",
+            "uid": firebase_uid,
             "fullName": full_name,
             "contact": contact,
             "email": email,
             "username": email.split('@')[0],
-            "password": password,
             "regDate": datetime.datetime.now().strftime('%Y-%m-%d • %I:%M %p'),
             "rfidUid": f"RFID-KCZ-{random.randint(100000, 999999)}"
         }
-        create_customer(new_customer)
+
+        if not create_customer(new_customer):
+            # Roll back Firebase Authentication account
+            delete_firebase_customer(firebase_uid)
+
+            return jsonify({
+                "success": False,
+                "message": "Hindi ma-save ang customer profile."
+            }), 500
 
         welcome_html = f"""
         <div style="font-family: Arial, sans-serif; padding: 20px; border: 1px solid #e2e8f0; border-radius: 12px; max-width: 500px;">
@@ -466,7 +585,7 @@ def reset_password():
         if not is_strong:
             return jsonify({"success": False, "message": f"Mahina ang Bagong Password: {pass_msg}"}), 400
 
-        if email == ADMIN_EMAIL.lower():
+        if email == ADMIN_EMAIL:
             stored_admin = otp_memory_store.get(email)
             if stored_admin and stored_admin['otp'] == otp_input:
                 global ADMIN_PASSWORD
@@ -511,70 +630,179 @@ def reset_password():
 # REGISTERED USERS MANAGEMENT ENDPOINTS (UPDATED FOR DELETION)
 # ---------------------------------------------------------------------------
 
-@app.route('/api/users', methods=['GET'])
+@app.route('/api/users', methods=['GET', 'POST'])
 @admin_required
 def handle_users():
-    try:
-        customers = get_customers() or []
-        users_list = []
-        
-        # Suportahan ang parehong list o dictionary format mula sa Firebase database
-        if isinstance(customers, dict):
-            for uid, c in customers.items():
-                if isinstance(c, dict):
-                    c['id'] = c.get('id') or uid
-                    users_list.append({
-                        "id": c.get('id'),
-                        "name": c.get('fullName') or c.get('name') or c.get('username') or 'N/A',
-                        "email": c.get('email', 'N/A'),
-                        "phone": c.get('contact') or c.get('phone', 'N/A'),
-                        "dateJoined": c.get('regDate') or c.get('created_at') or 'Oct 01, 2026'
-                    })
-        elif isinstance(customers, list):
-            for idx, c in enumerate(customers):
-                if isinstance(c, dict):
-                    c_id = c.get('id') or str(idx)
-                    users_list.append({
-                        "id": c_id,
-                        "name": c.get('fullName') or c.get('name') or c.get('username') or 'N/A',
-                        "email": c.get('email', 'N/A'),
-                        "phone": c.get('contact') or c.get('phone', 'N/A'),
-                        "dateJoined": c.get('regDate') or c.get('created_at') or 'Oct 01, 2026'
-                    })
-                    
-        return jsonify(users_list), 200
-    except Exception as e:
-        return jsonify({"success": False, "error": str(e)}), 500
+    if request.method == 'GET':
+        try:
+            customers = get_customers() or []
+            users_list = []
+            
+            # Suportahan ang parehong list o dictionary format mula sa Firebase database
+            if isinstance(customers, dict):
+                for uid, c in customers.items():
+                    if isinstance(c, dict):
+                        c['id'] = c.get('id') or uid
+                        users_list.append({
+                            "id": c.get('id'),
+                            "name": c.get('fullName') or c.get('name') or c.get('username') or 'N/A',
+                            "email": c.get('email', 'N/A'),
+                            "phone": c.get('contact') or c.get('phone', 'N/A'),
+                            "dateJoined": c.get('regDate') or c.get('created_at') or 'Oct 01, 2026',
+                            "role": c.get('role', 'customer')
+                        })
+            elif isinstance(customers, list):
+                for idx, c in enumerate(customers):
+                    if isinstance(c, dict):
+                        c_id = c.get('id') or str(idx)
+                        users_list.append({
+                            "id": c_id,
+                            "name": c.get('fullName') or c.get('name') or c.get('username') or 'N/A',
+                            "email": c.get('email', 'N/A'),
+                            "phone": c.get('contact') or c.get('phone', 'N/A'),
+                            "dateJoined": c.get('regDate') or c.get('created_at') or 'Oct 01, 2026',
+                            "role": c.get('role', 'customer')
+                        })
+                        
+            return jsonify(users_list), 200
+        except Exception as e:
+            return jsonify({"success": False, "error": str(e)}), 500
 
-@app.route('/api/users/<user_id>', methods=['DELETE'])
+    elif request.method == 'POST':
+        # CREATE NEW USER (ADMIN CRUD)
+        try:
+            data = request.json or {}
+            full_name = (data.get('name') or data.get('fullName') or '').strip()
+            email = (data.get('email') or '').strip().lower()
+            phone = (data.get('phone') or data.get('contact') or '').strip()
+            password = data.get('password') or 'KczUser2026!'
+
+            if not full_name or not email:
+                return jsonify({"success": False, "message": "Name and Gmail address are required."}), 400
+
+            if not email.endswith('@gmail.com'):
+                return jsonify({"success": False, "message": "Only @gmail.com accounts are allowed."}), 400
+
+            user_id = f"CUST-{random.randint(100, 999)}"
+            new_customer = {
+                "id": user_id,
+                "fullName": full_name,
+                "email": email,
+                "contact": phone or "09171234567",
+                "phone": phone or "09171234567",
+                "username": full_name.split()[0].lower() if full_name else "user",
+                "regDate": datetime.datetime.now().strftime("%Y-%m-%d"),
+                "created_at": datetime.datetime.now().strftime("%Y-%m-%d %H:%M"),
+                "password": password,
+                "role": "customer",
+                "rfidUid": f"RFID-KCZ-{random.randint(100000, 999999)}"
+            }
+
+            # Save in Firestore
+            try:
+                if db:
+                    db.collection('customers').document(user_id).set(new_customer)
+            except Exception as dbe:
+                print(f"Firestore Create Customer Warning: {dbe}")
+
+            return jsonify({
+                "success": True,
+                "status": "success",
+                "message": f"Successfully created user account for {full_name}!",
+                "user": new_customer
+            }), 201
+        except Exception as e:
+            return jsonify({"success": False, "message": str(e)}), 500
+
+
+@app.route('/api/users/<user_id>', methods=['GET', 'PUT', 'DELETE'])
 @admin_required
-def delete_user(user_id):
-    try:
-        deleted = False
-        
-        # 1. Subukang burahin gamit ang Firebase Realtime Database reference kung naka-configure
+def handle_single_user(user_id):
+    if request.method == 'GET':
         try:
-            user_ref = db.reference(f'customers/{user_id}')
-            if user_ref.get():
-                user_ref.delete()
-                deleted = True
-        except Exception:
-            pass
+            if db:
+                doc = db.collection('customers').document(user_id).get()
+                if doc.exists:
+                    d = doc.to_dict()
+                    d['id'] = doc.id
+                    return jsonify({"success": True, "user": d}), 200
+            return jsonify({"success": False, "message": "User not found"}), 404
+        except Exception as e:
+            return jsonify({"success": False, "error": str(e)}), 500
 
-        # 2. Subukang burahin kung Firestore ang ginagamit
+    elif request.method == 'PUT':
+        # UPDATE EXISTING USER (ADMIN CRUD)
         try:
-            if not deleted and db:
-                customers_ref = db.collection('customers')
-                docs = customers_ref.where('id', '==', user_id).stream()
-                for doc in docs:
-                    doc.reference.delete()
+            data = request.json or {}
+            update_data = {}
+            if 'name' in data or 'fullName' in data:
+                name_val = data.get('name') or data.get('fullName')
+                update_data['fullName'] = name_val
+                update_data['name'] = name_val
+            if 'email' in data:
+                update_data['email'] = data['email'].strip().lower()
+            if 'phone' in data or 'contact' in data:
+                phone_val = data.get('phone') or data.get('contact')
+                update_data['phone'] = phone_val
+                update_data['contact'] = phone_val
+            if 'password' in data and data['password']:
+                update_data['password'] = data['password']
+
+            updated = False
+            if db:
+                # Direct document update
+                doc_ref = db.collection('customers').document(user_id)
+                if doc_ref.get().exists:
+                    doc_ref.update(update_data)
+                    updated = True
+                else:
+                    # Query by 'id' field
+                    docs = db.collection('customers').where('id', '==', user_id).stream()
+                    for doc in docs:
+                        doc.reference.update(update_data)
+                        updated = True
+
+            return jsonify({
+                "success": True,
+                "status": "success",
+                "message": f"User {user_id} profile updated successfully!"
+            }), 200
+        except Exception as e:
+            return jsonify({"success": False, "message": str(e)}), 500
+
+    elif request.method == 'DELETE':
+        # DELETE USER (ADMIN CRUD)
+        try:
+            deleted = False
+            
+            # 1. Subukang burahin gamit ang Firebase Realtime Database reference kung naka-configure
+            try:
+                user_ref = db.reference(f'customers/{user_id}')
+                if user_ref.get():
+                    user_ref.delete()
                     deleted = True
-        except Exception as db_err:
-            print(f"⚠ Database User Delete Error: {db_err}")
+            except Exception:
+                pass
 
-        return jsonify({"success": True, "status": "success", "message": f"User {user_id} successfully deleted from database."}), 200
-    except Exception as e:
-        return jsonify({"success": False, "error": str(e)}), 500
+            # 2. Subukang burahin kung Firestore ang ginagamit
+            try:
+                if db:
+                    doc_ref = db.collection('customers').document(user_id)
+                    if doc_ref.get().exists:
+                        doc_ref.delete()
+                        deleted = True
+                    else:
+                        customers_ref = db.collection('customers')
+                        docs = customers_ref.where('id', '==', user_id).stream()
+                        for doc in docs:
+                            doc.reference.delete()
+                            deleted = True
+            except Exception as db_err:
+                print(f"⚠ Database User Delete Error: {db_err}")
+
+            return jsonify({"success": True, "status": "success", "message": f"User {user_id} successfully deleted from database."}), 200
+        except Exception as e:
+            return jsonify({"success": False, "error": str(e)}), 500
 
 
 # ---------------------------------------------------------------------------

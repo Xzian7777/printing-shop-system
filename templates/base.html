@@ -14,62 +14,194 @@
   <!-- Custom Stylesheet -->
   <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v=1.3">
 </head>
-<body class="bg-slate-100 text-slate-800 font-sans min-h-screen flex flex-col justify-between relative overflow-x-hidden">
+<body class="{% if request.endpoint == 'index' %}bg-[#070b19] text-white{% else %}bg-slate-100 text-slate-800{% endif %} font-sans min-h-screen relative overflow-x-hidden">
 
+  {% if request.endpoint != 'index' %}
   <!-- Ambient Background Mesh -->
   <div class="fixed inset-0 pointer-events-none -z-10 overflow-hidden">
     <div class="absolute -top-32 -left-32 w-96 h-96 bg-gradient-to-br from-[#f09433]/20 via-[#e6683c]/15 to-[#dc2743]/20 rounded-full blur-3xl"></div>
     <div class="absolute top-1/2 -right-32 w-[30rem] h-[30rem] bg-gradient-to-tl from-[#bc1888]/20 via-[#cc2366]/15 to-[#dc2743]/15 rounded-full blur-3xl"></div>
   </div>
+  {% endif %}
 
-  <!-- ================= HEADER / NAVBAR ================= -->
-  <header class="navbar-glass sticky top-0 z-40 w-full border-b border-slate-200/80 bg-white/80 backdrop-blur-md">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-      
-      <!-- Brand Logo -->
-      <a href="/" class="flex items-center gap-3 group">
-        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-[#f09433] via-[#dc2743] to-[#bc1888] flex items-center justify-center text-white font-black text-lg shadow-md group-hover:scale-105 transition-transform">
+  {% if request.endpoint != 'index' %}
+  <!-- ================= MOBILE HEADER TOPBAR (Visible only on mobile/tablet) ================= -->
+  <header class="md:hidden sticky top-0 z-30 bg-white/90 backdrop-blur-md border-b border-slate-200/80 px-4 py-3 flex items-center justify-between shadow-xs">
+    <div class="flex items-center gap-2.5">
+      <button onclick="toggleMobileSidebar()" class="p-2 rounded-xl text-slate-600 hover:text-slate-900 hover:bg-slate-100 focus:outline-none transition" title="Open Menu">
+        <i class="fa-solid fa-bars text-lg"></i>
+      </button>
+      <a href="/" class="flex items-center gap-2">
+        <div class="w-8 h-8 rounded-xl bg-gradient-to-tr from-[#f09433] via-[#dc2743] to-[#bc1888] flex items-center justify-center text-white font-black text-xs shadow-xs">
           KCZ
         </div>
-        <span class="font-extrabold text-xl tracking-tight text-slate-900 group-hover:text-[#dc2743] transition-colors">
-          Kez C-Em Zek
-        </span>
+        <span class="font-extrabold text-sm tracking-tight text-slate-900">Kez C-Em Zek</span>
+      </a>
+    </div>
+
+    <div class="flex items-center gap-2">
+      {% if session.get('username') %}
+        <div class="flex items-center gap-1.5 bg-slate-100 px-2.5 py-1 rounded-full text-[11px] font-bold text-slate-700">
+          <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+          <span>{{ session.get('username') }}</span>
+        </div>
+        <button onclick="openLogoutModal()" class="text-xs font-bold text-rose-600 hover:bg-rose-50 p-1.5 rounded-lg transition" title="Sign Out">
+          <i class="fa-solid fa-arrow-right-from-bracket"></i>
+        </button>
+      {% else %}
+        <a href="/login" class="bg-gradient-to-r from-[#f09433] via-[#dc2743] to-[#bc1888] text-white px-3 py-1.5 rounded-xl text-xs font-bold shadow-xs">
+          Sign In
+        </a>
+      {% endif %}
+    </div>
+  </header>
+
+  <!-- ================= MOBILE SIDEBAR BACKDROP & DRAWER ================= -->
+  <div id="mobileSidebarBackdrop" onclick="toggleMobileSidebar()" class="fixed inset-0 bg-slate-900/50 backdrop-blur-xs z-50 hidden md:hidden transition-opacity"></div>
+  <aside id="mobileSidebarDrawer" class="fixed inset-y-0 left-0 w-72 bg-white z-50 transform -translate-x-full transition-transform duration-300 ease-in-out md:hidden flex flex-col justify-between shadow-2xl border-r border-slate-200">
+    <div class="p-5 flex items-center justify-between border-b border-slate-100">
+      <a href="/" class="flex items-center gap-3">
+        <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-[#f09433] via-[#dc2743] to-[#bc1888] flex items-center justify-center text-white font-black text-base shadow-xs">
+          KCZ
+        </div>
+        <div>
+          <span class="font-extrabold text-base tracking-tight text-slate-900 block leading-tight">Kez C-Em Zek</span>
+          <span class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Printing Services</span>
+        </div>
+      </a>
+      <button onclick="toggleMobileSidebar()" class="p-1.5 text-slate-400 hover:text-slate-600 rounded-lg hover:bg-slate-100">
+        <i class="fa-solid fa-xmark text-lg"></i>
+      </button>
+    </div>
+
+    <div class="p-4 flex-1 overflow-y-auto space-y-1">
+      <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider px-3 mb-2">Main Navigation</p>
+      <a href="/#services" onclick="toggleMobileSidebar()" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold text-slate-700 hover:bg-slate-100 transition">
+        <i class="fa-solid fa-layer-group text-slate-400 w-5"></i> Services
+      </a>
+      <a href="/store" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold text-slate-700 hover:bg-slate-100 transition">
+        <i class="fa-solid fa-store text-slate-400 w-5"></i> Store
+      </a>
+      {% if session.get('username') %}
+        {% if session.get('role') == 'admin' %}
+          <a href="/admin" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 transition">
+            <i class="fa-solid fa-gauge-high text-indigo-600 w-5"></i> Admin Dashboard
+          </a>
+        {% else %}
+          <a href="/customer?tab=myOrders" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold text-rose-600 bg-rose-50 hover:bg-rose-100 transition">
+            <i class="fa-solid fa-box-archive text-rose-600 w-5"></i> My Orders
+          </a>
+        {% endif %}
+      {% endif %}
+      <a href="/#how-it-works" onclick="toggleMobileSidebar()" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold text-slate-700 hover:bg-slate-100 transition">
+        <i class="fa-solid fa-circle-question text-slate-400 w-5"></i> How It Works
+      </a>
+      <button onclick="openTermsModal(); toggleMobileSidebar();" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold text-slate-700 hover:bg-slate-100 transition text-left">
+        <i class="fa-solid fa-file-contract text-slate-400 w-5"></i> Terms & Conditions
+      </button>
+    </div>
+
+    <!-- Mobile Drawer Footer -->
+    <div class="p-4 border-t border-slate-100 bg-slate-50/50">
+      {% if session.get('username') %}
+        <div class="flex items-center gap-2 mb-3 px-3 py-2 bg-white border border-slate-200 rounded-xl">
+          <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 shrink-0"></span>
+          <div class="min-w-0 flex-1">
+            <p class="text-xs font-bold text-slate-800 truncate">{{ session.get('username') }}</p>
+            <p class="text-[10px] text-slate-400 font-semibold">{{ session.get('role', 'customer')|upper }}</p>
+          </div>
+        </div>
+        <button onclick="openLogoutModal()" class="w-full flex items-center justify-center gap-2 py-2.5 px-3 bg-rose-50 hover:bg-rose-100 text-rose-600 text-xs font-bold rounded-xl transition">
+          <i class="fa-solid fa-arrow-right-from-bracket"></i> Sign Out
+        </button>
+      {% else %}
+        <a href="/login" class="w-full flex items-center justify-center gap-2 py-2.5 bg-gradient-to-r from-[#f09433] via-[#dc2743] to-[#bc1888] text-white text-xs font-bold rounded-xl shadow-xs transition">
+          <i class="fa-solid fa-right-to-bracket"></i> Sign In
+        </a>
+      {% endif %}
+    </div>
+  </aside>
+  {% endif %}
+
+  {% if request.endpoint != 'index' %}
+  <!-- ================= DESKTOP SIDEBAR NAVIGATION (Collapsible on md+ screens) ================= -->
+  <aside id="desktopSidebar" class="hidden md:flex flex-col w-56 fixed inset-y-0 left-0 bg-white/95 backdrop-blur-md border-r border-slate-200/90 z-40 shadow-xs transition-all duration-300">
+    
+    <!-- Sidebar Top: Brand Logo & Toggle Button -->
+    <div class="p-4 border-b border-slate-100 flex items-center justify-between">
+      <a href="/" class="flex items-center gap-2.5 group min-w-0">
+        <div class="w-9 h-9 rounded-2xl bg-gradient-to-tr from-[#f09433] via-[#dc2743] to-[#bc1888] flex items-center justify-center text-white font-black text-base shadow-md group-hover:scale-105 transition-transform shrink-0">
+          KCZ
+        </div>
+        <div class="sidebar-text min-w-0 transition-opacity duration-200">
+          <span class="font-extrabold text-sm tracking-tight text-slate-900 group-hover:text-[#dc2743] transition-colors block leading-tight truncate">
+            Kez C-Em Zek
+          </span>
+          <span class="text-[9px] font-semibold text-slate-400 uppercase tracking-wider block truncate">
+            Printing Services
+          </span>
+        </div>
       </a>
 
-      <!-- Navigation Links -->
-      <nav class="hidden md:flex items-center gap-6 text-sm font-medium text-slate-600">
-        <a href="/#services" class="hover:text-[#dc2743] transition-colors">Services</a>
-        <a href="/store" class="hover:text-[#dc2743] transition-colors">Store</a>
-        
-        <!-- NAKATAGO ANG ORDERS LINK KAPAG HINDI NAKA-LOGIN -->
-        {% if session.get('username') %}
-          {% if session.get('role') == 'admin' %}
-            <a href="/admin" class="hover:text-[#dc2743] transition-colors font-bold text-indigo-600">Admin Dashboard</a>
-          {% else %}
-            <a href="/customer?tab=myOrders" class="hover:text-[#dc2743] transition-colors">Orders</a>
-          {% endif %}
-        {% endif %}
-        
-        <a href="/#how-it-works" class="hover:text-[#dc2743] transition-colors">How It Works</a>
-        
-        <!-- TERMS AND CONDITIONS NAVBAR LINK -->
-        <button onclick="openTermsModal()" class="hover:text-[#dc2743] transition-colors focus:outline-none">
-          Terms & Conditions
-        </button>
-      </nav>
+      <!-- Desktop Sidebar Toggle Button -->
+      <button onclick="toggleDesktopSidebar()" id="desktopSidebarToggleBtn" class="w-7 h-7 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 hover:text-slate-900 flex items-center justify-center transition cursor-pointer shrink-0 ml-1" title="Toggle Sidebar (Collapse / Expand)">
+        <i class="fa-solid fa-chevron-left text-xs transition-transform duration-300" id="desktopSidebarToggleIcon"></i>
+      </button>
+    </div>
 
-      <!-- User Session Actions -->
-      <div class="flex items-center gap-4">
-        {% if session.get('username') %}
-          <!-- NOTIFICATIONS BELL (LUMALABAS LANG PAG NAKA-LOGIN) -->
+    <!-- Sidebar Middle: Navigation Links -->
+    <nav class="flex-1 p-3 space-y-1.5 overflow-y-auto">
+      <p class="sidebar-text text-[10px] font-bold text-slate-400 uppercase tracking-wider px-3 mb-2">Navigation</p>
+
+      <a href="/#services" class="flex items-center gap-3 px-3 py-2.5 rounded-2xl text-xs font-bold text-slate-600 hover:text-slate-900 hover:bg-slate-100/80 transition-all group" title="Services">
+        <i class="fa-solid fa-layer-group text-slate-400 group-hover:text-[#dc2743] text-sm w-5 text-center transition-colors shrink-0"></i>
+        <span class="sidebar-text truncate">Services</span>
+      </a>
+
+      <a href="/store" class="flex items-center gap-3 px-3 py-2.5 rounded-2xl text-xs font-bold text-slate-600 hover:text-slate-900 hover:bg-slate-100/80 transition-all group" title="Store">
+        <i class="fa-solid fa-store text-slate-400 group-hover:text-[#dc2743] text-sm w-5 text-center transition-colors shrink-0"></i>
+        <span class="sidebar-text truncate">Store</span>
+      </a>
+
+      {% if session.get('username') %}
+        {% if session.get('role') == 'admin' %}
+          <a href="/admin" class="flex items-center gap-3 px-3 py-2.5 rounded-2xl text-xs font-bold text-indigo-700 bg-indigo-50/90 hover:bg-indigo-100 transition-all group border border-indigo-100 shadow-xs" title="Admin Dashboard">
+            <i class="fa-solid fa-gauge-high text-indigo-600 text-sm w-5 text-center shrink-0"></i>
+            <span class="sidebar-text truncate">Admin Dashboard</span>
+          </a>
+        {% else %}
+          <a href="/customer?tab=myOrders" class="flex items-center gap-3 px-3 py-2.5 rounded-2xl text-xs font-bold text-[#dc2743] bg-rose-50/90 hover:bg-rose-100 transition-all group border border-rose-100 shadow-xs" title="My Orders">
+            <i class="fa-solid fa-box-archive text-[#dc2743] text-sm w-5 text-center shrink-0"></i>
+            <span class="sidebar-text truncate">My Orders</span>
+          </a>
+        {% endif %}
+      {% endif %}
+
+      <a href="/#how-it-works" class="flex items-center gap-3 px-3 py-2.5 rounded-2xl text-xs font-bold text-slate-600 hover:text-slate-900 hover:bg-slate-100/80 transition-all group" title="How It Works">
+        <i class="fa-solid fa-circle-question text-slate-400 group-hover:text-[#dc2743] text-sm w-5 text-center transition-colors shrink-0"></i>
+        <span class="sidebar-text truncate">How It Works</span>
+      </a>
+
+      <button onclick="openTermsModal()" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-2xl text-xs font-bold text-slate-600 hover:text-slate-900 hover:bg-slate-100/80 transition-all group text-left" title="Terms & Conditions">
+        <i class="fa-solid fa-file-contract text-slate-400 group-hover:text-[#dc2743] text-sm w-5 text-center transition-colors shrink-0"></i>
+        <span class="sidebar-text truncate">Terms & Conditions</span>
+      </button>
+    </nav>
+
+    <!-- Sidebar Bottom: Notifications & User Session -->
+    <div class="p-3 border-t border-slate-200/80 bg-slate-50/60 space-y-3">
+      {% if session.get('username') %}
+        <!-- Notification + User Info Row -->
+        <div class="flex items-center justify-between gap-2">
+          <!-- Notification Dropdown Anchor -->
           <div class="relative" id="notifDropdownContainer">
-            <button onclick="toggleNotifDropdown()" class="relative p-2 rounded-full hover:bg-slate-100 text-slate-600 transition-colors focus:outline-none">
-              <i class="fa-solid fa-bell text-lg"></i>
-              <span id="notifBadge" class="hidden absolute top-1 right-1 w-2.5 h-2.5 bg-rose-500 rounded-full ring-2 ring-white"></span>
+            <button onclick="toggleNotifDropdown()" class="relative p-2.5 rounded-xl hover:bg-white border border-transparent hover:border-slate-200 text-slate-600 hover:text-slate-900 transition-all focus:outline-none" title="Notifications">
+              <i class="fa-solid fa-bell text-base"></i>
+              <span id="notifBadge" class="hidden absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-rose-500 rounded-full ring-2 ring-white"></span>
             </button>
 
-            <!-- Dropdown Menu -->
-            <div id="notifMenu" class="hidden absolute right-0 mt-2 w-80 bg-white/95 backdrop-blur-md rounded-2xl shadow-xl border border-slate-100 z-50 p-4">
+            <!-- Dropdown Menu (Opens above) -->
+            <div id="notifMenu" class="hidden absolute left-0 bottom-full mb-2 w-80 bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl border border-slate-100 z-50 p-4">
               <div class="flex items-center justify-between pb-3 border-b border-slate-100">
                 <span class="font-bold text-sm text-slate-800">Notifications</span>
                 <div class="flex gap-2 text-xs">
@@ -84,44 +216,77 @@
             </div>
           </div>
 
-          <!-- USER BADGE & SIGN OUT -->
-          <div class="flex items-center gap-2 bg-slate-200/60 px-3 py-1.5 rounded-full text-xs font-semibold text-slate-700">
-            <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
-            <span>{{ session.get('username') }} ({{ session.get('role', 'customer')|upper }})</span>
+          <!-- User Role Pill -->
+          <div class="sidebar-text flex items-center gap-2 bg-white px-3 py-1.5 rounded-xl border border-slate-200 text-xs font-semibold text-slate-700 min-w-0 flex-1 shadow-xs">
+            <span class="w-2 h-2 rounded-full bg-emerald-500 shrink-0"></span>
+            <div class="truncate">
+              <span class="font-bold block truncate">{{ session.get('username') }}</span>
+              <span class="text-[10px] text-slate-400 uppercase tracking-wider font-semibold">{{ session.get('role', 'customer') }}</span>
+            </div>
           </div>
+        </div>
 
-          <button onclick="openLogoutModal()" class="text-xs font-bold text-rose-600 hover:text-rose-700 hover:bg-rose-50 px-3 py-1.5 rounded-xl transition-all">
-            Sign Out
-          </button>
-        {% else %}
-          <!-- LUMALABAS KAPAG HINDI NAKA-LOGIN -->
-          <a href="/login" class="bg-gradient-to-r from-[#f09433] via-[#dc2743] to-[#bc1888] text-white px-5 py-2 rounded-xl text-xs font-bold shadow-md hover:shadow-lg transition-all">
-            Sign In
-          </a>
-        {% endif %}
-      </div>
-
-    </div>
-  </header>
-
-  <!-- ================= MAIN CONTENT BLOCK ================= -->
-  <main class="flex-grow">
-    {% block content %}{% endblock %}
-  </main>
-
-  <!-- ================= FOOTER ================= -->
-  <footer class="bg-white/80 backdrop-blur-md border-t border-slate-200 py-6 mt-12">
-    <div class="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-500 gap-3">
-      <div>
-        &copy; 2026 Kez C-Em Zek Printing Services. All rights reserved.
-      </div>
-      <div class="flex items-center gap-4">
-        <button onclick="openTermsModal()" class="hover:text-[#dc2743] underline font-medium transition-colors">
-          Terms & Conditions
+        <!-- Sign Out Button -->
+        <button onclick="openLogoutModal()" class="w-full flex items-center justify-center gap-2 py-2.5 px-3 bg-white hover:bg-rose-50 text-rose-600 border border-slate-200 hover:border-rose-200 text-xs font-bold rounded-2xl transition shadow-xs" title="Sign Out">
+          <i class="fa-solid fa-arrow-right-from-bracket shrink-0"></i>
+          <span class="sidebar-text truncate">Sign Out</span>
         </button>
-      </div>
+      {% else %}
+        <a href="/login" class="w-full flex items-center justify-center gap-2 py-3 bg-gradient-to-r from-[#f09433] via-[#dc2743] to-[#bc1888] hover:opacity-95 text-white text-xs font-bold rounded-2xl shadow-md transition shadow-rose-500/20" title="Sign In">
+          <i class="fa-solid fa-right-to-bracket shrink-0"></i>
+          <span class="sidebar-text truncate">Sign In</span>
+        </a>
+      {% endif %}
     </div>
-  </footer>
+
+  </aside>
+
+  <!-- ================= FLOATING TOGGLE BUTTON (Visible ONLY when desktop sidebar is collapsed) ================= -->
+  <button onclick="toggleDesktopSidebar()" id="desktopFloatingToggleBtn" class="!hidden fixed left-3.5 top-3.5 z-50 w-10 h-10 rounded-2xl bg-white/95 backdrop-blur-md border border-slate-200 shadow-lg text-slate-700 hover:text-slate-900 hover:bg-slate-50 items-center justify-center transition-all cursor-pointer" title="Expand Sidebar">
+    <i class="fa-solid fa-bars text-sm"></i>
+  </button>
+  {% endif %}
+
+  <!-- ================= MAIN CONTENT WRAPPER (Dynamic margin based on sidebar) ================= -->
+  <div id="mainContentWrapper" class="{% if request.endpoint != 'index' %}md:pl-56{% endif %} flex flex-col min-h-screen transition-all duration-300 w-full min-w-0 max-w-full overflow-x-hidden">
+    
+    <!-- Main Content Body -->
+    <main class="flex-grow {% if request.endpoint == 'index' %}p-0{% else %}p-2 sm:p-3.5 md:p-4{% endif %} w-full min-w-0 max-w-full">
+      {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    {% if request.endpoint == 'index' %}
+    <footer class="bg-[#060914] border-t border-white/10 py-8 mt-0 text-slate-400">
+      <div class="max-w-7xl mx-auto px-6 flex flex-col sm:flex-row items-center justify-between text-xs gap-4">
+        <div class="flex items-center gap-2.5">
+          <span class="w-2 h-2 rounded-full bg-emerald-400 shadow-sm shadow-emerald-400"></span>
+          <span class="text-slate-300 font-medium">&copy; 2026 Kez C-Em Zek Printing Services. All rights reserved.</span>
+        </div>
+        <div class="flex items-center gap-6 text-slate-400">
+          <a href="/store" class="hover:text-white transition-colors">Catalog</a>
+          <a href="/#services" class="hover:text-white transition-colors">Services</a>
+          <a href="/#how-it-works" class="hover:text-white transition-colors">How It Works</a>
+          <button onclick="openTermsModal()" class="hover:text-white underline transition-colors">Terms & Conditions</button>
+        </div>
+      </div>
+    </footer>
+    {% else %}
+    <footer class="bg-white/80 backdrop-blur-md border-t border-slate-200 py-6 mt-12">
+      <div class="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-500 gap-3">
+        <div>
+          &copy; 2026 Kez C-Em Zek Printing Services. All rights reserved.
+        </div>
+        <div class="flex items-center gap-4">
+          <button onclick="openTermsModal()" class="hover:text-[#dc2743] underline font-medium transition-colors">
+            Terms & Conditions
+          </button>
+        </div>
+      </div>
+    </footer>
+    {% endif %}
+
+  </div>
 
   <!-- ================= LOGOUT CONFIRMATION MODAL ================= -->
   <div id="logoutModal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm transition-opacity">
@@ -217,6 +382,79 @@
       const menu = document.getElementById('notifMenu');
       if (menu) menu.classList.toggle('hidden');
     }
+
+    function toggleMobileSidebar() {
+      const backdrop = document.getElementById('mobileSidebarBackdrop');
+      const drawer = document.getElementById('mobileSidebarDrawer');
+      if (backdrop && drawer) {
+        const isClosed = drawer.classList.contains('-translate-x-full');
+        if (isClosed) {
+          backdrop.classList.remove('hidden');
+          drawer.classList.remove('-translate-x-full');
+          document.body.style.overflow = 'hidden';
+        } else {
+          backdrop.classList.add('hidden');
+          drawer.classList.add('-translate-x-full');
+          document.body.style.overflow = '';
+        }
+      }
+    }
+
+    function toggleDesktopSidebar() {
+      const sidebar = document.getElementById('desktopSidebar');
+      const wrapper = document.getElementById('mainContentWrapper');
+      const floatingBtn = document.getElementById('desktopFloatingToggleBtn');
+      
+      if (!sidebar || !wrapper) return;
+
+      const isCollapsed = sidebar.classList.contains('sidebar-collapsed');
+
+      if (!isCollapsed) {
+        // Collapse Sidebar to hidden
+        sidebar.classList.add('sidebar-collapsed', '-translate-x-full');
+        wrapper.classList.remove('md:pl-56');
+        wrapper.classList.add('md:pl-0');
+        if (floatingBtn) {
+          floatingBtn.classList.remove('!hidden');
+          floatingBtn.classList.add('flex');
+        }
+        localStorage.setItem('kcz_sidebar_collapsed', 'true');
+      } else {
+        // Expand Sidebar back to full width
+        sidebar.classList.remove('sidebar-collapsed', '-translate-x-full');
+        wrapper.classList.remove('md:pl-0');
+        wrapper.classList.add('md:pl-56');
+        if (floatingBtn) {
+          floatingBtn.classList.remove('flex');
+          floatingBtn.classList.add('!hidden');
+        }
+        localStorage.setItem('kcz_sidebar_collapsed', 'false');
+      }
+    }
+
+    // Restore saved sidebar preference on load
+    document.addEventListener('DOMContentLoaded', () => {
+      const savedCollapsed = localStorage.getItem('kcz_sidebar_collapsed');
+      const floatingBtn = document.getElementById('desktopFloatingToggleBtn');
+      if (savedCollapsed === 'true' && window.innerWidth >= 768) {
+        const sidebar = document.getElementById('desktopSidebar');
+        const wrapper = document.getElementById('mainContentWrapper');
+        if (sidebar && wrapper) {
+          sidebar.classList.add('sidebar-collapsed', '-translate-x-full');
+          wrapper.classList.remove('md:pl-56');
+          wrapper.classList.add('md:pl-0');
+        }
+        if (floatingBtn) {
+          floatingBtn.classList.remove('!hidden');
+          floatingBtn.classList.add('flex');
+        }
+      } else {
+        if (floatingBtn) {
+          floatingBtn.classList.remove('flex');
+          floatingBtn.classList.add('!hidden');
+        }
+      }
+    });
 
     document.addEventListener('click', function(e) {
       const container = document.getElementById('notifDropdownContainer');
