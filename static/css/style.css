@@ -189,29 +189,189 @@
 }
 
 /* ==========================================================================
-   DROPDOWN & TABLE STACKING OVERLAP FIX
+   DARK THEME SYSTEM FOR ADMIN, CUSTOMER & DASHBOARDS
    ========================================================================== */
-#adminOrdersContainer table,
-#adminOrdersContainer tbody,
-#adminOrdersContainer tr,
-#adminOrdersContainer td {
-    overflow: visible !important;
+body.bg-\[\#070b19\] {
+    background-color: #070b19 !important;
+    color: #f1f5f9 !important;
 }
 
-#adminOrdersContainer tr {
-    position: relative;
+/* Dark Mode Overrides for Containers and Cards */
+body.bg-\[\#070b19\] .bg-white,
+body.bg-\[\#070b19\] .bg-white\/95,
+body.bg-\[\#070b19\] .bg-white\/90,
+body.bg-\[\#070b19\] .bg-white\/80 {
+    background-color: #0b1226 !important;
+    border-color: rgba(255, 255, 255, 0.08) !important;
+    color: #f1f5f9 !important;
 }
 
-/* Elevate row stack order when dropdown inside is visible */
-#adminOrdersContainer tr:has(.status-dropdown-menu:not(.hidden)),
-#adminOrdersContainer tr:has(.action-menu-dropdown:not(.hidden)),
-#adminOrdersContainer tr.dropdown-open {
-    z-index: 100 !important;
+/* Secondary Panels, Table Headers, Filter Bars */
+body.bg-\[\#070b19\] .bg-slate-50,
+body.bg-\[\#070b19\] .bg-slate-50\/80,
+body.bg-\[\#070b19\] .bg-slate-50\/60,
+body.bg-\[\#070b19\] .bg-slate-50\/50,
+body.bg-\[\#070b19\] .bg-slate-50\/30,
+body.bg-\[\#070b19\] .bg-slate-100,
+body.bg-\[\#070b19\] .bg-slate-100\/80 {
+    background-color: #0f1836 !important;
+    border-color: rgba(255, 255, 255, 0.08) !important;
+    color: #e2e8f0 !important;
 }
 
-/* Force dropdown popups to render above all adjacent rows and buttons */
-.status-dropdown-menu,
-.action-menu-dropdown {
-    z-index: 9999 !important;
-    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.15), 0 8px 10px -6px rgba(0, 0, 0, 0.1) !important;
+/* Headings and High Contrast Text */
+body.bg-\[\#070b19\] .text-slate-900,
+body.bg-\[\#070b19\] .text-slate-800,
+body.bg-\[\#070b19\] h1, 
+body.bg-\[\#070b19\] h2, 
+body.bg-\[\#070b19\] h3, 
+body.bg-\[\#070b19\] h4 {
+    color: #ffffff !important;
+}
+
+/* Subtext & Labels */
+body.bg-\[\#070b19\] .text-slate-700,
+body.bg-\[\#070b19\] .text-slate-600 {
+    color: #cbd5e1 !important;
+}
+
+body.bg-\[\#070b19\] .text-slate-500,
+body.bg-\[\#070b19\] .text-slate-400 {
+    color: #94a3b8 !important;
+}
+
+/* Borders */
+body.bg-\[\#070b19\] .border-slate-100,
+body.bg-\[\#070b19\] .border-slate-200,
+body.bg-\[\#070b19\] .border-slate-200\/90,
+body.bg-\[\#070b19\] .border-slate-200\/80 {
+    border-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+/* Table Rows & Hovers */
+body.bg-\[\#070b19\] table tr:hover,
+body.bg-\[\#070b19\] tr:hover {
+    background-color: rgba(255, 255, 255, 0.03) !important;
+}
+
+body.bg-\[\#070b19\] .divide-slate-100 > :not([hidden]) ~ :not([hidden]),
+body.bg-\[\#070b19\] .divide-slate-200 > :not([hidden]) ~ :not([hidden]) {
+    border-color: rgba(255, 255, 255, 0.06) !important;
+}
+
+/* Inputs, Selects, and Textareas */
+body.bg-\[\#070b19\] input:not([type="checkbox"]):not([type="radio"]),
+body.bg-\[\#070b19\] select,
+body.bg-\[\#070b19\] textarea {
+    background-color: #0b142c !important;
+    border-color: rgba(255, 255, 255, 0.12) !important;
+    color: #ffffff !important;
+}
+
+body.bg-\[\#070b19\] input::placeholder,
+body.bg-\[\#070b19\] textarea::placeholder {
+    color: #64748b !important;
+}
+
+/* Cards & Components */
+body.bg-\[\#070b19\] .kcz-card {
+    background-color: #0b1226 !important;
+    border-color: rgba(255, 255, 255, 0.08) !important;
+    color: #f1f5f9 !important;
+}
+body.bg-\[\#070b19\] .kcz-card:hover {
+    border-color: rgba(59, 130, 246, 0.4) !important;
+}
+
+/* Tabs & Buttons */
+body.bg-\[\#070b19\] .admin-tab-btn,
+body.bg-\[\#070b19\] .cust-tab-btn {
+    color: #cbd5e1 !important;
+}
+body.bg-\[\#070b19\] .admin-tab-btn:hover,
+body.bg-\[\#070b19\] .cust-tab-btn:hover {
+    background-color: rgba(255, 255, 255, 0.06) !important;
+    color: #ffffff !important;
+}
+body.bg-\[\#070b19\] .admin-tab-btn.bg-slate-900,
+body.bg-\[\#070b19\] .cust-tab-btn.bg-blue-600 {
+    background-color: #2563eb !important;
+    color: #ffffff !important;
+}
+
+/* Filter Pills */
+body.bg-\[\#070b19\] .admin-status-pill,
+body.bg-\[\#070b19\] .kcz-filter-pill-inactive {
+    background-color: #0f1836 !important;
+    color: #94a3b8 !important;
+    border: 1px solid rgba(255, 255, 255, 0.06) !important;
+}
+body.bg-\[\#070b19\] .admin-status-pill:hover,
+body.bg-\[\#070b19\] .kcz-filter-pill-inactive:hover {
+    background-color: #17234d !important;
+    color: #ffffff !important;
+}
+body.bg-\[\#070b19\] .admin-status-pill.bg-slate-900,
+body.bg-\[\#070b19\] .kcz-filter-pill-active {
+    background-color: #2563eb !important;
+    color: #ffffff !important;
+}
+
+/* Dropdown menus & Popups in Dark Theme */
+body.bg-\[\#070b19\] .status-dropdown-menu,
+body.bg-\[\#070b19\] .action-menu-dropdown {
+    background-color: #0f172a !important;
+    border-color: rgba(255, 255, 255, 0.12) !important;
+    color: #ffffff !important;
+}
+
+/* Stepper container in dark theme */
+body.bg-\[\#070b19\] .kcz-stepper-container {
+    background-color: #0b142c !important;
+    border-color: rgba(255, 255, 255, 0.06) !important;
+}
+body.bg-\[\#070b19\] .kcz-stepper-bg-line {
+    background-color: rgba(255, 255, 255, 0.1) !important;
+}
+body.bg-\[\#070b19\] .kcz-step-circle-pending {
+    background-color: #0b1226 !important;
+    border-color: rgba(255, 255, 255, 0.2) !important;
+    color: #64748b !important;
+}
+
+/* Modals & Slide-out Drawers */
+body.bg-\[\#070b19\] #reviewSpecsModal .bg-white,
+body.bg-\[\#070b19\] #printSlipModal .bg-white,
+body.bg-\[\#070b19\] #rejectReasonModal .bg-white,
+body.bg-\[\#070b19\] #logoutModal .bg-white,
+body.bg-\[\#070b19\] #termsModal .bg-white,
+body.bg-\[\#070b19\] #createUserModal .bg-white,
+body.bg-\[\#070b19\] #editUserModal .bg-white,
+body.bg-\[\#070b19\] #deleteUserModal .bg-white,
+body.bg-\[\#070b19\] #loginPromptModalBackdrop .bg-white,
+body.bg-\[\#070b19\] #addProductModalBackdrop .bg-white,
+body.bg-\[\#070b19\] #editProductModalBackdrop .bg-white,
+body.bg-\[\#070b19\] #deleteConfirmModalBackdrop .bg-white,
+body.bg-\[\#070b19\] #restockModalBackdrop .bg-white,
+body.bg-\[\#070b19\] #cartDrawer,
+body.bg-\[\#070b19\] #productDetailModal .bg-white {
+    background-color: #0b1226 !important;
+    border-color: rgba(255, 255, 255, 0.12) !important;
+    color: #f1f5f9 !important;
+}
+
+/* Store Specific Filter Buttons */
+body.bg-\[\#070b19\] .store-cat-btn {
+    background-color: #0f1836 !important;
+    color: #94a3b8 !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+}
+body.bg-\[\#070b19\] .store-cat-btn:hover {
+    background-color: #17234d !important;
+    color: #ffffff !important;
+}
+body.bg-\[\#070b19\] .store-cat-btn.bg-blue-600 {
+    background-color: #2563eb !important;
+    color: #ffffff !important;
+    border-color: #2563eb !important;
 }

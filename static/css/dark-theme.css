@@ -1,0 +1,30 @@
+/* Glass‑morphic cards */
+.dark-card {
+    @apply bg-[#070b19]/30 backdrop-blur-xl border border-white/10 rounded-xl shadow-xl;
+    color: #fff;
+}
+
+/* Header / Navbar (override white background) */
+.dark-header {
+    @apply bg-[#070b19]/95 backdrop-blur-md border-b border-white/5;
+}
+
+/* Sidebar – dark background with subtle gradient */
+.dark-sidebar {
+    @apply bg-[#060914]/90 backdrop-blur-md border-r border-white/5;
+}
+
+/* Accent buttons – keep the Dusk gradient */
+.dark-btn {
+    @apply bg-gradient-to-r from-[#f09433] via-[#dc2743] to-[#bc1888] text-white hover:opacity-95;
+}
+
+/* Input fields – light interior on dark container */
+.dark-input {
+    @apply bg-white/5 border border-white/10 text-white placeholder-gray-400;
+}
+
+/* Switches, badges, etc. */
+.dark-badge {
+    @apply bg-rose-500/20 text-rose-200;
+}
