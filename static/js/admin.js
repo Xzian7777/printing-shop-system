@@ -18,40 +18,64 @@ function fetchAdminOrders() {
                                 serviceName.toLowerCase().includes('supply') || 
                                 serviceName.toLowerCase().includes('in-store');
 
-            // Dynamic Main Action Button
-            let mainActionText = 'Approve Order';
-            let mainActionBg = 'bg-emerald-600 hover:bg-emerald-700';
-            let nextStatus = 'Approved';
+            // Dynamic Main Action Button – enforce strict workflow
+            let nextStatus = null;
+            let mainActionText = '';
+            let mainActionBg = '';
 
-            if (currentStatus === 'Approved' || currentStatus === 'Order Submitted') {
-                if (isStoreItem) {
-                    mainActionText = '📦 Prepare Item';
-                    mainActionBg = 'bg-indigo-600 hover:bg-indigo-700';
-                    nextStatus = 'Preparing';
-                } else {
-                    mainActionText = '🖨️ Start Printing';
-                    mainActionBg = 'bg-blue-600 hover:bg-blue-700';
-                    nextStatus = 'Printing';
+            const transitionMap = {
+                'Order Submitted': 'Approved',
+                'Approved': isStoreItem ? 'Preparing' : 'Printing',
+                'Printing': 'Ready for Pickup',
+                'Preparing': 'Ready for Pickup',
+                'Ready for Pickup': 'Completed'
+            };
+
+            if (currentStatus in transitionMap) {
+                nextStatus = transitionMap[currentStatus];
+                switch (nextStatus) {
+                    case 'Approved':
+                        mainActionText = 'Approve Order';
+                        mainActionBg = 'bg-emerald-600 hover:bg-emerald-700';
+                        break;
+                    case 'Printing':
+                        mainActionText = '🖨️ Start Printing';
+                        mainActionBg = 'bg-blue-600 hover:bg-blue-700';
+                        break;
+                    case 'Preparing':
+                        mainActionText = '📦 Prepare Item';
+                        mainActionBg = 'bg-indigo-600 hover:bg-indigo-700';
+                        break;
+                    case 'Ready for Pickup':
+                        mainActionText = '🚚 Ready for Pickup';
+                        mainActionBg = 'bg-orange-500 hover:bg-orange-600';
+                        break;
+                    case 'Completed':
+                        mainActionText = '✓ Complete Order';
+                        mainActionBg = 'bg-emerald-600 hover:bg-emerald-700';
+                        break;
                 }
-            } else if (currentStatus === 'Printing' || currentStatus === 'Preparing') {
-                mainActionText = '🚚 Ready for Pickup';
-                mainActionBg = 'bg-orange-500 hover:bg-orange-600';
-                nextStatus = 'Ready for Pickup';
-            } else if (currentStatus === 'Ready for Pickup') {
-                mainActionText = '✓ Complete Order';
-                mainActionBg = 'bg-emerald-600 hover:bg-emerald-700';
-                nextStatus = 'Completed';
-            } else if (currentStatus === 'Completed') {
-                mainActionText = '✓ Completed';
+            } else {
+                // No forward transition (e.g., already Completed)
+                mainActionText = currentStatus === 'Completed' ? '✓ Completed' : 'No Action';
                 mainActionBg = 'bg-slate-700';
-                nextStatus = 'Completed';
+                nextStatus = currentStatus;
             }
+
+            const customerNote = (o.customerNote || o.note || '').trim();
 
             return `
                 <tr class="border-b border-slate-100 hover:bg-slate-50/50">
                     <td class="p-3 font-mono font-bold text-xs">${orderId.substring(0, 8)}</td>
                     <td class="p-3 text-xs font-semibold">${o.customer || o.userId || 'Customer'}</td>
-                    <td class="p-3 text-xs">${serviceName}</td>
+                    <td class="p-3 text-xs">
+                        <div>${serviceName}</div>
+                        ${customerNote ? `
+                            <div class="mt-0.5 inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-amber-50 text-amber-700 border border-amber-200 text-[10px]" title="Note: ${customerNote}">
+                                <span>📝</span> <span class="max-w-[140px] truncate">${customerNote}</span>
+                            </div>
+                        ` : ''}
+                    </td>
                     <td class="p-3 font-mono text-xs font-bold">₱${totalAmount.toFixed(2)}</td>
                     <td class="p-3">
                         <span class="bg-slate-100 text-slate-700 px-2 py-0.5 rounded text-[11px] font-bold">${currentStatus}</span>

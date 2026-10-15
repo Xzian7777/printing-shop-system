@@ -138,6 +138,18 @@
                 </div>
             </div>
 
+            <!-- Special Instructions / Order Note (Optional) -->
+            <div class="bg-white rounded-2xl p-6 border border-slate-200 shadow-xs space-y-3 text-xs">
+                <div class="flex items-center justify-between">
+                    <label for="custOrderNote" class="font-bold text-slate-700 flex items-center gap-1.5 uppercase tracking-wider text-[11px]">
+                        <span>📝</span> Special Instructions (Optional)
+                    </label>
+                    <span id="custOrderNoteCount" class="text-[10px] text-slate-400 font-mono">0 / 500</span>
+                </div>
+                <textarea id="custOrderNote" rows="3" maxlength="500" placeholder="Write any special instructions for your order..." oninput="updateOrderNoteCounter(this)" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-600 focus:bg-white transition resize-none"></textarea>
+                <p class="text-[10px] text-slate-400 italic">e.g., Specific paper textures, page order preferences, folding instructions, etc.</p>
+            </div>
+
             <!-- Step 3: Payment Method -->
             <div class="bg-white rounded-2xl p-6 border border-slate-200 shadow-xs space-y-4 text-xs">
                 <label class="block font-bold text-slate-400 uppercase tracking-wider">Step 3: Payment Method</label>
@@ -948,6 +960,13 @@ function submitOrderToBackend() {
     const dateStr = now.toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' });
     const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
 
+    const noteEl = document.getElementById('custOrderNote');
+    const customerNote = noteEl ? noteEl.value.trim() : "";
+    if (customerNote.length > 500) {
+        alert("⚠️ Ang special instructions ay hindi pwedeng lumagpas sa 500 characters.");
+        return;
+    }
+
     const orderData = {
         customerId: "CUST-101",
         customer: loggedUser.email.split('@')[0],
@@ -962,7 +981,8 @@ function submitOrderToBackend() {
         totalAmount: totalAmount,
         file: fileName,
         payment: paymentMethod,
-        orderDate: `${dateStr} • ${timeStr}`
+        orderDate: `${dateStr} • ${timeStr}`,
+        customerNote: customerNote
     };
 
     fetch('/api/orders', {
@@ -981,6 +1001,11 @@ function submitOrderToBackend() {
     .then(data => {
         if (data && data.success) {
             alert("✅ " + (data.message || "Order submitted successfully!"));
+            if (noteEl) {
+                noteEl.value = '';
+                const counter = document.getElementById('custOrderNoteCount');
+                if (counter) counter.textContent = '0 / 500';
+            }
             switchCustomerTab('myOrders');
         } else if (data) {
             alert("❌ Validation Error: " + (data.message || "Error submitting order."));
@@ -989,6 +1014,23 @@ function submitOrderToBackend() {
     .catch(() => {
         alert("Server connection error when submitting order.");
     });
+}
+
+function updateOrderNoteCounter(textarea) {
+    const counter = document.getElementById('custOrderNoteCount');
+    if (counter) {
+        counter.textContent = `${textarea.value.length} / 500`;
+    }
+}
+
+function escapeHtml(str) {
+    if (!str) return '';
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
 }
 
 function getStatusStepIndex(status) {
@@ -1194,6 +1236,15 @@ function renderCustomerFilteredOrders() {
                         <div class="text-[11px] text-slate-500 pt-0.5">${properPaper} • <span class="font-bold text-fuchsia-600">${properQty}</span> • <span class="font-semibold text-slate-600">${o.file || 'Document.pdf'}</span></div>
                     </div>
                 </div>
+
+                ${(o.customerNote || o.note) ? `
+                    <div class="bg-amber-50/70 border border-amber-200/80 rounded-xl p-3 text-xs text-slate-800">
+                        <div class="font-bold text-amber-800 uppercase tracking-wider text-[10px] flex items-center gap-1.5 mb-1">
+                            <i class="fas fa-sticky-note text-amber-600"></i> Special Instructions:
+                        </div>
+                        <p class="whitespace-pre-wrap font-medium text-[11px] text-slate-700 leading-relaxed">${escapeHtml(o.customerNote || o.note)}</p>
+                    </div>
+                ` : ''}
 
                 <div class="kcz-stepper-container">
                     <div class="kcz-stepper-bg-line"></div>

@@ -192,7 +192,7 @@
 <div id="signUpModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 hidden flex items-center justify-center p-4 overflow-y-auto">
     <div class="bg-white rounded-3xl max-w-md w-full p-6 space-y-4 shadow-2xl border border-slate-200 my-8">
         <div class="flex items-center justify-between border-b border-slate-100 pb-3">
-            <h3 class="font-extrabold text-slate-900 text-sm">Create New Account</h3>
+            <h3 id="signUpModalTitle" class="font-extrabold text-slate-900 text-sm">Create New Account</h3>
             <button type="button" onclick="closeSignUpModal()" class="text-slate-400 hover:text-slate-600 p-1 cursor-pointer">
                 <i class="fas fa-times text-sm"></i>
             </button>
@@ -257,7 +257,7 @@
                             <i class="fas fa-times-circle text-rose-400 text-xs"></i> Can't contain spaces
                         </li>
                         <li id="reqNoUserInfo" class="text-[11px] font-semibold text-slate-400 flex items-center gap-1.5">
-                            <i class="fas fa-times-circle text-rose-400 text-xs"></i> Can't include your name or email address
+                            <i class="fas fa-times-circle text-rose-400 text-xs"></i> Can't include your name or email prefix
                         </li>
                     </ul>
                 </div>
@@ -282,7 +282,7 @@
             <div class="flex items-start gap-2 pt-1">
                 <input type="checkbox" id="signUpTerms" required class="w-4 h-4 rounded border-slate-300 text-rose-600 focus:ring-rose-500 cursor-pointer mt-0.5">
                 <label for="signUpTerms" class="text-[11px] font-semibold text-slate-600 cursor-pointer select-none leading-tight">
-                    Sumasang-ayon ako sa <button type="button" onclick="openTermsModal()" class="font-extrabold text-rose-600 hover:underline cursor-pointer">Terms & Conditions</button> (Ang hindi mai-claim na prints sa loob ng 30 araw ay ida-dispose na).
+                    Sumasang-ayon ako sa <button type="button" onclick="openTermsModal()" class="font-extrabold text-rose-600 hover:underline cursor-pointer">Terms & Conditions</button> (Ang prints na hindi kukunin sa loob ng 30 araw ay ida-dispose).
                 </label>
             </div>
 
@@ -319,17 +319,28 @@
 
         <!-- STEP 2: Input OTP Verification Code -->
         <div id="signUpStep2" class="hidden space-y-3 text-xs">
-            <p class="text-slate-500">Ipasok ang 6-digit verification code na ipinadala sa iyong Gmail address.</p>
+            <p class="text-slate-500 leading-relaxed">
+                A 6-digit verification code was sent to your email: <br>
+                <b id="signUpRecipientEmail" class="text-slate-800"></b>
+            </p>
             <div>
-                <label class="font-bold text-slate-700 block mb-1">6-Digit OTP Code</label>
-                <input type="text" id="signUpOTP" placeholder="123456" maxlength="6" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-center font-mono font-bold tracking-widest focus:outline-none focus:border-fuchsia-600">
+                <label class="font-bold text-slate-700 block mb-1">Enter 6-Digit OTP Code</label>
+                <input type="text" id="signUpOTP" placeholder="000000" maxlength="6" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-3 text-center font-mono font-black text-xl tracking-[0.3em] text-slate-900 focus:outline-none focus:border-fuchsia-600">
             </div>
+
+            <div class="flex items-center justify-between text-[11px] pt-1">
+                <span id="signUpTimerText" class="text-slate-500">Resend code in 60s</span>
+                <button type="button" id="btnSignUpResend" onclick="resendSignUpOTP()" disabled class="font-bold text-slate-400 cursor-not-allowed">
+                    Resend OTP
+                </button>
+            </div>
+
             <div class="flex gap-2 pt-2">
                 <button type="button" onclick="verifyAndCompleteSignUp()" id="btnCompleteSignUp" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 rounded-xl transition cursor-pointer">
-                    Verify & Create Account
+                    Verify OTP & Complete Sign Up
                 </button>
                 <button type="button" onclick="backToSignUpStep1()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-3 py-2.5 rounded-xl transition cursor-pointer">
-                    Back
+                    ← Back
                 </button>
             </div>
         </div>
@@ -337,11 +348,11 @@
     </div>
 </div>
 
-<!-- MODAL 2: FORGOT PASSWORD (OTP SMTP) MODAL -->
-<div id="forgotModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 hidden flex items-center justify-center p-4">
-    <div class="bg-white rounded-3xl max-w-sm w-full p-6 space-y-4 shadow-2xl border border-slate-200">
+<!-- MODAL 2: FORGOT PASSWORD (OTP SMTP 3-STEP FLOW) MODAL -->
+<div id="forgotModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 hidden flex items-center justify-center p-4 overflow-y-auto">
+    <div class="bg-white rounded-3xl max-w-sm w-full p-6 space-y-4 shadow-2xl border border-slate-200 my-8">
         <div class="flex items-center justify-between border-b border-slate-100 pb-3">
-            <h3 class="font-extrabold text-slate-900 text-sm">Forgot Password</h3>
+            <h3 id="forgotModalTitle" class="font-extrabold text-slate-900 text-sm">Forgot Password</h3>
             <button type="button" onclick="closeForgotPasswordModal()" class="text-slate-400 hover:text-slate-600 p-1 cursor-pointer">
                 <i class="fas fa-times text-sm"></i>
             </button>
@@ -351,27 +362,51 @@
 
         <!-- STEP 1: Enter Email to Request OTP -->
         <div id="forgotStep1" class="space-y-3 text-xs">
-            <p class="text-slate-500">Ipasok ang iyong nakarehistrong Gmail address para magpadala kami ng 6-digit OTP code.</p>
+            <p class="text-slate-500">Enter your registered Gmail address to receive a 6-digit OTP code.</p>
             <div>
-                <label class="font-bold text-slate-700 block mb-1">Your Registered Gmail Address</label>
+                <label class="font-bold text-slate-700 block mb-1">Registered Gmail Address</label>
                 <input type="email" id="forgotEmail" placeholder="juan.delacruz@gmail.com" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 focus:outline-none focus:border-rose-600">
             </div>
             <button type="button" onclick="requestResetOTP()" id="btnSendOTP" class="w-full bg-rose-600 hover:bg-rose-700 text-white font-bold py-2.5 rounded-xl transition cursor-pointer">
-                Send OTP Code
+                Send Reset OTP
             </button>
         </div>
 
-        <!-- STEP 2: Enter OTP and New Password -->
+        <!-- STEP 2: Enter OTP Code -->
         <div id="forgotStep2" class="hidden space-y-3 text-xs">
-            <p class="text-slate-500">Ipasok ang OTP code na ipinadala sa iyong Gmail at ilagay ang bagong password.</p>
+            <p class="text-slate-500 leading-relaxed">
+                Code sent to: <br>
+                <b id="forgotRecipientEmail" class="text-slate-800"></b>
+            </p>
             <div>
-                <label class="font-bold text-slate-700 block mb-1">6-Digit OTP Code</label>
-                <input type="text" id="forgotOTP" placeholder="123456" maxlength="6" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-center font-mono font-bold tracking-widest focus:outline-none focus:border-rose-600">
+                <label class="font-bold text-slate-700 block mb-1">Enter 6-Digit OTP</label>
+                <input type="text" id="forgotOTP" placeholder="000000" maxlength="6" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-3 text-center font-mono font-black text-xl tracking-[0.3em] text-slate-900 focus:outline-none focus:border-rose-600">
             </div>
+
+            <div class="flex items-center justify-between text-[11px] pt-1">
+                <span id="forgotTimerText" class="text-slate-500">Resend in 60s</span>
+                <button type="button" id="btnForgotResend" onclick="resendResetOTP()" disabled class="font-bold text-slate-400 cursor-not-allowed">
+                    Resend OTP
+                </button>
+            </div>
+
+            <div class="flex gap-2 pt-2">
+                <button type="button" onclick="verifyResetOTP()" id="btnVerifyResetOTP" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 rounded-xl transition cursor-pointer">
+                    Verify Code
+                </button>
+                <button type="button" onclick="backToForgotStep1()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-3 py-2.5 rounded-xl transition cursor-pointer">
+                    ← Back
+                </button>
+            </div>
+        </div>
+
+        <!-- STEP 3: Enter New Password & Confirm Password -->
+        <div id="forgotStep3" class="hidden space-y-3 text-xs">
+            <p class="text-slate-500">Create a new secure password for your account.</p>
             <div>
                 <label class="font-bold text-slate-700 block mb-1">New Password</label>
                 <div class="relative">
-                    <input type="password" id="forgotNewPass" placeholder="••••••••" class="w-full bg-slate-50 border border-slate-200 rounded-xl pl-3 pr-10 py-2.5 focus:outline-none focus:border-rose-600">
+                    <input type="password" id="forgotNewPass" oninput="checkForgotPassStrength()" placeholder="Enter new strong password" class="w-full bg-slate-50 border border-slate-200 rounded-xl pl-3 pr-10 py-2.5 focus:outline-none focus:border-rose-600">
                     <button 
                         type="button" 
                         onclick="togglePasswordVisibility('forgotNewPass', 'forgotNewPassEye')" 
@@ -381,8 +416,23 @@
                     </button>
                 </div>
             </div>
+
+            <div>
+                <label class="font-bold text-slate-700 block mb-1">Confirm New Password</label>
+                <div class="relative">
+                    <input type="password" id="forgotConfirmNewPass" placeholder="Re-enter new password" class="w-full bg-slate-50 border border-slate-200 rounded-xl pl-3 pr-10 py-2.5 focus:outline-none focus:border-rose-600">
+                    <button 
+                        type="button" 
+                        onclick="togglePasswordVisibility('forgotConfirmNewPass', 'forgotConfirmNewPassEye')" 
+                        class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-1 cursor-pointer focus:outline-none"
+                    >
+                        <i id="forgotConfirmNewPassEye" class="fas fa-eye text-xs"></i>
+                    </button>
+                </div>
+            </div>
+
             <button type="button" onclick="submitNewPasswordWithOTP()" id="btnResetPass" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 rounded-xl transition cursor-pointer">
-                Change Password
+                Save New Password
             </button>
         </div>
     </div>
@@ -565,75 +615,155 @@ function handleSingleLoginSubmit(event) {
     });
 }
 
+// SIGN UP FLOW STATE & TIMER
+let signUpTimer = null;
+let signUpSecondsRemaining = 60;
+let signUpCanResend = false;
+let signUpRecipientEmail = '';
+
 function openSignUpModal() {
+    document.getElementById('signUpModalTitle').textContent = "Create New Account";
     document.getElementById('signUpStep1').classList.remove('hidden');
     document.getElementById('signUpStep2').classList.add('hidden');
     document.getElementById('signUpAlert').classList.add('hidden');
     document.getElementById('signUpModal').classList.remove('hidden');
 }
+
 function closeSignUpModal() {
+    if (signUpTimer) clearInterval(signUpTimer);
     document.getElementById('signUpModal').classList.add('hidden');
 }
+
 function backToSignUpStep1() {
+    if (signUpTimer) clearInterval(signUpTimer);
+    document.getElementById('signUpModalTitle').textContent = "Create New Account";
     document.getElementById('signUpStep2').classList.add('hidden');
     document.getElementById('signUpStep1').classList.remove('hidden');
     document.getElementById('signUpAlert').classList.add('hidden');
 }
 
+function startSignUpCountdown() {
+    signUpSecondsRemaining = 60;
+    signUpCanResend = false;
+    const timerText = document.getElementById('signUpTimerText');
+    const resendBtn = document.getElementById('btnSignUpResend');
+    
+    if (resendBtn) {
+        resendBtn.disabled = true;
+        resendBtn.className = "font-bold text-slate-400 cursor-not-allowed";
+    }
+    if (timerText) timerText.textContent = `Resend code in ${signUpSecondsRemaining}s`;
+
+    if (signUpTimer) clearInterval(signUpTimer);
+    signUpTimer = setInterval(() => {
+        if (signUpSecondsRemaining > 0) {
+            signUpSecondsRemaining--;
+            if (timerText) timerText.textContent = `Resend code in ${signUpSecondsRemaining}s`;
+        } else {
+            clearInterval(signUpTimer);
+            signUpCanResend = true;
+            if (timerText) timerText.textContent = "Code expired (Hingi muli ng bago)";
+            if (resendBtn) {
+                resendBtn.disabled = false;
+                resendBtn.className = "font-bold text-fuchsia-600 hover:text-fuchsia-700 cursor-pointer";
+            }
+        }
+    }, 1000);
+}
+
 function requestSignUpOTP() {
     const name = document.getElementById('signUpName').value.trim();
     const contact = document.getElementById('signUpContact').value.trim();
-    const email = document.getElementById('signUpEmail').value.trim();
-    const password = document.getElementById('signUpPassword').value.trim();
-    const confirmPassword = document.getElementById('signUpConfirmPassword').value.trim();
+    const email = document.getElementById('signUpEmail').value.trim().toLowerCase();
+    const password = document.getElementById('signUpPassword').value;
+    const confirmPassword = document.getElementById('signUpConfirmPassword').value;
     const signUpTerms = document.getElementById('signUpTerms');
     const alertBox = document.getElementById('signUpAlert');
     const btn = document.getElementById('btnSendSignUpOTP');
 
-    if (!name || !contact || !email || !password || !confirmPassword) {
+    if (!name) {
         alertBox.className = "p-3 rounded-xl text-xs font-bold bg-rose-50 text-rose-700 border border-rose-200";
-        alertBox.textContent = "Pakilagay ang lahat ng kinakailangang impormasyon.";
+        alertBox.textContent = "Mangyaring ilagay ang iyong buong pangalan.";
+        alertBox.classList.remove('hidden');
+        return;
+    }
+
+    if (name.length < 2) {
+        alertBox.className = "p-3 rounded-xl text-xs font-bold bg-rose-50 text-rose-700 border border-rose-200";
+        alertBox.textContent = "Ang pangalan ay dapat higit sa 1 character.";
+        alertBox.classList.remove('hidden');
+        return;
+    }
+
+    if (name.length > 50) {
+        alertBox.className = "p-3 rounded-xl text-xs font-bold bg-rose-50 text-rose-700 border border-rose-200";
+        alertBox.textContent = "Ang pangalan ay hindi pwedeng lumagpas sa 50 characters.";
         alertBox.classList.remove('hidden');
         return;
     }
 
     if (!isValidPHContact(contact)) {
         alertBox.className = "p-3 rounded-xl text-xs font-bold bg-rose-50 text-rose-700 border border-rose-200";
-        alertBox.textContent = "Maling contact format! Dapat ay 11-digit mobile number starting with 09 (e.g. 09171234567).";
+        alertBox.textContent = "Dapat ay 11-digit PH mobile number (hal. 09123456789).";
         alertBox.classList.remove('hidden');
         return;
     }
 
     if (!isValidGmailFormat(email)) {
         alertBox.className = "p-3 rounded-xl text-xs font-bold bg-rose-50 text-rose-700 border border-rose-200";
-        alertBox.textContent = "Maling email format! Dapat ay valid na @gmail.com address.";
+        alertBox.textContent = "Required ang valid na Gmail address (*.gmail.com).";
+        alertBox.classList.remove('hidden');
+        return;
+    }
+
+    if (!password) {
+        alertBox.className = "p-3 rounded-xl text-xs font-bold bg-rose-50 text-rose-700 border border-rose-200";
+        alertBox.textContent = "Please enter a password.";
+        alertBox.classList.remove('hidden');
+        return;
+    }
+
+    if (!confirmPassword) {
+        alertBox.className = "p-3 rounded-xl text-xs font-bold bg-rose-50 text-rose-700 border border-rose-200";
+        alertBox.textContent = "Please confirm your password.";
         alertBox.classList.remove('hidden');
         return;
     }
 
     if (password !== confirmPassword) {
         alertBox.className = "p-3 rounded-xl text-xs font-bold bg-rose-50 text-rose-700 border border-rose-200";
-        alertBox.textContent = "Hindi magkapareho ang Password at Confirm Password!";
+        alertBox.textContent = "Passwords do not match.";
         alertBox.classList.remove('hidden');
         return;
     }
 
-    if (!isStrongPassword(password)) {
+    // Password criteria check (identical to mobile app)
+    const emailPrefix = email.split('@')[0];
+    const pass = password;
+    const req1 = pass.length >= 8 && pass.length <= 32;
+    const req2 = /[A-Z]/.test(pass) && /[a-z]/.test(pass);
+    const req3 = /[0-9!@#$%^&*(),.?":{}|<>_\-\+=]/.test(pass);
+    const req4 = pass.length > 0 && !/\s/.test(pass);
+    const req5 = (name.length < 2 || !pass.toLowerCase().includes(name.toLowerCase())) &&
+                 (emailPrefix.length < 2 || !pass.toLowerCase().includes(emailPrefix.toLowerCase()));
+
+    if (!req1 || !req2 || !req3 || !req4 || !req5) {
         alertBox.className = "p-3 rounded-xl text-xs font-bold bg-rose-50 text-rose-700 border border-rose-200";
-        alertBox.textContent = "Mahina ang Password! Siguraduhing nasunod ang lahat ng password requirements.";
+        alertBox.textContent = "Password does not meet requirements.";
         alertBox.classList.remove('hidden');
         return;
     }
 
     if (!signUpTerms || !signUpTerms.checked) {
         alertBox.className = "p-3 rounded-xl text-xs font-bold bg-rose-50 text-rose-700 border border-rose-200";
-        alertBox.textContent = "Kailangang sumang-ayon sa Terms & Conditions.";
+        alertBox.textContent = "You must agree to the Terms & Conditions.";
         alertBox.classList.remove('hidden');
         return;
     }
 
     btn.disabled = true;
-    btn.textContent = "Checking Database & Sending OTP...";
+    btn.innerHTML = `<i class="fas fa-spinner fa-spin mr-1"></i> Sending OTP Code...`;
+    alertBox.classList.add('hidden');
 
     fetch('/api/request-signup-otp', {
         method: 'POST',
@@ -643,15 +773,21 @@ function requestSignUpOTP() {
     .then(res => res.json())
     .then(data => {
         if (data.success) {
+            signUpRecipientEmail = email;
+            document.getElementById('signUpRecipientEmail').textContent = email;
+            document.getElementById('signUpModalTitle').textContent = "Verify Email OTP";
+
             alertBox.className = "p-3 rounded-xl text-xs font-bold bg-blue-50 text-blue-700 border border-blue-200";
-            alertBox.textContent = data.message || "Ipinadala na ang verification OTP code sa iyong email.";
+            alertBox.textContent = data.message || "A 6-digit verification code was sent to your email.";
             alertBox.classList.remove('hidden');
 
             document.getElementById('signUpStep1').classList.add('hidden');
             document.getElementById('signUpStep2').classList.remove('hidden');
+            document.getElementById('signUpOTP').value = '';
+            startSignUpCountdown();
         } else {
             alertBox.className = "p-3 rounded-xl text-xs font-bold bg-rose-50 text-rose-700 border border-rose-200";
-            alertBox.textContent = data.message || "May error sa pag-request ng verification code.";
+            alertBox.textContent = data.message || "Failed to send verification email. Please check your email address.";
             alertBox.classList.remove('hidden');
         }
         btn.disabled = false;
@@ -659,32 +795,37 @@ function requestSignUpOTP() {
     })
     .catch(() => {
         alertBox.className = "p-3 rounded-xl text-xs font-bold bg-rose-50 text-rose-700 border border-rose-200";
-        alertBox.textContent = "Connection error. Try again.";
+        alertBox.textContent = "Connection error. Please check your internet connection.";
         alertBox.classList.remove('hidden');
         btn.disabled = false;
         btn.textContent = "Send Verification Code";
     });
 }
 
+function resendSignUpOTP() {
+    if (!signUpCanResend) return;
+    requestSignUpOTP();
+}
+
 function verifyAndCompleteSignUp() {
     const name = document.getElementById('signUpName').value.trim();
     const contact = document.getElementById('signUpContact').value.trim();
-    const email = document.getElementById('signUpEmail').value.trim();
-    const password = document.getElementById('signUpPassword').value.trim();
-    const confirmPassword = document.getElementById('signUpConfirmPassword').value.trim();
+    const email = document.getElementById('signUpEmail').value.trim().toLowerCase();
+    const password = document.getElementById('signUpPassword').value;
+    const confirmPassword = document.getElementById('signUpConfirmPassword').value;
     const otp = document.getElementById('signUpOTP').value.trim();
     const alertBox = document.getElementById('signUpAlert');
     const btn = document.getElementById('btnCompleteSignUp');
 
-    if (!otp) {
+    if (!otp || otp.length !== 6) {
         alertBox.className = "p-3 rounded-xl text-xs font-bold bg-rose-50 text-rose-700 border border-rose-200";
-        alertBox.textContent = "Pakilagay ang 6-digit OTP code.";
+        alertBox.textContent = "Please enter valid 6-digit OTP code.";
         alertBox.classList.remove('hidden');
         return;
     }
 
     btn.disabled = true;
-    btn.textContent = "Creating Account...";
+    btn.innerHTML = `<i class="fas fa-spinner fa-spin mr-1"></i> Creating Account...`;
 
     fetch('/api/signup', {
         method: 'POST',
@@ -701,42 +842,94 @@ function verifyAndCompleteSignUp() {
     .then(res => res.json())
     .then(data => {
         if (data.success || data.status === 'success') {
+            if (signUpTimer) clearInterval(signUpTimer);
             alertBox.className = "p-3 rounded-xl text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200";
-            alertBox.textContent = data.message || "Account registered successfully!";
+            alertBox.textContent = "Registration successful! You can now log in.";
             alertBox.classList.remove('hidden');
             setTimeout(() => {
                 closeSignUpModal();
                 document.getElementById('loginEmail').value = email;
+                document.getElementById('loginPassword').value = '';
+                document.getElementById('loginPassword').focus();
             }, 1500);
         } else {
             alertBox.className = "p-3 rounded-xl text-xs font-bold bg-rose-50 text-rose-700 border border-rose-200";
-            alertBox.textContent = data.message || "Maling OTP code o nagkaroon ng error.";
+            alertBox.textContent = data.message || "Invalid OTP code. Please enter the correct code.";
             alertBox.classList.remove('hidden');
             btn.disabled = false;
-            btn.textContent = "Verify & Create Account";
+            btn.textContent = "Verify OTP & Complete Sign Up";
         }
     })
     .catch(() => {
         alertBox.className = "p-3 rounded-xl text-xs font-bold bg-rose-50 text-rose-700 border border-rose-200";
-        alertBox.textContent = "Connection error. Try again.";
+        alertBox.textContent = "Error completing registration. Please try again.";
         alertBox.classList.remove('hidden');
         btn.disabled = false;
-        btn.textContent = "Verify & Create Account";
+        btn.textContent = "Verify OTP & Complete Sign Up";
     });
 }
 
+// FORGOT PASSWORD FLOW STATE & TIMERS (3-STEP EXPERIENCE)
+let forgotTimer = null;
+let forgotSecondsRemaining = 60;
+let forgotCanResend = false;
+let forgotRecipientEmail = '';
+let verifiedForgotOTP = '';
+
 function openForgotPasswordModal() {
+    document.getElementById('forgotModalTitle').textContent = "Forgot Password";
     document.getElementById('forgotStep1').classList.remove('hidden');
     document.getElementById('forgotStep2').classList.add('hidden');
+    document.getElementById('forgotStep3').classList.add('hidden');
     document.getElementById('forgotAlert').classList.add('hidden');
     document.getElementById('forgotModal').classList.remove('hidden');
 }
+
 function closeForgotPasswordModal() {
+    if (forgotTimer) clearInterval(forgotTimer);
     document.getElementById('forgotModal').classList.add('hidden');
 }
 
+function backToForgotStep1() {
+    if (forgotTimer) clearInterval(forgotTimer);
+    document.getElementById('forgotModalTitle').textContent = "Forgot Password";
+    document.getElementById('forgotStep2').classList.add('hidden');
+    document.getElementById('forgotStep3').classList.add('hidden');
+    document.getElementById('forgotStep1').classList.remove('hidden');
+    document.getElementById('forgotAlert').classList.add('hidden');
+}
+
+function startForgotCountdown() {
+    forgotSecondsRemaining = 60;
+    forgotCanResend = false;
+    const timerText = document.getElementById('forgotTimerText');
+    const resendBtn = document.getElementById('btnForgotResend');
+
+    if (resendBtn) {
+        resendBtn.disabled = true;
+        resendBtn.className = "font-bold text-slate-400 cursor-not-allowed";
+    }
+    if (timerText) timerText.textContent = `Resend in ${forgotSecondsRemaining}s`;
+
+    if (forgotTimer) clearInterval(forgotTimer);
+    forgotTimer = setInterval(() => {
+        if (forgotSecondsRemaining > 0) {
+            forgotSecondsRemaining--;
+            if (timerText) timerText.textContent = `Resend in ${forgotSecondsRemaining}s`;
+        } else {
+            clearInterval(forgotTimer);
+            forgotCanResend = true;
+            if (timerText) timerText.textContent = "Code expired";
+            if (resendBtn) {
+                resendBtn.disabled = false;
+                resendBtn.className = "font-bold text-indigo-600 hover:text-indigo-700 cursor-pointer";
+            }
+        }
+    }, 1000);
+}
+
 function requestResetOTP() {
-    const email = document.getElementById('forgotEmail').value.trim();
+    const email = document.getElementById('forgotEmail').value.trim().toLowerCase();
     const alertBox = document.getElementById('forgotAlert');
     const btn = document.getElementById('btnSendOTP');
 
@@ -749,13 +942,14 @@ function requestResetOTP() {
 
     if (!isValidGmailFormat(email)) {
         alertBox.className = "p-3 rounded-xl text-xs font-bold bg-rose-50 text-rose-700 border border-rose-200";
-        alertBox.textContent = "Maling email format! Siguraduhing valid na @gmail.com address ang ipapasok.";
+        alertBox.textContent = "Maling email format! Siguraduhing valid na @gmail.com address.";
         alertBox.classList.remove('hidden');
         return;
     }
 
     btn.disabled = true;
-    btn.textContent = "Checking Database & Sending OTP...";
+    btn.innerHTML = `<i class="fas fa-spinner fa-spin mr-1"></i> Sending Reset OTP...`;
+    alertBox.classList.add('hidden');
 
     fetch('/api/forgot-password', {
         method: 'POST',
@@ -765,43 +959,143 @@ function requestResetOTP() {
     .then(res => res.json())
     .then(data => {
         if (data.success) {
+            forgotRecipientEmail = email;
+            document.getElementById('forgotRecipientEmail').textContent = email;
+            document.getElementById('forgotModalTitle').textContent = "Verify OTP Code";
+
             alertBox.className = "p-3 rounded-xl text-xs font-bold bg-blue-50 text-blue-700 border border-blue-200";
-            alertBox.textContent = data.message;
+            alertBox.textContent = data.message || `Code sent to: ${email}`;
             alertBox.classList.remove('hidden');
 
             document.getElementById('forgotStep1').classList.add('hidden');
             document.getElementById('forgotStep2').classList.remove('hidden');
+            document.getElementById('forgotStep3').classList.add('hidden');
+            document.getElementById('forgotOTP').value = '';
+            startForgotCountdown();
         } else {
             alertBox.className = "p-3 rounded-xl text-xs font-bold bg-rose-50 text-rose-700 border border-rose-200";
-            alertBox.textContent = data.message || "Ang email na ito ay HINDI nakarehistro sa aming system.";
+            alertBox.textContent = data.message || "Failed to send OTP email. Please try again.";
             alertBox.classList.remove('hidden');
         }
         btn.disabled = false;
-        btn.textContent = "Send OTP Code";
+        btn.textContent = "Send Reset OTP";
     })
     .catch(() => {
         alertBox.className = "p-3 rounded-xl text-xs font-bold bg-rose-50 text-rose-700 border border-rose-200";
-        alertBox.textContent = "Connection error. Try again.";
+        alertBox.textContent = "Connection error. Please try again.";
         alertBox.classList.remove('hidden');
         btn.disabled = false;
-        btn.textContent = "Send OTP Code";
+        btn.textContent = "Send Reset OTP";
     });
 }
 
-function submitNewPasswordWithOTP() {
-    const email = document.getElementById('forgotEmail').value.trim();
+function resendResetOTP() {
+    if (!forgotCanResend) return;
+    requestResetOTP();
+}
+
+function verifyResetOTP() {
+    const email = forgotRecipientEmail || document.getElementById('forgotEmail').value.trim().toLowerCase();
     const otp = document.getElementById('forgotOTP').value.trim();
-    const newPass = document.getElementById('forgotNewPass').value.trim();
     const alertBox = document.getElementById('forgotAlert');
+    const btn = document.getElementById('btnVerifyResetOTP');
 
-    if (!otp || !newPass) return;
-
-    if (!isStrongPassword(newPass)) {
+    if (!otp || otp.length !== 6) {
         alertBox.className = "p-3 rounded-xl text-xs font-bold bg-rose-50 text-rose-700 border border-rose-200";
-        alertBox.textContent = "Mahina ang bagong password! Dapat may min. 8 chars, 1 uppercase (A-Z), 1 lowercase (a-z), 1 numero (0-9), at 1 special char (@,#,$,!,%).";
+        alertBox.textContent = "Enter valid 6-digit OTP.";
         alertBox.classList.remove('hidden');
         return;
     }
+
+    btn.disabled = true;
+    btn.innerHTML = `<i class="fas fa-spinner fa-spin mr-1"></i> Verifying...`;
+
+    fetch('/api/verify-reset-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: email, otp: otp })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            verifiedForgotOTP = otp;
+            if (forgotTimer) clearInterval(forgotTimer);
+            document.getElementById('forgotModalTitle').textContent = "Set New Password";
+
+            alertBox.className = "p-3 rounded-xl text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200";
+            alertBox.textContent = data.message || "OTP verified. Set your new password.";
+            alertBox.classList.remove('hidden');
+
+            document.getElementById('forgotStep2').classList.add('hidden');
+            document.getElementById('forgotStep3').classList.remove('hidden');
+            document.getElementById('forgotNewPass').value = '';
+            document.getElementById('forgotConfirmNewPass').value = '';
+        } else {
+            alertBox.className = "p-3 rounded-xl text-xs font-bold bg-rose-50 text-rose-700 border border-rose-200";
+            alertBox.textContent = data.message || "Invalid OTP code. Please check your email.";
+            alertBox.classList.remove('hidden');
+        }
+        btn.disabled = false;
+        btn.textContent = "Verify Code";
+    })
+    .catch(() => {
+        alertBox.className = "p-3 rounded-xl text-xs font-bold bg-rose-50 text-rose-700 border border-rose-200";
+        alertBox.textContent = "Connection error. Please try again.";
+        alertBox.classList.remove('hidden');
+        btn.disabled = false;
+        btn.textContent = "Verify Code";
+    });
+}
+
+function checkForgotPassStrength() {
+    // Optional helper for live feedback if needed
+}
+
+function submitNewPasswordWithOTP() {
+    const email = forgotRecipientEmail || document.getElementById('forgotEmail').value.trim().toLowerCase();
+    const otp = verifiedForgotOTP || document.getElementById('forgotOTP').value.trim();
+    const newPass = document.getElementById('forgotNewPass').value;
+    const confirmNewPass = document.getElementById('forgotConfirmNewPass').value;
+    const alertBox = document.getElementById('forgotAlert');
+    const btn = document.getElementById('btnResetPass');
+
+    if (!newPass) {
+        alertBox.className = "p-3 rounded-xl text-xs font-bold bg-rose-50 text-rose-700 border border-rose-200";
+        alertBox.textContent = "Please enter a new password.";
+        alertBox.classList.remove('hidden');
+        return;
+    }
+
+    if (newPass.length < 8) {
+        alertBox.className = "p-3 rounded-xl text-xs font-bold bg-rose-50 text-rose-700 border border-rose-200";
+        alertBox.textContent = "Password must be at least 8 characters.";
+        alertBox.classList.remove('hidden');
+        return;
+    }
+
+    if (!confirmNewPass) {
+        alertBox.className = "p-3 rounded-xl text-xs font-bold bg-rose-50 text-rose-700 border border-rose-200";
+        alertBox.textContent = "Please confirm your new password.";
+        alertBox.classList.remove('hidden');
+        return;
+    }
+
+    if (newPass !== confirmNewPass) {
+        alertBox.className = "p-3 rounded-xl text-xs font-bold bg-rose-50 text-rose-700 border border-rose-200";
+        alertBox.textContent = "Passwords do not match.";
+        alertBox.classList.remove('hidden');
+        return;
+    }
+
+    if (!isStrongPassword(newPass)) {
+        alertBox.className = "p-3 rounded-xl text-xs font-bold bg-rose-50 text-rose-700 border border-rose-200";
+        alertBox.textContent = "Mahina ang bagong password! Dapat may Uppercase, Lowercase, Numero at Simbolo.";
+        alertBox.classList.remove('hidden');
+        return;
+    }
+
+    btn.disabled = true;
+    btn.innerHTML = `<i class="fas fa-spinner fa-spin mr-1"></i> Saving New Password...`;
 
     fetch('/api/reset-password', {
         method: 'POST',
@@ -812,18 +1106,29 @@ function submitNewPasswordWithOTP() {
     .then(data => {
         if (data.success) {
             alertBox.className = "p-3 rounded-xl text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200";
-            alertBox.textContent = data.message;
+            alertBox.textContent = data.message || "Password updated. Please log in with your new password.";
             alertBox.classList.remove('hidden');
 
             setTimeout(() => {
                 closeForgotPasswordModal();
                 document.getElementById('loginEmail').value = email;
+                document.getElementById('loginPassword').value = '';
+                document.getElementById('loginPassword').focus();
             }, 1800);
         } else {
             alertBox.className = "p-3 rounded-xl text-xs font-bold bg-rose-50 text-rose-700 border border-rose-200";
-            alertBox.textContent = data.message;
+            alertBox.textContent = data.message || "Error updating password.";
             alertBox.classList.remove('hidden');
+            btn.disabled = false;
+            btn.textContent = "Save New Password";
         }
+    })
+    .catch(() => {
+        alertBox.className = "p-3 rounded-xl text-xs font-bold bg-rose-50 text-rose-700 border border-rose-200";
+        alertBox.textContent = "Connection error. Please try again.";
+        alertBox.classList.remove('hidden');
+        btn.disabled = false;
+        btn.textContent = "Save New Password";
     });
 }
 

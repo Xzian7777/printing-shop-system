@@ -20,7 +20,7 @@
   <!-- ================= TOP NAVIGATION BAR (Clean with Centered Login & Sign Up) ================= -->
   <header class="relative z-30 w-full px-4 sm:px-6 md:px-8 pt-5 pb-4 flex items-center justify-between">
     <!-- Brand Logo (Moved to edge, clickable to open sidebar) -->
-    <button onclick="toggleMobileSidebar()" class="flex items-center gap-2.5 sm:gap-3 group focus:outline-none cursor-pointer text-left -ml-1 sm:ml-0" title="Click to open menu">
+    <div class="flex items-center gap-2.5 sm:gap-3 group focus:outline-none text-left -ml-1 sm:ml-0">
       <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-blue-600 via-indigo-600 to-cyan-400 flex items-center justify-center text-white font-black text-sm shadow-lg shadow-blue-600/30 group-hover:scale-110 group-active:scale-95 transition-all">
         KCZ
       </div>
@@ -28,14 +28,13 @@
         <div class="flex items-center gap-1.5">
           <span class="font-extrabold text-base tracking-tight text-white block leading-tight group-hover:text-blue-400 transition-colors">
             Kez C-Em Zek
-          </span>
-          <i class="fa-solid fa-bars text-[11px] text-blue-400/80 group-hover:text-white transition-colors"></i>
+          </span> 
         </div>
         <span class="text-[9px] font-semibold text-blue-300/70 uppercase tracking-widest block">
           Printing Services
         </span>
       </div>
-    </button>
+    </div>
 
     <!-- Center Action Buttons (Login & Sign Up in the Middle) -->
     <div class="flex items-center justify-center">
@@ -312,7 +311,7 @@
 
     <!-- Bottom Promo Banner -->
     <div class="mt-16 bg-gradient-to-r from-blue-900/40 via-indigo-900/30 to-blue-900/40 border border-blue-500/20 rounded-3xl p-8 sm:p-12 text-center max-w-4xl mx-auto backdrop-blur-md">
-      <h3 class="text-2xl sm:text-3xl font-extrabold text-white mb-3">Ready to print your next project?</h3>
+      <h3 class="text-2xl sm:text-3xl font-extrabold text-white mb-3">Ready to submit your first project?</h3>
       <p class="text-xs sm:text-sm text-slate-400 max-w-md mx-auto mb-6">Experience fast turnarounds, reliable output, and automated loyalty tracking.</p>
       <div class="flex items-center justify-center gap-4 flex-wrap">
         {% if session.get('username') %}

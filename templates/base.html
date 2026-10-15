@@ -16,7 +16,7 @@
 </head>
 <body class="{% if request.endpoint in ['index', 'login', 'customer_dashboard', 'admin_dashboard', 'store_page'] %}bg-[#070b19] text-white{% else %}bg-slate-100 text-slate-800{% endif %} font-sans min-h-screen relative overflow-x-hidden">
 
-  {% if request.endpoint not in ['index', 'login', 'customer_dashboard', 'admin_dashboard', 'store_page'] %}
+  {% if session.get('username') %}
   <!-- Ambient Background Mesh -->
   <div class="fixed inset-0 pointer-events-none -z-10 overflow-hidden">
     <div class="absolute -top-32 -left-32 w-96 h-96 bg-gradient-to-br from-[#f09433]/20 via-[#e6683c]/15 to-[#dc2743]/20 rounded-full blur-3xl"></div>
@@ -24,7 +24,7 @@
   </div>
   {% endif %}
 
-  {% if request.endpoint not in ['index', 'login'] %}
+  {% if session.get('username') %}
   <!-- ================= MOBILE HEADER TOPBAR (Visible only on mobile/tablet) ================= -->
   <header class="md:hidden sticky top-0 z-30 bg-[#0b1226]/90 backdrop-blur-md border-b border-white/10 px-4 py-3 flex items-center justify-between shadow-xs text-white">
     <div class="flex items-center gap-2.5">
@@ -125,7 +125,7 @@
     </div>
   </aside>
 
-  {% if request.endpoint not in ['index', 'login'] %}
+  {% if session.get('username') %}
   <!-- ================= DESKTOP SIDEBAR NAVIGATION (Collapsible on md+ screens) ================= -->
   <aside id="desktopSidebar" class="hidden md:flex flex-col w-56 fixed inset-y-0 left-0 bg-[#0b1226]/95 backdrop-blur-md border-r border-white/10 z-40 shadow-2xl transition-all duration-300 text-white">
     
@@ -249,7 +249,7 @@
   {% endif %}
 
   <!-- ================= MAIN CONTENT WRAPPER (Dynamic margin based on sidebar) ================= -->
-  <div id="mainContentWrapper" class="{% if request.endpoint not in ['index', 'login'] %}md:pl-56{% endif %} flex flex-col min-h-screen transition-all duration-300 w-full min-w-0 max-w-full overflow-x-hidden">
+  <div id="mainContentWrapper" class="{% if session.get('username') %}md:pl-56{% endif %} flex flex-col min-h-screen transition-all duration-300 w-full min-w-0 max-w-full overflow-x-hidden">
     
     <!-- Main Content Body -->
     <main class="flex-grow {% if request.endpoint in ['index', 'login'] %}p-0{% else %}p-3 sm:p-5 md:p-6{% endif %} w-full min-w-0 max-w-full">

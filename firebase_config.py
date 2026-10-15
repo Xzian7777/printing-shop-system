@@ -67,6 +67,22 @@ def update_order_status(order_id, new_status):
             return False
 
         order_data = order_doc.to_dict()
+        # Validate status transition according to workflow
+        current_status = order_data.get('status')
+        allowed_flow = {
+            "Order Submitted": ["Approved"],
+            "Approved": ["Printing", "Preparing"],
+            "Printing": ["Ready for Pickup"],
+            "Preparing": ["Ready for Pickup"],
+            "Ready for Pickup": ["Completed"]
+        }
+        if new_status == "Rejected":
+            valid = True
+        else:
+            valid = new_status in allowed_flow.get(current_status, [])
+        if not valid:
+            print(f"❌ Invalid status transition from {current_status} to {new_status}.")
+            return False
         order_ref.update({'status': new_status})
 
         if new_status in ['Approved', 'Completed']:
@@ -141,14 +157,22 @@ def delete_firebase_customer(uid):
         print(f"Error deleting Firebase Auth user: {e}")
         return False
 
-
-def delete_firebase_customer(uid):
+def update_firebase_password(uid, new_password):
     try:
-        auth.delete_user(uid)
+        auth.update_user(uid, password=new_password)
         return True
     except Exception as e:
-        print(f"Error deleting Firebase Auth user: {e}")
+        print(f"Error updating Firebase Auth password: {e}")
         return False
+
+def get_firebase_user_by_email(email):
+    try:
+        return auth.get_user_by_email(email)
+    except auth.UserNotFoundError:
+        return None
+    except Exception as e:
+        print(f"Error getting Firebase Auth user by email: {e}")
+        return None
 
 def get_customer_profile(username):
     try:

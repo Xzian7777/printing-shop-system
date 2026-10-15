@@ -4,6 +4,7 @@ from firebase_config import (
     db, get_orders, create_order, update_order_status, 
     get_customers, create_customer, get_customer_profile, save_customer_profile,
     create_firebase_customer, delete_firebase_customer,
+    update_firebase_password, get_firebase_user_by_email,
     get_store_products, save_store_products, get_inventory,
     log_rfid_tap, get_notifications, create_notification, mark_all_notifications_read,
     delete_notification, delete_all_notifications
@@ -37,9 +38,36 @@ SMTP_PORT = 587
 SMTP_EMAIL = os.getenv("SMTP_EMAIL")
 SMTP_PASSWORD = os.getenv("SMTP_PASSWORD")     
 
-# In-memory storage para sa OTPs
+import requests
+
+# In-memory storage para sa OTPs (with expiration, attempt counts, cooldowns)
 otp_memory_store = {}
 signup_otp_store = {}
+
+FIREBASE_API_KEY = os.getenv("FIREBASE_API_KEY") or "AIzaSyBDk0kto8_VpvtzkQBdjrVP2YHOuUZ17rQ"
+
+def verify_password_with_firebase(email, password):
+    """
+    Verifies user email & password against Firebase Authentication REST API.
+    Returns (True, user_data) or (False, error_code).
+    """
+    if not FIREBASE_API_KEY:
+        return False, "NO_FIREBASE_API_KEY"
+    try:
+        url = f"https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key={FIREBASE_API_KEY}"
+        res = requests.post(
+            url,
+            json={"email": email, "password": password, "returnSecureToken": True},
+            timeout=8
+        )
+        if res.status_code == 200:
+            return True, res.json()
+        data = res.json()
+        error_msg = data.get("error", {}).get("message", "INVALID_CREDENTIALS")
+        return False, error_msg
+    except Exception as e:
+        print(f"Firebase REST signIn error: {e}")
+        return False, "NETWORK_ERROR"
 
 # ---------------------------------------------------------------------------
 # BACKEND API SECURITY DECORATORS
@@ -61,39 +89,81 @@ def admin_required(f):
     return decorated_function
 
 # ---------------------------------------------------------------------------
-# STRICT FIELD VALIDATION HELPERS
+# STRICT FIELD VALIDATION HELPERS (MATCHING FLUTTER APPVALIDATORS)
 # ---------------------------------------------------------------------------
+def validate_name(name):
+    if not name or not name.strip():
+        return False, "Mangyaring ilagay ang iyong buong pangalan."
+    trimmed = name.strip()
+    if len(trimmed) < 2:
+        return False, "Ang pangalan ay dapat higit sa 1 character."
+    if len(trimmed) > 50:
+        return False, "Ang pangalan ay hindi pwedeng lumagpas sa 50 characters."
+    name_regex = r"^[a-zA-Z\s\-\.\ñ\Ñ]+$"
+    if not re.match(name_regex, trimmed):
+        return False, "Lihis o bawal na character sa pangalan."
+    return True, "Valid"
+
 def is_valid_gmail(email):
     pattern = r'^[a-zA-Z0-9._%+-]+@gmail\.com$'
-    return bool(re.match(pattern, email.strip().lower()))
+    return bool(re.match(pattern, (email or '').strip().lower()))
 
 def is_valid_ph_contact(contact):
     pattern = r'^09\d{9}$'
-    return bool(re.match(pattern, contact.strip()))
+    return bool(re.match(pattern, (contact or '').strip()))
 
-def validate_strong_password(password):
+def validate_strong_password(password, full_name='', email=''):
+    if not password:
+        return False, "Required ang password."
     if len(password) < 8:
         return False, "Ang password ay kailangang may minimum na 8 characters."
-    if not re.search(r'[A-Z]', password):
-        return False, "Kailangang may kahit isang Uppercase letter (A-Z)."
-    if not re.search(r'[a-z]', password):
-        return False, "Kailangang may kahit isang Lowercase letter (a-z)."
-    if not re.search(r'\d', password):
-        return False, "Kailangang may kahit isang numero (0-9)."
-    if not re.search(r'[!@#$%^&*(),.?":{}|<>_\-\+=]', password):
-        return False, "Kailangang may kahit isang Special Character (hal. @, #, $, !, %)."
+    if len(password) > 32:
+        return False, "Ang password ay hindi pwedeng lumagpas sa 32 characters."
+    if not re.search(r'[A-Z]', password) or not re.search(r'[a-z]', password):
+        return False, "Kailangang may Uppercase (A-Z) at Lowercase (a-z) letters."
+    if not re.search(r'[0-9!@#$%^&*(),.?":{}|<>_\-\+=]', password):
+        return False, "Kailangang may kahit isang numero o simbolo."
+    if ' ' in password:
+        return False, "Bawal ang space sa password."
+
+    # Flutter req5: Can't include name or email prefix
+    name_lower = full_name.strip().lower() if full_name else ''
+    email_prefix = email.strip().split('@')[0].lower() if email else ''
+    pass_lower = password.lower()
+
+    if name_lower and len(name_lower) >= 2 and name_lower in pass_lower:
+        return False, "Hindi maaaring naglalaman ang password ng iyong pangalan."
+    if email_prefix and len(email_prefix) >= 2 and email_prefix in pass_lower:
+        return False, "Hindi maaaring naglalaman ang password ng iyong email prefix."
+
     return True, "Valid"
 
 def is_email_registered(email):
     try:
-        if email.strip().lower() == ADMIN_EMAIL:
+        email_clean = (email or '').strip().lower()
+        if not email_clean:
+            return False
+
+        if ADMIN_EMAIL and email_clean == ADMIN_EMAIL:
             return True
 
+        # 1. Check Firebase Authentication
+        firebase_user = get_firebase_user_by_email(email_clean)
+        if firebase_user:
+            return True
+
+        # 2. Check Firestore 'users' collection (used by Flutter app)
+        if db:
+            user_docs = db.collection('users').where('email', '==', email_clean).limit(1).get()
+            if len(user_docs) > 0:
+                return True
+
+        # 3. Check Firestore 'customers' collection (used by website)
         customers = get_customers() or []
-        email_clean = email.strip().lower()
         for c in customers:
             if isinstance(c, dict) and c.get('email', '').strip().lower() == email_clean:
                 return True
+
         return False
     except Exception as e:
         print(f"⚠ Database Check Error: {e}")
@@ -128,6 +198,8 @@ def format_proper_order_info(order):
         else:
             order['colorModeDetailed'] = order.get('colorMode') or 'N/A (Store Supply Item)'
 
+        customer_note = str(order.get('customerNote') if order.get('customerNote') is not None else (order.get('note') or '')).strip()
+        order['customerNote'] = customer_note
     except Exception as e:
         print(f"⚠ Formatting error: {e}")
     return order
@@ -169,6 +241,94 @@ chat_memory_store = [
 def index():
     return render_template('index.html')
 
+def sync_or_create_customer_profile(email, uid=None, full_name='', phone=''):
+    """
+    Ensures that a user registered via Firebase Auth (mobile or web)
+    has a matching record in Firestore 'customers' (web customer portal)
+    and Firestore 'users' (mobile app), preserving identity & compatibility.
+    """
+    email_clean = (email or '').strip().lower()
+    if not email_clean:
+        return None
+
+    username_part = email_clean.split('@')[0]
+    display_name = full_name.strip() if full_name else username_part
+    user_uid = uid or ""
+
+    if not user_uid:
+        fb_user = get_firebase_user_by_email(email_clean)
+        if fb_user:
+            user_uid = fb_user.uid
+            if not display_name or display_name == username_part:
+                display_name = fb_user.display_name or display_name
+
+    # Check Firestore 'users'
+    user_mobile_doc = None
+    if db and user_uid:
+        try:
+            m_doc = db.collection('users').document(user_uid).get()
+            if m_doc.exists:
+                user_mobile_doc = m_doc.to_dict()
+                if not display_name or display_name == username_part:
+                    display_name = user_mobile_doc.get('full_name') or user_mobile_doc.get('name') or display_name
+                if not phone:
+                    phone = user_mobile_doc.get('phone') or user_mobile_doc.get('contact') or phone
+        except Exception as e:
+            print(f"Error checking users collection: {e}")
+
+    # Check Firestore 'customers'
+    customers = get_customers() or []
+    customer_found = None
+    for c in customers:
+        if isinstance(c, dict) and c.get('email', '').strip().lower() == email_clean:
+            customer_found = c
+            break
+
+    now_str = datetime.datetime.now().strftime('%Y-%m-%d • %I:%M %p')
+
+    if not customer_found:
+        cust_id = f"CUST-{int(datetime.datetime.now().timestamp())}"
+        new_customer = {
+            "id": cust_id,
+            "uid": user_uid or cust_id,
+            "fullName": display_name,
+            "contact": phone or "",
+            "phone": phone or "",
+            "email": email_clean,
+            "username": username_part,
+            "regDate": now_str,
+            "rfidUid": f"RFID-KCZ-{random.randint(100000, 999999)}",
+            "role": "customer"
+        }
+        create_customer(new_customer)
+        customer_found = new_customer
+    else:
+        # Update UID if missing
+        if user_uid and not customer_found.get('uid'):
+            try:
+                db.collection('customers').document(customer_found['id']).update({'uid': user_uid})
+                customer_found['uid'] = user_uid
+            except Exception as e:
+                print(f"Error updating customer uid: {e}")
+
+    # Ensure mobile Firestore 'users' record exists as well
+    if db and user_uid:
+        try:
+            u_ref = db.collection('users').document(user_uid)
+            if not u_ref.get().exists:
+                u_ref.set({
+                    "uid": user_uid,
+                    "full_name": display_name,
+                    "phone": phone or customer_found.get('contact') or "",
+                    "email": email_clean,
+                    "role": "customer",
+                    "created_at": datetime.datetime.now(datetime.timezone.utc)
+                })
+        except Exception as e:
+            print(f"Error ensuring mobile users record: {e}")
+
+    return customer_found
+
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
@@ -188,6 +348,26 @@ def login():
             else:
                 return jsonify({"success": False, "message": "Mali ang Admin password!"}), 400
 
+        # Try Firebase Authentication first
+        fb_valid, fb_res = verify_password_with_firebase(email, password)
+        if fb_valid:
+            uid = fb_res.get('localId')
+            customer_profile = sync_or_create_customer_profile(email, uid=uid)
+            display_name = (customer_profile.get('fullName') if customer_profile else None) or fb_res.get('displayName') or email.split('@')[0]
+
+            session['username'] = display_name
+            session['email'] = email
+            session['role'] = 'customer'
+            session['uid'] = uid
+
+            return jsonify({
+                "success": True,
+                "status": "success",
+                "redirect": "/customer",
+                "message": "Login successful"
+            })
+
+        # Fallback to Firestore customer password check (for legacy customers)
         customers = get_customers() or []
         user_found = None
         for c in customers:
@@ -195,20 +375,21 @@ def login():
                 user_found = c
                 break
 
-        if not user_found or str(user_found.get('password', '')) != password:
-            return jsonify({"success": False, "message": "Mali ang email o password!"}), 400
+        if user_found and str(user_found.get('password', '')) == password:
+            username_clean = user_found.get('fullName') or (email.split('@')[0] if '@' in email else email)
+            session['username'] = username_clean
+            session['email'] = email
+            session['role'] = 'customer'
+            session['uid'] = user_found.get('uid', user_found.get('id'))
+            
+            return jsonify({
+                "success": True,
+                "status": "success",
+                "redirect": "/customer",
+                "message": "Login successful"
+            })
 
-        username_clean = user_found.get('fullName') or (email.split('@')[0] if '@' in email else email)
-        session['username'] = username_clean
-        session['email'] = email
-        session['role'] = 'customer'
-        
-        return jsonify({
-            "success": True,
-            "status": "success",
-            "redirect": "/customer",
-            "message": "Login successful"
-        })
+        return jsonify({"success": False, "message": "Mali ang email o password!"}), 400
         
     return render_template('login.html')
 
@@ -263,9 +444,30 @@ def api_login():
             else:
                 return jsonify({"success": False, "status": "error", "message": "Mali ang password ng Admin!"}), 400
 
+        # Try Firebase Authentication first
+        fb_valid, fb_res = verify_password_with_firebase(email, password)
+        if fb_valid:
+            uid = fb_res.get('localId')
+            customer_profile = sync_or_create_customer_profile(email, uid=uid)
+            display_name = (customer_profile.get('fullName') if customer_profile else None) or fb_res.get('displayName') or email.split('@')[0]
+
+            session['username'] = display_name
+            session['email'] = email
+            session['role'] = "customer"
+            session['uid'] = uid
+
+            return jsonify({
+                "success": True,
+                "status": "success",
+                "message": "Login Successful",
+                "redirect": "/customer",
+                "redirectUrl": "/customer",
+                "user": {"email": session['email'], "role": session['role'], "username": display_name}
+            }), 200
+
+        # Fallback to Firestore customer password check (for legacy customers)
         customers = get_customers() or []
         user_found = None
-
         for c in customers:
             if isinstance(c, dict) and c.get('email', '').strip().lower() == email:
                 user_found = c
@@ -282,6 +484,7 @@ def api_login():
         session['username'] = username_clean
         session['email'] = email
         session['role'] = "customer"
+        session['uid'] = user_found.get('uid', user_found.get('id'))
 
         return jsonify({
             "success": True,
@@ -402,28 +605,47 @@ def request_signup_otp():
         if is_email_registered(email):
             return jsonify({"success": False, "message": "Ang email na ito ay NAKAREHISTRO NA sa aming system."}), 400
 
+        now = datetime.datetime.now()
+
+        # Rate limiting: 60 seconds cooldown between resend requests
+        existing = signup_otp_store.get(email)
+        if existing:
+            last_sent = existing.get("timestamp")
+            if last_sent and (now - last_sent).total_seconds() < 60:
+                wait_sec = int(60 - (now - last_sent).total_seconds())
+                return jsonify({
+                    "success": False,
+                    "message": f"Paki-antay ng {wait_sec} segundo bago humingi ng bagong verification code."
+                }), 429
+
         otp = ''.join(random.choices(string.digits, k=6))
         signup_otp_store[email] = {
             "otp": otp,
-            "timestamp": datetime.datetime.now()
+            "timestamp": now,
+            "attempts": 0,
+            "expires_at": now + datetime.timedelta(minutes=5)
         }
 
+        # Match mobile app email template and subject
         otp_html = f"""
-        <div style="font-family: Arial, sans-serif; padding: 20px; border: 1px solid #e2e8f0; border-radius: 12px; max-width: 500px;">
-            <h2 style="color: #c026d3; text-align: center;">Kez C-Em Zek Print Shop</h2>
-            <h3 style="color: #1e293b;">Account Registration Verification Code</h3>
-            <p>Gamitin ang 6-digit OTP code sa ibaba para kumpirmahin ang paggawa ng iyong account:</p>
-            <div style="background: #f1f5f9; padding: 15px; text-align: center; font-size: 24px; font-weight: bold; letter-spacing: 4px; color: #c026d3; border-radius: 8px;">
-                {otp}
-            </div>
-            <p style="font-size: 11px; color: #64748b; margin-top: 15px;">Ang code na ito ay mag-eexpire sa loob ng 5 minuto.</p>
+        <div style="font-family: Arial, sans-serif; padding: 24px; background-color: #0b0f19; color: #ffffff; border-radius: 12px; border: 1px solid #1e293b; max-width: 500px;">
+          <h2 style="color: #6366f1; margin-top: 0;">Kez C-Em Zek Printing Shop</h2>
+          <p style="color: #cbd5e1;">Hello,</p>
+          <p style="color: #cbd5e1;">Your 6-digit account verification code is:</p>
+          <div style="background-color: #111827; padding: 14px 24px; border-radius: 8px; display: inline-block; margin: 12px 0;">
+            <h1 style="color: #38bdf8; letter-spacing: 6px; margin: 0; font-size: 32px;">{otp}</h1>
+          </div>
+          <p style="color: #94a3b8; font-size: 12px;">This code will expire in 5 minutes. If you did not request this, please ignore this email.</p>
         </div>
         """
 
-        email_sent = send_smtp_email(email, "Sign Up Verification Code - Kez C-Em Zek", otp_html)
+        email_sent = send_smtp_email(email, "Account Verification - Kez C-Em Zek", otp_html)
 
         if email_sent:
-            return jsonify({"success": True, "message": f"Napadala na ang verification code sa {email}."}), 200
+            return jsonify({
+                "success": True, 
+                "message": f"Napadala na ang 6-digit verification code sa {email}."
+            }), 200
         else:
             return jsonify({"success": False, "message": "Bigo sa pagpapadala ng verification email. Paki-check ang SMTP configuration."}), 500
 
@@ -442,14 +664,18 @@ def api_signup():
         confirm_password = data.get('confirmPassword', '').strip()
         otp_input = data.get('otp', '').strip()
 
-        if not full_name or len(full_name) < 2:
-            return jsonify({"success": False, "message": "Pakilagay ang kumpletong pangalan (minimum 2 letters)."}), 400
+        # Strict Name Validation (AppValidators)
+        is_name_valid, name_msg = validate_name(full_name)
+        if not is_name_valid:
+            return jsonify({"success": False, "message": name_msg}), 400
 
-        if not email or not is_valid_gmail(email):
-            return jsonify({"success": False, "message": "Maling email format! Dapat ay valid na @gmail.com address."}), 400
-
+        # Strict Contact Validation (PH 11 digits starting with 09)
         if not is_valid_ph_contact(contact):
-            return jsonify({"success": False, "message": "Maling contact format! Dapat ay 11-digit PH mobile number na nagsisimula sa 09."}), 400
+            return jsonify({"success": False, "message": "Dapat ay 11-digit PH mobile number (hal. 09123456789)."}), 400
+
+        # Strict Gmail Validation
+        if not is_valid_gmail(email):
+            return jsonify({"success": False, "message": "Maling email format! Dapat ay valid na @gmail.com address."}), 400
 
         if not confirm_password:
             return jsonify({"success": False, "message": "Pakilagay ang Confirm Password."}), 400
@@ -457,61 +683,104 @@ def api_signup():
         if password != confirm_password:
             return jsonify({"success": False, "message": "Hindi magkapareho ang Password at Confirm Password!"}), 400
 
-        is_strong, pass_msg = validate_strong_password(password)
+        # Strict Strong Password Validation (Matching Flutter Requirements)
+        is_strong, pass_msg = validate_strong_password(password, full_name=full_name, email=email)
         if not is_strong:
-            return jsonify({"success": False, "message": f"Mahina ang Password: {pass_msg}"}), 400
+            return jsonify({"success": False, "message": f"Password requirement error: {pass_msg}"}), 400
 
+        # Pre-check email existence
         if is_email_registered(email):
             return jsonify({"success": False, "message": "May nakarehistro nang account gamit ang email na ito."}), 400
 
+        # Validate OTP, expiration, and attempt limits
         stored = signup_otp_store.get(email)
-        if stored and stored['otp'] == otp_input:
-            del signup_otp_store[email]
-        else:
-            return jsonify({"success": False, "message": "Mali o expired ang OTP verification code na ipinasok mo."}), 400
+        if not stored:
+            return jsonify({
+                "success": False, 
+                "message": "Walang pending verification para sa email na ito o nag-expire na. Humingi muli ng bagong code."
+            }), 400
 
-                # Create account in Firebase Authentication
+        now = datetime.datetime.now()
+        if now > stored.get("expires_at", now):
+            signup_otp_store.pop(email, None)
+            return jsonify({
+                "success": False,
+                "message": "Expired na ang OTP code (5 minutes limit). Humingi ng bagong code."
+            }), 400
+
+        # Limit verification attempts to 5
+        stored["attempts"] = stored.get("attempts", 0) + 1
+        if stored["attempts"] > 5:
+            signup_otp_store.pop(email, None)
+            return jsonify({
+                "success": False,
+                "message": "Lumampas na sa pinapayagang verification attempts. Humingi ng panibagong code."
+            }), 429
+
+        if stored['otp'] != otp_input:
+            remaining_attempts = max(0, 5 - stored["attempts"])
+            return jsonify({
+                "success": False,
+                "message": f"Maling OTP verification code. ({remaining_attempts} attempt(s) remaining)"
+            }), 400
+
+        # OTP is verified! Remove from store to prevent replay attacks
+        signup_otp_store.pop(email, None)
+
+        # 1. Create account in Firebase Authentication
         firebase_uid = create_firebase_customer(email, password)
-
         if not firebase_uid:
             return jsonify({
                 "success": False,
                 "message": "Hindi ma-create ang Firebase Authentication account. Maaaring registered na ang email."
             }), 400
 
-                # Create user in Firebase Authentication
-        firebase_uid = create_firebase_customer(email, password)
+        # Set Firebase Auth Display Name
+        try:
+            firebase_auth.update_user(firebase_uid, display_name=full_name)
+        except Exception as e:
+            print(f"Warning updating display name in Auth: {e}")
 
-        if not firebase_uid:
-            return jsonify({
-                "success": False,
-                "message": "Hindi ma-create ang Firebase Authentication account. Maaaring registered na ang email."
-            }), 400
-
-        # Save customer profile only — NO PASSWORD
+        # 2. Save customer record in Firestore 'customers' collection (for Web portal)
+        username_clean = email.split('@')[0]
+        cust_id = f"CUST-{int(datetime.datetime.now().timestamp())}"
         new_customer = {
-            "id": f"CUST-{int(datetime.datetime.now().timestamp())}",
+            "id": cust_id,
             "uid": firebase_uid,
             "fullName": full_name,
             "contact": contact,
+            "phone": contact,
             "email": email,
-            "username": email.split('@')[0],
+            "username": username_clean,
             "regDate": datetime.datetime.now().strftime('%Y-%m-%d • %I:%M %p'),
-            "rfidUid": f"RFID-KCZ-{random.randint(100000, 999999)}"
+            "rfidUid": f"RFID-KCZ-{random.randint(100000, 999999)}",
+            "role": "customer"
         }
 
         if not create_customer(new_customer):
-            # Roll back Firebase Authentication account
             delete_firebase_customer(firebase_uid)
-
             return jsonify({
                 "success": False,
-                "message": "Hindi ma-save ang customer profile."
+                "message": "Hindi ma-save ang customer profile sa database."
             }), 500
+
+        # 3. Save matching record in Firestore 'users' collection (for Mobile App compatibility)
+        if db:
+            try:
+                db.collection('users').document(firebase_uid).set({
+                    "uid": firebase_uid,
+                    "full_name": full_name,
+                    "phone": contact,
+                    "email": email,
+                    "role": "customer",
+                    "created_at": datetime.datetime.now(datetime.timezone.utc)
+                })
+            except Exception as dbe:
+                print(f"Warning syncing users collection: {dbe}")
 
         welcome_html = f"""
         <div style="font-family: Arial, sans-serif; padding: 20px; border: 1px solid #e2e8f0; border-radius: 12px; max-width: 500px;">
-            <h2 style="color: #c026d3;">Welcome sa Kez C-Em Zek Print Shop! 🎉</h2>
+            <h2 style="color: #6366f1;">Welcome sa Kez C-Em Zek Print Shop! 🎉</h2>
             <p>Hi <b>{full_name}</b>,</p>
             <p>Matagumpay na na-verify at naipasa ang iyong bagong account.</p>
             <br>
@@ -521,7 +790,7 @@ def api_signup():
         """
         send_smtp_email(email, "Welcome sa Kez C-Em Zek Print Shop!", welcome_html)
 
-        return jsonify({"success": True, "message": "Account created successfully! Maaari ka nang mag-login."}), 200
+        return jsonify({"success": True, "message": "Registration successful! You can now log in."}), 200
     except Exception as e:
         return jsonify({"success": False, "message": str(e)}), 500
 
@@ -541,30 +810,87 @@ def forgot_password():
         if not is_email_registered(email):
             return jsonify({"success": False, "message": "Ang email na ito ay HINDI pa nakarehistro sa aming database."}), 400
 
+        now = datetime.datetime.now()
+
+        # Rate limiting: 60 seconds cooldown between resend requests
+        existing = otp_memory_store.get(email)
+        if existing:
+            last_sent = existing.get("timestamp")
+            if last_sent and (now - last_sent).total_seconds() < 60:
+                wait_sec = int(60 - (now - last_sent).total_seconds())
+                return jsonify({
+                    "success": False,
+                    "message": f"Paki-antay ng {wait_sec} segundo bago humingi ng bagong OTP code."
+                }), 429
+
         otp = ''.join(random.choices(string.digits, k=6))
         otp_memory_store[email] = {
             "otp": otp,
-            "timestamp": datetime.datetime.now()
+            "timestamp": now,
+            "attempts": 0,
+            "expires_at": now + datetime.timedelta(minutes=5),
+            "verified": False
         }
 
+        # Mobile app matching email layout
         email_body = f"""
-        <div style="font-family: Arial, sans-serif; padding: 20px; border: 1px solid #e2e8f0; border-radius: 12px; max-width: 500px;">
-            <h2 style="color: #e11d48; text-align: center;">Kez C-Em Zek Print Shop</h2>
-            <h3 style="color: #1e293b;">Password Reset OTP Request</h3>
-            <p>Ginamit ang email na ito para mag-request ng password reset. Gamitin ang OTP code sa ibaba:</p>
-            <div style="background: #f1f5f9; padding: 15px; text-align: center; font-size: 24px; font-weight: bold; letter-spacing: 4px; color: #0284c7; border-radius: 8px;">
-                {otp}
-            </div>
-            <p style="font-size: 11px; color: #64748b; margin-top: 15px;">Kung hindi mo ito ni-request, balewalain lamang ang email na ito.</p>
+        <div style="font-family: Arial, sans-serif; padding: 20px; background-color: #0b0f19; color: #ffffff; border-radius: 10px; max-width: 500px;">
+          <h2 style="color: #6366f1;">Kez C-Em Zek Printing Shop</h2>
+          <p style="color: #cbd5e1;">Hello,</p>
+          <p style="color: #cbd5e1;">Your password reset code is:</p>
+          <div style="background-color: #111827; padding: 12px 20px; border-radius: 8px; display: inline-block; margin: 10px 0;">
+            <h1 style="color: #38bdf8; letter-spacing: 5px; margin: 0;">{otp}</h1>
+          </div>
+          <p style="color: #94a3b8; font-size: 12px;">This code will expire in 5 minutes. If you did not request this, please ignore this email.</p>
         </div>
         """
 
-        email_sent = send_smtp_email(email, "Your Password Reset OTP - Kez C-Em Zek", email_body)
+        email_sent = send_smtp_email(email, "Password Reset OTP - Kez C-Em Zek", email_body)
 
         if email_sent:
             return jsonify({"success": True, "message": f"Napadala na ang Password Reset OTP sa {email}."}), 200
         else:
             return jsonify({"success": False, "message": "Bigo sa pagpapadala ng OTP via SMTP."}), 500
+
+    except Exception as e:
+        return jsonify({"success": False, "message": str(e)}), 500
+
+
+@app.route('/api/verify-reset-otp', methods=['POST'])
+def verify_reset_otp():
+    """
+    Step 2 verification endpoint: Validates OTP before user provides new password.
+    Marks OTP session as verified.
+    """
+    try:
+        data = request.json or {}
+        email = data.get('email', '').strip().lower()
+        otp_input = data.get('otp', '').strip()
+
+        if not email or not otp_input:
+            return jsonify({"success": False, "message": "Pakilagay ang email at 6-digit OTP code."}), 400
+
+        stored = otp_memory_store.get(email)
+        if not stored:
+            return jsonify({"success": False, "message": "Walang aktibong OTP request para sa email na ito o expired na."}), 400
+
+        now = datetime.datetime.now()
+        if now > stored.get("expires_at", now):
+            otp_memory_store.pop(email, None)
+            return jsonify({"success": False, "message": "Expired na ang OTP code (5 minutes limit). Humingi ng bagong code."}), 400
+
+        stored["attempts"] = stored.get("attempts", 0) + 1
+        if stored["attempts"] > 5:
+            otp_memory_store.pop(email, None)
+            return jsonify({"success": False, "message": "Lumampas na sa pinapayagang attempts. Humingi ng bagong code."}), 429
+
+        if stored['otp'] != otp_input:
+            remaining = max(0, 5 - stored["attempts"])
+            return jsonify({"success": False, "message": f"Maling OTP code. ({remaining} attempt(s) remaining)"}), 400
+
+        # Mark as verified
+        stored['verified'] = True
+        return jsonify({"success": True, "message": "OTP verified successfully! Maaari mo nang ilagay ang bagong password."}), 200
 
     except Exception as e:
         return jsonify({"success": False, "message": str(e)}), 500
@@ -581,46 +907,69 @@ def reset_password():
         if not email or not otp_input or not new_password:
             return jsonify({"success": False, "message": "Kumpletuhin ang lahat ng required fields."}), 400
 
-        is_strong, pass_msg = validate_strong_password(new_password)
+        is_strong, pass_msg = validate_strong_password(new_password, email=email)
         if not is_strong:
             return jsonify({"success": False, "message": f"Mahina ang Bagong Password: {pass_msg}"}), 400
 
         if email == ADMIN_EMAIL:
             stored_admin = otp_memory_store.get(email)
-            if stored_admin and stored_admin['otp'] == otp_input:
+            if stored_admin and (stored_admin.get('verified') or stored_admin['otp'] == otp_input):
                 global ADMIN_PASSWORD
                 ADMIN_PASSWORD = new_password
-                del otp_memory_store[email]
+                otp_memory_store.pop(email, None)
                 return jsonify({"success": True, "message": "Matagumpay na pinalitan ang Admin Password!"}), 200
 
         stored = otp_memory_store.get(email)
+        if not stored:
+            return jsonify({"success": False, "message": "Walang aktibong OTP request para sa email na ito o expired na."}), 400
 
-        if stored and stored['otp'] == otp_input:
-            updated_in_db = False
-            try:
+        now = datetime.datetime.now()
+        if now > stored.get("expires_at", now):
+            otp_memory_store.pop(email, None)
+            return jsonify({"success": False, "message": "Expired na ang OTP code. Humingi ng bagong code."}), 400
+
+        if not stored.get('verified') and stored['otp'] != otp_input:
+            stored["attempts"] = stored.get("attempts", 0) + 1
+            if stored["attempts"] > 5:
+                otp_memory_store.pop(email, None)
+                return jsonify({"success": False, "message": "Lumampas na sa pinapayagang attempts."}), 429
+            return jsonify({"success": False, "message": "Mali ang OTP code na ipinasok mo."}), 400
+
+        # 1. Update REAL Firebase Authentication password
+        fb_user = get_firebase_user_by_email(email)
+        auth_updated = False
+        if fb_user:
+            auth_updated = update_firebase_password(fb_user.uid, new_password)
+            if not auth_updated:
+                return jsonify({"success": False, "message": "Hindi ma-update ang password sa Firebase Authentication."}), 500
+
+        # 2. Update Firestore 'customers' password field (legacy backward compatibility)
+        updated_in_db = False
+        try:
+            if db:
                 customers_ref = db.collection('customers')
                 docs = customers_ref.where('email', '==', email).stream()
                 for doc in docs:
                     doc.reference.update({'password': new_password})
                     updated_in_db = True
-            except Exception as db_err:
-                print(f"⚠ Firebase Update Error: {db_err}")
+        except Exception as db_err:
+            print(f"⚠ Firebase Customers Update Error: {db_err}")
 
-            customers = get_customers() or []
-            for c in customers:
-                if isinstance(c, dict) and c.get('email', '').strip().lower() == email:
-                    c['password'] = new_password
-                    updated_in_db = True
-                    break
+        # In-memory customer list update
+        customers = get_customers() or []
+        for c in customers:
+            if isinstance(c, dict) and c.get('email', '').strip().lower() == email:
+                c['password'] = new_password
+                updated_in_db = True
+                break
 
-            del otp_memory_store[email]
+        # Consume OTP session
+        otp_memory_store.pop(email, None)
 
-            if updated_in_db:
-                return jsonify({"success": True, "message": "Matagumpay na pinalitan ang password sa database! Maaari ka nang mag-login."}), 200
-            else:
-                return jsonify({"success": False, "message": "Hindi nahanap ang customer record sa database."}), 400
+        if auth_updated or updated_in_db:
+            return jsonify({"success": True, "message": "Password updated successfully! Maaari ka nang mag-login gamit ang bagong password."}), 200
         else:
-            return jsonify({"success": False, "message": "Mali ang OTP code na ipinasok mo."}), 400
+            return jsonify({"success": False, "message": "Hindi nahanap ang account record sa system."}), 400
 
     except Exception as e:
         return jsonify({"success": False, "message": str(e)}), 500
@@ -866,6 +1215,11 @@ def handle_orders():
 
             file_url_val = data.get('fileUrl') or f"Local Attached File: {file_name}"
 
+            # Customer Note / Special Instructions (Optional, max 500 chars)
+            customer_note = str(data.get('customerNote') if data.get('customerNote') is not None else (data.get('note') or '')).strip()
+            if len(customer_note) > 500:
+                return jsonify({"success": False, "message": "Ang order note / special instructions ay hindi pwedeng lumagpas sa 500 characters."}), 400
+
             new_order = {
                 "id": order_id,
                 "customerId": data.get('customerId', 'CUST-101'),
@@ -877,6 +1231,7 @@ def handle_orders():
                 "pages": pages_val,
                 "paperSize": data.get('paperSize') or 'Short Letter (8.5" x 11")',
                 "colorMode": data.get('colorMode', 'Full Color'),
+                "customerNote": customer_note,
                 "payment": data.get('payment') or 'GCash Online Payment',
                 "total": total_amount,
                 "status": "Order Submitted",
@@ -919,7 +1274,9 @@ def update_status(order_id):
 
         final_status = f"Rejected: {reason}" if 'reject' in new_status.lower() and reason else new_status
         success = update_order_status(order_id, final_status)
-        return jsonify({"success": success, "message": f"Order status updated to {final_status}"}), 200
+        if not success:
+            return jsonify({"success": False, "error": "Invalid status transition"}), 400
+        return jsonify({"success": True, "message": f"Order status updated to {final_status}"}), 200
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
 

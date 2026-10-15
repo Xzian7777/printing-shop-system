@@ -611,6 +611,16 @@ function formatInteger(num) {
     return Number(num || 0).toLocaleString('en-US');
 }
 
+function escapeHtml(str) {
+    if (!str) return '';
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     fetchAdminOrders();
     setInterval(fetchAdminOrders, 10000);
@@ -1268,11 +1278,17 @@ function renderAdminRowHTML(o) {
         <tr class="hover:bg-slate-50/80 transition relative">
             <td class="py-2.5 px-2.5 font-mono font-extrabold text-slate-900 whitespace-nowrap text-[11px]">${o.id}</td>
             <td class="py-2.5 px-2.5 font-bold text-slate-800 text-xs max-w-[100px] truncate" title="${o.customer || 'Guest'}">${o.customer || 'Guest'}</td>
-            <td class="py-2.5 px-2.5 max-w-[150px]">
-                <div class="font-bold text-slate-900 text-xs truncate" title="${o.service}">${o.service}</div>
-                <div class="text-[10px] text-slate-400 truncate">${o.paperSize || 'Specs'} • ${formatInteger(o.copies || 1)}x</div>
+            <td class="py-2.5 px-2.5 max-w-[160px]">
+                <div class="font-bold text-slate-900 text-xs truncate" title="${escapeHtml(o.service || 'Document Printing')}">${escapeHtml(o.service || 'Document Printing')}</div>
+                <div class="text-[10px] text-slate-400 truncate">${escapeHtml(o.paperSize || 'Specs')} • ${formatInteger(o.copies || 1)}x</div>
+                ${(o.customerNote || o.note) ? `
+                    <div class="mt-1 inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-amber-50 text-amber-700 border border-amber-200 text-[9px] font-semibold max-w-[150px] truncate" title="Special Instructions: ${escapeHtml(o.customerNote || o.note)}">
+                        <i class="fas fa-sticky-note text-[8px] text-amber-600 shrink-0"></i>
+                        <span class="truncate">${escapeHtml(o.customerNote || o.note)}</span>
+                    </div>
+                ` : ''}
             </td>
-            <td class="py-2.5 px-2.5 whitespace-nowrap"><span class="border px-2 py-0.5 rounded-full text-[9px] font-bold ${payBadge}">${o.payment || 'GCash'}</span></td>
+            <td class="py-2.5 px-2.5 whitespace-nowrap"><span class="border px-2 py-0.5 rounded-full text-[9px] font-bold ${payBadge}">${escapeHtml(o.payment || 'GCash')}</span></td>
             <td class="py-2.5 px-2.5 font-mono font-extrabold text-slate-900 text-right whitespace-nowrap text-xs">${formatCurrency(o.total || 0)}</td>
             <td class="py-2.5 px-2.5 text-center whitespace-nowrap">${statusPill}</td>
             <td class="py-2.5 px-2.5 text-right whitespace-nowrap">
@@ -1340,14 +1356,22 @@ function renderAdminCardHTML(o) {
         <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-xs space-y-3 flex flex-col justify-between">
             <div class="space-y-2">
                 <div class="flex justify-between items-center border-b border-slate-100 pb-2">
-                    <span class="font-mono font-extrabold text-slate-900 text-xs">${o.id}</span>
-                    <span class="border px-2 py-0.5 rounded-full text-[9px] font-bold ${payBadge}">${o.payment || 'GCash'}</span>
+                    <span class="font-mono font-extrabold text-slate-900 text-xs">${escapeHtml(o.id)}</span>
+                    <span class="border px-2 py-0.5 rounded-full text-[9px] font-bold ${payBadge}">${escapeHtml(o.payment || 'GCash')}</span>
                 </div>
                 <div>
-                    <h4 class="font-bold text-slate-900 text-xs">${o.service}</h4>
-                    <p class="text-[10px] text-slate-500">Customer: ${o.customer || 'Guest'}</p>
-                    <p class="text-[10px] text-slate-400 pt-0.5">${o.paperSize || 'Custom Specs'} • ${formatInteger(o.copies || 1)} copies</p>
+                    <h4 class="font-bold text-slate-900 text-xs">${escapeHtml(o.service || 'Document Printing')}</h4>
+                    <p class="text-[10px] text-slate-500">Customer: ${escapeHtml(o.customer || 'Guest')}</p>
+                    <p class="text-[10px] text-slate-400 pt-0.5">${escapeHtml(o.paperSize || 'Custom Specs')} • ${formatInteger(o.copies || 1)} copies</p>
                 </div>
+                ${(o.customerNote || o.note) ? `
+                    <div class="bg-amber-50/70 border border-amber-200/80 rounded-xl p-2.5 text-xs text-slate-800">
+                        <div class="font-bold text-amber-800 text-[10px] uppercase tracking-wider flex items-center gap-1 mb-0.5">
+                            <i class="fas fa-sticky-note text-amber-600 text-[9px]"></i> Special Instructions:
+                        </div>
+                        <p class="line-clamp-2 whitespace-pre-wrap text-[11px] text-slate-700 font-medium">${escapeHtml(o.customerNote || o.note)}</p>
+                    </div>
+                ` : ''}
             </div>
 
             <div class="pt-2 border-t border-slate-100 space-y-2">
@@ -1439,31 +1463,50 @@ function openReviewSpecsModal(orderId) {
     const fileUrl = o.fileUrl || o.file_url || o.url || (typeof o.file === 'string' && (o.file.startsWith('http') || o.file.startsWith('/')) ? o.file : '#');
     const hasValidUrl = fileUrl !== '#';
 
+    const customerNote = String(o.customerNote || o.note || '').trim();
+    const noteHTML = customerNote !== ''
+        ? `<div class="p-3 bg-amber-50/80 border border-amber-200 rounded-2xl text-xs text-slate-800 space-y-1">
+             <div class="font-bold text-amber-800 uppercase tracking-wider text-[10px] flex items-center gap-1.5">
+                 <i class="fas fa-sticky-note text-amber-600"></i> Customer Note / Special Instructions
+             </div>
+             <p class="whitespace-pre-wrap font-medium leading-relaxed">${escapeHtml(customerNote)}</p>
+           </div>`
+        : `<div class="p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-[11px] text-slate-400 italic">
+             No special instructions
+           </div>`;
+
     if (body) {
         body.innerHTML = `
-            <div class="space-y-1"><strong>Order ID:</strong> <span class="font-mono">${o.id}</span></div>
-            <div class="space-y-1"><strong>Customer:</strong> ${o.customer || 'Guest'}</div>
-            <div class="space-y-1"><strong>Service:</strong> ${o.service}</div>
-            <div class="space-y-1"><strong>Paper Specs:</strong> ${o.paperSize || 'Standard Specs'}</div>
+            <div class="space-y-1"><strong>Order ID:</strong> <span class="font-mono">${escapeHtml(o.id)}</span></div>
+            <div class="space-y-1"><strong>Customer:</strong> ${escapeHtml(o.customer || 'Guest')}</div>
+            <div class="space-y-1"><strong>Service:</strong> ${escapeHtml(o.service || 'Document Printing')}</div>
+            <div class="space-y-1"><strong>Paper Specs:</strong> ${escapeHtml(o.paperSize || 'Standard Specs')}</div>
             <div class="space-y-1"><strong>Copies / Quantity:</strong> ${formatInteger(o.copies || 1)}</div>
-            <div class="space-y-1"><strong>Color Mode:</strong> ${o.colorMode || 'Full Color'}</div>
-            <div class="space-y-1"><strong>Payment Method:</strong> ${o.payment}</div>
+            <div class="space-y-1"><strong>Color Mode:</strong> ${escapeHtml(o.colorMode || 'Full Color')}</div>
+            <div class="space-y-1"><strong>Payment Method:</strong> ${escapeHtml(o.payment || 'GCash')}</div>
             <div class="space-y-1"><strong>Total Amount:</strong> ${formatCurrency(o.total || 0)}</div>
-            <div class="space-y-1"><strong>Submitted Time:</strong> ${o.orderDate || 'Today'}</div>
+            <div class="space-y-1"><strong>Submitted Time:</strong> ${escapeHtml(o.orderDate || 'Today')}</div>
+
+            <div class="pt-3 border-t border-slate-100 space-y-1.5">
+                <strong class="text-slate-800 flex items-center gap-1.5">
+                    <i class="fas fa-comment-dots text-slate-500"></i> Customer Note:
+                </strong>
+                ${noteHTML}
+            </div>
             
             <div class="pt-3 border-t border-slate-100 space-y-2">
                 <strong class="text-slate-800">Attached Customer File:</strong>
                 <div class="p-3 bg-blue-50/60 border border-blue-200 rounded-2xl flex items-center justify-between gap-2">
                     <div class="flex items-center gap-2 overflow-hidden">
                         <i class="fas fa-file-alt text-blue-600 text-base flex-shrink-0"></i>
-                        <span class="font-bold text-slate-800 text-xs truncate" title="${fileName}">${fileName}</span>
+                        <span class="font-bold text-slate-800 text-xs truncate" title="${escapeHtml(fileName)}">${escapeHtml(fileName)}</span>
                     </div>
                     ${hasValidUrl ? `
                         <a href="${fileUrl}" target="_blank" download class="bg-blue-600 hover:bg-blue-700 text-white font-bold text-[11px] px-3 py-1.5 rounded-xl transition flex items-center gap-1 flex-shrink-0 shadow-2xs">
                             <i class="fas fa-external-link-alt text-[10px]"></i> Open File
                         </a>
                     ` : `
-                        <button onclick="alert('File Name: ${fileName}\\nNote: Walang direct web URL na naka-link.')" class="bg-slate-700 hover:bg-slate-800 text-white font-bold text-[11px] px-3 py-1.5 rounded-xl transition flex items-center gap-1 flex-shrink-0">
+                        <button onclick="alert('File Name: ' + ${JSON.stringify(fileName)} + '\\nNote: Walang direct web URL na naka-link.')" class="bg-slate-700 hover:bg-slate-800 text-white font-bold text-[11px] px-3 py-1.5 rounded-xl transition flex items-center gap-1 flex-shrink-0">
                             <i class="fas fa-info-circle text-[10px]"></i> File Info
                         </button>
                     `}
@@ -1482,16 +1525,18 @@ function openPrintSlipModal(orderId) {
     const o = allAdminOrdersCache.find(item => item.id === orderId);
     if (!o) return;
     const body = document.getElementById('printSlipBody');
+    const customerNote = String(o.customerNote || o.note || '').trim();
     if (body) {
         body.innerHTML = `
             <div class="text-center font-bold text-sm border-b pb-2">KEZ C-EM ZEK PRINT SHOP</div>
-            <div>JOB TICKET #: ${o.id}</div>
-            <div>CLIENT: ${o.customer}</div>
-            <div>SERVICE: ${o.service}</div>
+            <div>JOB TICKET #: ${escapeHtml(o.id)}</div>
+            <div>CLIENT: ${escapeHtml(o.customer || 'Guest')}</div>
+            <div>SERVICE: ${escapeHtml(o.service || 'Document Printing')}</div>
             <div>COPIES: ${formatInteger(o.copies || 1)} pcs</div>
             <div>TOTAL: ${formatCurrency(o.total || 0)}</div>
-            <div>PAYMENT: ${o.payment}</div>
-            <div>STATUS: ${o.status}</div>
+            <div>PAYMENT: ${escapeHtml(o.payment || 'GCash')}</div>
+            <div>STATUS: ${escapeHtml(o.status || 'Submitted')}</div>
+            ${customerNote !== '' ? `<div class="border-t pt-1 mt-1 text-[11px]"><strong>NOTE:</strong> ${escapeHtml(customerNote)}</div>` : ''}
             <div class="text-right text-[9px] text-slate-400 pt-2">${new Date().toLocaleString()}</div>
         `;
     }
