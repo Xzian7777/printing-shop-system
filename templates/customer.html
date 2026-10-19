@@ -101,14 +101,41 @@
             <div class="bg-white rounded-2xl p-6 border border-slate-200 shadow-xs space-y-3" id="fileUploadContainer">
                 <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider">Step 1: Upload Document or Design <span class="text-rose-500">*</span></label>
                 <div class="border-2 border-dashed border-blue-200 bg-blue-50/30 rounded-2xl p-6 text-center space-y-3 hover:border-blue-400 transition" id="fileDropzoneBox">
-                    <div class="w-12 h-12 bg-blue-100 text-blue-600 rounded-xl flex items-center justify-center text-xl mx-auto font-bold">📄</div>
-                    <div class="text-xs font-semibold text-slate-700" id="orderFileNameDisplay">Mag-upload ng PDF, Word, AI, PSD, o Image file</div>
+                    <div class="w-12 h-12 bg-blue-100 text-blue-600 rounded-xl flex items-center justify-center text-xl mx-auto font-bold" id="fileDropzoneIcon">📄</div>
+                    <div class="text-xs font-semibold text-slate-700" id="orderFileNameDisplay">Mag-upload ng design o document file</div>
+                    <!-- Accepted formats & limits info -->
+                    <div class="text-[10px] text-slate-400 leading-relaxed">
+                        Accepted: <span class="font-semibold text-slate-500">PDF, PNG, JPG, JPEG, DOC, DOCX</span> &nbsp;•&nbsp; Max <span class="font-semibold text-slate-500">10 MB</span> per file
+                    </div>
+                    <!-- File info bar (hidden until file selected) -->
+                    <div id="fileInfoBar" class="hidden bg-white border border-blue-200 rounded-xl px-4 py-2.5 flex items-center gap-3 text-left">
+                        <span class="text-base">📎</span>
+                        <div class="flex-1 min-w-0">
+                            <div id="fileInfoName" class="text-xs font-bold text-slate-700 truncate"></div>
+                            <div id="fileInfoSize" class="text-[10px] text-slate-400"></div>
+                        </div>
+                        <button type="button" onclick="removeSelectedFile()" class="text-rose-500 hover:text-rose-700 text-xs font-bold px-2 py-1 rounded-lg hover:bg-rose-50 transition flex-shrink-0 cursor-pointer" title="Remove file">✕ Remove</button>
+                    </div>
+                    <!-- Upload progress bar (hidden until upload starts) -->
+                    <div id="fileUploadProgressWrap" class="hidden space-y-1">
+                        <div class="flex justify-between text-[10px] text-slate-500">
+                            <span>Uploading to server…</span>
+                            <span id="fileUploadProgressPct">0%</span>
+                        </div>
+                        <div class="w-full bg-slate-100 rounded-full h-1.5">
+                            <div id="fileUploadProgressBar" class="bg-blue-500 h-1.5 rounded-full transition-all" style="width:0%"></div>
+                        </div>
+                    </div>
                     <div>
-                        <input type="file" id="orderFileInput" onchange="handleFileSelected(event)" class="hidden">
-                        <label for="orderFileInput" class="bg-white border border-slate-300 text-slate-700 font-bold text-xs px-4 py-2 rounded-xl cursor-pointer hover:bg-slate-50 transition shadow-2xs inline-block">
+                        <input type="file" id="orderFileInput" onchange="handleFileSelected(event)"
+                               accept=".pdf,.png,.jpg,.jpeg,.doc,.docx" class="hidden">
+                        <label for="orderFileInput" id="chooseFileBtn"
+                               class="bg-white border border-slate-300 text-slate-700 font-bold text-xs px-4 py-2 rounded-xl cursor-pointer hover:bg-slate-50 transition shadow-2xs inline-block">
                             Choose File
                         </label>
                     </div>
+                    <!-- Upload status message -->
+                    <div id="fileUploadStatusMsg" class="hidden text-[11px] font-semibold rounded-lg px-3 py-1.5"></div>
                 </div>
             </div>
 
@@ -400,11 +427,102 @@ function switchCustomerTab(tabId) {
     if (tabId === 'chat') fetchCustomerChatMessages();
 }
 
+// ─── Upload state ────────────────────────────────────────────────────────────
+let _uploadedFile   = null;   // { fileName, storagePath, fileUrl }
+let _isSubmitting   = false;  // guard against double-submit
+
+const ALLOWED_EXTS  = ['pdf','png','jpg','jpeg','doc','docx'];
+const MAX_FILE_MB   = 10;
+
+function _formatFileSize(bytes) {
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+    return (bytes / (1024 * 1024)).toFixed(2) + ' MB';
+}
+
+function _showUploadStatus(msg, type /* 'ok'|'err'|'info' */) {
+    const el = document.getElementById('fileUploadStatusMsg');
+    if (!el) return;
+    el.textContent = msg;
+    el.className = 'text-[11px] font-semibold rounded-lg px-3 py-1.5 ' + (
+        type === 'ok'  ? 'bg-green-50 text-green-700' :
+        type === 'err' ? 'bg-rose-50 text-rose-700'   :
+                         'bg-blue-50 text-blue-700'
+    );
+    el.classList.remove('hidden');
+}
+
+function _hideUploadStatus() {
+    const el = document.getElementById('fileUploadStatusMsg');
+    if (el) el.classList.add('hidden');
+}
+
+function _setProgress(pct) {
+    const wrap = document.getElementById('fileUploadProgressWrap');
+    const bar  = document.getElementById('fileUploadProgressBar');
+    const pctEl = document.getElementById('fileUploadProgressPct');
+    if (!wrap || !bar) return;
+    if (pct === null) { wrap.classList.add('hidden'); return; }
+    wrap.classList.remove('hidden');
+    bar.style.width = pct + '%';
+    if (pctEl) pctEl.textContent = pct + '%';
+}
+
+function removeSelectedFile() {
+    _uploadedFile = null;
+    const fi = document.getElementById('orderFileInput');
+    if (fi) fi.value = '';
+    const infoBar = document.getElementById('fileInfoBar');
+    if (infoBar) infoBar.classList.add('hidden');
+    document.getElementById('orderFileNameDisplay').textContent = 'Mag-upload ng design o document file';
+    const icon = document.getElementById('fileDropzoneIcon');
+    if (icon) icon.textContent = '📄';
+    _setProgress(null);
+    _hideUploadStatus();
+}
+
 function handleFileSelected(event) {
     const file = event.target.files[0];
-    if (file) {
-        document.getElementById('orderFileNameDisplay').textContent = `📄 Selected: ${file.name}`;
+    if (!file) return;
+
+    // Reset previous state
+    _uploadedFile = null;
+    _hideUploadStatus();
+    _setProgress(null);
+
+    // Client-side extension check
+    const ext = file.name.split('.').pop().toLowerCase();
+    if (!ALLOWED_EXTS.includes(ext)) {
+        _showUploadStatus(`❌ ".${ext}" files are not accepted. Use PDF, PNG, JPG, JPEG, DOC, or DOCX.`, 'err');
+        event.target.value = '';
+        return;
     }
+
+    // Client-side size check
+    const fileMB = file.size / (1024 * 1024);
+    if (fileMB > MAX_FILE_MB) {
+        _showUploadStatus(`❌ File is too large (${fileMB.toFixed(1)} MB). Maximum is ${MAX_FILE_MB} MB.`, 'err');
+        event.target.value = '';
+        return;
+    }
+
+    if (file.size === 0) {
+        _showUploadStatus('❌ The selected file is empty. Please choose a valid file.', 'err');
+        event.target.value = '';
+        return;
+    }
+
+    // Show file info bar
+    document.getElementById('orderFileNameDisplay').textContent = 'File selected — will upload on submit';
+    const icon = document.getElementById('fileDropzoneIcon');
+    if (icon) icon.textContent = '📎';
+    const infoBar  = document.getElementById('fileInfoBar');
+    const infoName = document.getElementById('fileInfoName');
+    const infoSize = document.getElementById('fileInfoSize');
+    if (infoBar) infoBar.classList.remove('hidden');
+    if (infoName) infoName.textContent = file.name;
+    if (infoSize) infoSize.textContent = _formatFileSize(file.size);
+    _showUploadStatus('✅ File ready. Click "Confirm & Submit Order" to upload and place your order.', 'info');
 }
 
 function togglePaymentSelection(type) {

@@ -19,11 +19,14 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 import os
 from dotenv import load_dotenv
+import supabase_config as sc
 
 load_dotenv()
 
 app = Flask(__name__)
 app.secret_key = "printingshop_secret_key"
+# Allow up to 30 MB per request (25 MB combined upload limit + multipart overhead)
+app.config['MAX_CONTENT_LENGTH'] = 30 * 1024 * 1024
 
 # ---------------------------------------------------------------------------
 # ADMIN ACCOUNT CREDENTIALS
@@ -1181,6 +1184,93 @@ def handle_store_products():
 
 
 # ---------------------------------------------------------------------------
+# FILE UPLOAD ENDPOINT  (Step 1 of two-step order submission)
+# ---------------------------------------------------------------------------
+
+@app.route('/api/upload', methods=['POST'])
+@login_required
+def upload_order_file_endpoint():
+    """
+    Accept a multipart/form-data file upload, validate it server-side,
+    upload it to Supabase Storage, and return the storage path + signed URL.
+
+    The frontend calls this BEFORE submitting the order JSON so that
+    no orphaned order records are created if the upload fails.
+    """
+    try:
+        files = request.files.getlist('file') or request.files.getlist('files')
+        if not files or all(f.filename == '' for f in files):
+            return jsonify({'success': False, 'message': 'No file was sent. Please attach a file.'}), 400
+
+        # Enforce max files per request
+        if len(files) > sc.MAX_FILES_PER_REQUEST:
+            return jsonify({
+                'success': False,
+                'message': f'Too many files. Maximum {sc.MAX_FILES_PER_REQUEST} files per upload.'
+            }), 400
+
+        # Validate each file individually
+        validated = []
+        combined_size = 0
+        for f in files:
+            ok, err = sc.validate_upload_file(f)
+            if not ok:
+                return jsonify({'success': False, 'message': err}), 400
+            f.seek(0)
+            size = len(f.read())
+            f.seek(0)
+            combined_size += size
+            validated.append(f)
+
+        # Combined size limit
+        if combined_size > sc.MAX_COMBINED_SIZE_BYTES:
+            mb = combined_size / (1024 * 1024)
+            return jsonify({
+                'success': False,
+                'message': f'Total upload size ({mb:.1f} MB) exceeds the 25 MB combined limit.'
+            }), 400
+
+        # Upload to Supabase (use a temporary ID; the real order ID comes later)
+        cust_email = session.get('email') or 'unknown'
+        temp_id = f"tmp-{cust_email.split('@')[0]}-{datetime.datetime.now().strftime('%H%M%S%f')[:12]}"
+
+        results = []
+        uploaded_paths = []
+        try:
+            for f in validated:
+                path, signed_url = sc.upload_order_file(
+                    file_obj=f,
+                    order_id=temp_id,
+                    customer_id=cust_email,
+                )
+                uploaded_paths.append(path)
+                results.append({
+                    'fileName': f.filename,
+                    'storagePath': path,
+                    'fileUrl': signed_url,
+                })
+        except RuntimeError as upload_err:
+            # Clean up any partially uploaded files
+            for p in uploaded_paths:
+                sc.delete_file(p)
+            return jsonify({'success': False, 'message': str(upload_err)}), 500
+
+        # Return single-file response if only one file (most common case)
+        if len(results) == 1:
+            return jsonify({
+                'success': True,
+                'fileName': results[0]['fileName'],
+                'storagePath': results[0]['storagePath'],
+                'fileUrl': results[0]['fileUrl'],
+            }), 200
+
+        return jsonify({'success': True, 'files': results}), 200
+
+    except Exception as e:
+        return jsonify({'success': False, 'message': f'Upload error: {str(e)}'}), 500
+
+
+# ---------------------------------------------------------------------------
 # ORDERS & ANALYTICS ENDPOINTS
 # ---------------------------------------------------------------------------
 
@@ -1189,12 +1279,19 @@ def handle_store_products():
 def handle_orders():
     if request.method == 'POST':
         try:
-            data = request.json or request.form.to_dict() or {}
-            uploaded_file = request.files.get('file') or request.files.get('document')
-            file_name = uploaded_file.filename if uploaded_file else data.get('file', '')
+            # File was already uploaded via /api/upload — we only receive JSON here
+            data = request.json or {}
 
-            if not file_name or file_name.strip() == '':
+            file_name    = str(data.get('file', '')).strip()
+            file_url_val = str(data.get('fileUrl', '')).strip()
+            storage_path = str(data.get('storagePath', '')).strip()
+
+            if not file_name:
                 return jsonify({"success": False, "message": "Kailangan mag-upload ng document o design file bago i-submit ang order."}), 400
+
+            # Sanity-check: storagePath must start with expected prefix if provided
+            if storage_path and not storage_path.startswith('orders/'):
+                return jsonify({"success": False, "message": "Invalid file reference. Please re-upload the file."}), 400
 
             try:
                 qty_val = int(data.get('quantity') or data.get('copies') or 1)
@@ -1212,8 +1309,6 @@ def handle_orders():
             cust_name = session.get('username') or data.get('customer') or 'Customer'
             if '@' in cust_name: cust_name = cust_name.split('@')[0]
             cust_email = session.get('email') or data.get('email') or f"{cust_name}@gmail.com"
-
-            file_url_val = data.get('fileUrl') or f"Local Attached File: {file_name}"
 
             # Customer Note / Special Instructions (Optional, max 500 chars)
             customer_note = str(data.get('customerNote') if data.get('customerNote') is not None else (data.get('note') or '')).strip()
@@ -1237,6 +1332,7 @@ def handle_orders():
                 "status": "Order Submitted",
                 "file": file_name,
                 "fileUrl": file_url_val,
+                "storagePath": storage_path,
                 "orderDate": datetime.datetime.now().strftime('%b %d, %Y • %I:%M %p'),
                 "createdAt": datetime.datetime.now().isoformat(),
                 "timestamp": datetime.datetime.now().isoformat()
@@ -1260,6 +1356,35 @@ def handle_orders():
             return jsonify(formatted_orders), 200
         except Exception as e:
             return jsonify({"success": False, "error": str(e)}), 500
+
+@app.route('/api/orders/<order_id>/file', methods=['GET'])
+@admin_required
+def get_order_file_url(order_id):
+    """
+    Generate a fresh signed URL for the file attached to an order.
+    Admin-only — never exposed to customers.
+    """
+    try:
+        orders = get_orders() or []
+        order = next((o for o in orders if isinstance(o, dict) and o.get('id') == order_id), None)
+        if not order:
+            return jsonify({'success': False, 'message': 'Order not found.'}), 404
+
+        storage_path = order.get('storagePath', '')
+        if not storage_path:
+            # Fall back to existing fileUrl if no storagePath (legacy orders)
+            existing_url = order.get('fileUrl', '')
+            if existing_url and existing_url.startswith('http'):
+                return jsonify({'success': True, 'fileUrl': existing_url}), 200
+            return jsonify({'success': False, 'message': 'No file attached to this order.'}), 404
+
+        signed_url = sc.get_signed_url(storage_path, expires_in=3600)
+        if not signed_url:
+            return jsonify({'success': False, 'message': 'Could not generate file access URL.'}), 500
+
+        return jsonify({'success': True, 'fileUrl': signed_url}), 200
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
 
 @app.route('/api/orders/<order_id>/status', methods=['PUT', 'POST'])
 @admin_required
