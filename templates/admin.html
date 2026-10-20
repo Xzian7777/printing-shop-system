@@ -99,17 +99,17 @@
             </div>
 
             <div class="flex flex-wrap items-center gap-2 sm:gap-3 shrink-0">
-                <div class="bg-amber-50 border border-amber-200 rounded-2xl px-3.5 py-1.5 text-center min-w-[80px]">
-                    <span class="block text-[9px] font-extrabold text-amber-700 uppercase tracking-wider">APPROVAL</span>
-                    <span class="text-base font-black font-mono text-amber-600" id="badgeCountApproval">0</span>
+                <div class="bg-amber-500/10 border border-amber-500/20 rounded-2xl px-3.5 py-1.5 text-center min-w-[80px]">
+                    <span class="block text-[9px] font-extrabold text-amber-400 uppercase tracking-wider">APPROVAL</span>
+                    <span class="text-base font-black font-mono text-amber-300" id="badgeCountApproval">0</span>
                 </div>
-                <div class="bg-blue-50 border border-blue-200 rounded-2xl px-3.5 py-1.5 text-center min-w-[80px]">
-                    <span class="block text-[9px] font-extrabold text-blue-700 uppercase tracking-wider">PRINTING</span>
-                    <span class="text-base font-black font-mono text-blue-600" id="badgeCountPrinting">0</span>
+                <div class="bg-blue-500/10 border border-blue-500/20 rounded-2xl px-3.5 py-1.5 text-center min-w-[80px]">
+                    <span class="block text-[9px] font-extrabold text-blue-400 uppercase tracking-wider">PRINTING</span>
+                    <span class="text-base font-black font-mono text-blue-300" id="badgeCountPrinting">0</span>
                 </div>
-                <div class="bg-emerald-50 border border-emerald-200 rounded-2xl px-3.5 py-1.5 text-center min-w-[80px]">
-                    <span class="block text-[9px] font-extrabold text-emerald-700 uppercase tracking-wider">READY</span>
-                    <span class="text-base font-black font-mono text-emerald-600" id="badgeCountReady">0</span>
+                <div class="bg-emerald-500/10 border border-emerald-500/20 rounded-2xl px-3.5 py-1.5 text-center min-w-[80px]">
+                    <span class="block text-[9px] font-extrabold text-emerald-400 uppercase tracking-wider">READY</span>
+                    <span class="text-base font-black font-mono text-emerald-300" id="badgeCountReady">0</span>
                 </div>
             </div>
         </div>
@@ -170,27 +170,104 @@
         </div>
     </div>
 
-    <!-- 2. LIVE CHAT SUPPORT TAB CONTENT -->
-    <div id="adminTabSection-liveChat" class="admin-tab-content hidden bg-white rounded-3xl border border-slate-200 p-6 h-[560px] flex flex-col justify-between shadow-xs">
-        <div class="font-extrabold text-xs text-slate-800 border-b border-slate-100 pb-3 flex items-center justify-between">
-            <span class="flex items-center gap-2">
-                <i class="fas fa-headset text-blue-600"></i>
-                <span>Customer Live Support Center</span>
-            </span>
-            <span class="text-[10px] bg-emerald-50 text-emerald-700 font-bold px-3 py-1 rounded-full border border-emerald-200 flex items-center gap-1.5">
-                <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Active Messaging Channel
-            </span>
-        </div>
-        <div id="adminChatThread" class="space-y-3 overflow-y-auto text-xs flex-1 p-4 bg-slate-50/60 rounded-2xl my-3">
-            <div class="text-center text-slate-400 py-12">Loading conversation thread...</div>
-        </div>
-        <div class="flex gap-2 pt-2 border-t border-slate-100">
-            <input type="text" id="adminChatInput" placeholder="Write reply to customer..." onkeydown="if(event.key==='Enter') sendAdminChatMessage()" class="flex-1 bg-slate-50 border border-slate-200 text-xs px-4 py-3 rounded-xl focus:outline-none focus:border-blue-600 font-medium">
-            <button onclick="sendAdminChatMessage()" class="bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold px-6 py-3 rounded-xl transition shadow-xs cursor-pointer">
-                Send Reply
-            </button>
+    <!-- 2. LIVE CHAT SUPPORT TAB CONTENT (MESSENGER-STYLE INBOX) -->
+    <div id="adminTabSection-liveChat" class="admin-tab-content hidden bg-[#0b1226] rounded-3xl border border-slate-800/80 shadow-xl overflow-hidden h-[660px] flex flex-col">
+        <!-- Main Messenger Two-Column Body -->
+        <div class="flex-1 flex overflow-hidden relative">
+            <!-- Left Column: Conversation Sidebar / Inbox -->
+            <div id="adminChatSidebar" class="w-full md:w-80 lg:w-96 border-r border-slate-800/80 flex flex-col bg-[#0b1226] flex-shrink-0 transition-all duration-200 z-10">
+                <!-- Sidebar Header -->
+                <div class="p-4 border-b border-slate-800/80 bg-[#0b1226]">
+                    <div class="flex items-center justify-between mb-3">
+                        <div class="flex items-center gap-2">
+                            <i class="fab fa-facebook-messenger text-blue-500 text-lg"></i>
+                            <h3 class="font-extrabold text-sm text-white">Messages</h3>
+                        </div>
+                        <span id="adminTotalUnreadBadge" class="hidden text-[10px] font-black bg-blue-600 text-white px-2.5 py-0.5 rounded-full shadow-2xs">
+                            0 unread
+                        </span>
+                    </div>
+                    <!-- Search Bar -->
+                    <div class="relative">
+                        <i class="fas fa-search absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 text-xs"></i>
+                        <input type="text" id="adminConvSearchInput" oninput="filterAdminConversations()"
+                               placeholder="Search customer by name..."
+                               class="w-full bg-[#0f172a] border border-slate-700/80 focus:border-blue-500 focus:bg-[#0f172a] text-xs pl-9 pr-8 py-2 rounded-xl focus:outline-none transition font-medium text-slate-200 placeholder-slate-500">
+                        <button id="adminConvSearchClear" onclick="clearAdminConvSearch()" class="hidden absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white text-xs">✕</button>
+                    </div>
+                </div>
+
+                <!-- Conversation List Container (Automatically ordered by latest message activity) -->
+                <div id="adminConversationsList" class="flex-1 overflow-y-auto divide-y divide-slate-800/60 bg-[#0b1226]">
+                    <div class="p-8 text-center text-slate-400 text-xs flex flex-col items-center gap-2">
+                        <i class="fas fa-spinner fa-spin text-blue-500 text-lg"></i>
+                        <span>Loading conversation inbox...</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column: Active Conversation Thread -->
+            <div id="adminChatMainPane" class="flex-1 hidden md:flex flex-col bg-[#070b19] overflow-hidden w-full">
+                <!-- Chat Pane Header -->
+                <div id="adminChatHeader" class="px-5 py-3.5 border-b border-slate-800/80 bg-[#0b1226] flex items-center justify-between">
+                    <div class="flex items-center gap-3 min-w-0">
+                        <!-- Mobile Back to Inbox Button -->
+                        <button onclick="toggleAdminChatMobileView(false)" class="md:hidden text-slate-400 hover:text-white text-sm p-1.5 rounded-lg hover:bg-slate-800 transition">
+                            <i class="fas fa-arrow-left"></i>
+                        </button>
+                        <div id="adminActiveUserAvatar" class="w-10 h-10 rounded-full bg-blue-500/20 text-blue-400 font-black flex items-center justify-center text-sm flex-shrink-0 shadow-2xs border border-blue-500/30">
+                            💬
+                        </div>
+                        <div class="min-w-0">
+                            <div class="flex items-center gap-2">
+                                <span id="adminActiveUserName" class="font-extrabold text-xs text-white truncate">Select a conversation</span>
+                                <span id="adminActiveUserBadge" class="hidden text-[9px] font-bold px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-300 border border-blue-500/30">Customer</span>
+                            </div>
+                            <div id="adminActiveUserEmail" class="text-[11px] text-slate-400 truncate">Choose a customer from the left to view messages</div>
+                        </div>
+                    </div>
+                    <!-- Live indicator -->
+                    <div class="flex items-center gap-2">
+                        <span class="text-[10px] bg-emerald-500/15 text-emerald-400 font-bold px-2.5 py-1 rounded-full border border-emerald-500/30 flex items-center gap-1.5">
+                            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                            <span>Live Support Active</span>
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Chat Message Thread Box -->
+                <div id="adminChatThread" class="flex-1 overflow-y-auto p-4 space-y-3 bg-[#070b19] text-xs">
+                    <div class="text-center text-slate-400 py-20 flex flex-col items-center gap-3">
+                        <div class="w-14 h-14 rounded-2xl bg-blue-500/10 text-blue-400 flex items-center justify-center text-2xl shadow-xs border border-blue-500/20">
+                            <i class="fab fa-facebook-messenger"></i>
+                        </div>
+                        <div class="font-bold text-white text-sm">Select a Conversation</div>
+                        <div class="text-slate-400 text-xs max-w-xs leading-relaxed">Piliin ang isang customer mula sa listahan sa kaliwa upang mag-reply at makipag-chat in real time.</div>
+                    </div>
+                </div>
+
+                <!-- Chat Input Footer -->
+                <div id="adminChatInputFooter" class="p-3.5 border-t border-slate-800/80 bg-[#0b1226]">
+                    <div class="flex items-end gap-2">
+                        <textarea id="adminChatInput" rows="1"
+                                  placeholder="Write a message to customer... (Press Enter to send, Shift+Enter for new line)"
+                                  onkeydown="handleAdminChatKeydown(event)"
+                                  class="flex-1 bg-[#0f172a] border border-slate-700/80 text-xs px-4 py-3 rounded-2xl focus:outline-none focus:border-blue-500 focus:bg-[#0f172a] resize-none font-medium text-white placeholder-slate-500 transition max-h-32 min-h-[44px]"></textarea>
+                        <button id="adminChatSendBtn" onclick="sendAdminChatMessage()"
+                                class="bg-blue-600 hover:bg-blue-500 active:scale-95 text-white text-xs font-bold px-5 py-3 rounded-2xl transition shadow-xs cursor-pointer flex items-center gap-2 flex-shrink-0">
+                            <span>Send</span>
+                            <i class="fas fa-paper-plane text-xs"></i>
+                        </button>
+                    </div>
+                    <div class="flex justify-between items-center text-[10px] text-slate-400 mt-1.5 px-1">
+                        <span>Press <kbd class="px-1 py-0.5 bg-slate-800 rounded text-slate-300 font-mono">Enter</kbd> to send • <kbd class="px-1 py-0.5 bg-slate-800 rounded text-slate-300 font-mono">Shift + Enter</kbd> for newline</span>
+                        <span id="adminChatSendStatus" class="font-medium text-blue-400"></span>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
+
 
     <!-- 3. ANALYTICS & STORE INTELLIGENCE TAB CONTENT -->
     <div id="adminTabSection-analytics" class="admin-tab-content hidden space-y-6">
@@ -406,36 +483,36 @@
 </div>
 
 <!-- MODAL 1: REVIEW SPECS MODAL -->
-<div id="reviewSpecsModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 hidden flex items-center justify-center p-4" onclick="if(event.target===this) closeSpecsModal()">
-    <div class="bg-white rounded-3xl max-w-md w-full p-6 space-y-5 shadow-2xl border border-slate-200">
-        <div class="flex items-center justify-between border-b border-slate-100 pb-3">
-            <h3 class="font-bold text-slate-900 text-sm">Order Specifications</h3>
-            <button onclick="closeSpecsModal()" class="text-slate-400 hover:text-slate-600 p-1 rounded-lg">
+<div id="reviewSpecsModal" class="fixed inset-0 bg-slate-950/70 backdrop-blur-xs z-50 hidden flex items-center justify-center p-4" onclick="if(event.target===this) closeSpecsModal()">
+    <div class="bg-[#0b1226] rounded-3xl max-w-md w-full p-6 space-y-5 shadow-2xl border border-slate-800">
+        <div class="flex items-center justify-between border-b border-slate-800/80 pb-3">
+            <h3 class="font-bold text-white text-sm">Order Specifications</h3>
+            <button onclick="closeSpecsModal()" class="text-slate-400 hover:text-white p-1 rounded-lg">
                 <i class="fas fa-times text-sm"></i>
             </button>
         </div>
-        <div id="specsModalBody" class="space-y-3 text-xs text-slate-700"></div>
-        <button onclick="closeSpecsModal()" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold py-2.5 rounded-xl transition cursor-pointer">
+        <div id="specsModalBody" class="space-y-3 text-xs text-slate-300"></div>
+        <button onclick="closeSpecsModal()" class="w-full bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold py-2.5 rounded-xl transition cursor-pointer border border-slate-700/60">
             Close
         </button>
     </div>
 </div>
 
 <!-- MODAL 2: PRINT JOB SLIP MODAL -->
-<div id="printSlipModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 hidden flex items-center justify-center p-4" onclick="if(event.target===this) closePrintSlipModal()">
-    <div class="bg-white rounded-3xl max-w-md w-full p-6 space-y-5 shadow-2xl border border-slate-200">
-        <div class="flex items-center justify-between border-b border-slate-100 pb-3">
-            <h3 class="font-bold text-slate-900 text-sm">Job Slip Ticket</h3>
-            <button onclick="closePrintSlipModal()" class="text-slate-400 hover:text-slate-600 p-1 rounded-lg">
+<div id="printSlipModal" class="fixed inset-0 bg-slate-950/70 backdrop-blur-xs z-50 hidden flex items-center justify-center p-4" onclick="if(event.target===this) closePrintSlipModal()">
+    <div class="bg-[#0b1226] rounded-3xl max-w-md w-full p-6 space-y-5 shadow-2xl border border-slate-800">
+        <div class="flex items-center justify-between border-b border-slate-800/80 pb-3">
+            <h3 class="font-bold text-white text-sm">Job Slip Ticket</h3>
+            <button onclick="closePrintSlipModal()" class="text-slate-400 hover:text-white p-1 rounded-lg">
                 <i class="fas fa-times text-sm"></i>
             </button>
         </div>
-        <div id="printSlipBody" class="p-4 bg-slate-50 border border-slate-200 rounded-2xl font-mono text-xs space-y-2"></div>
+        <div id="printSlipBody" class="p-4 bg-[#070b19] border border-slate-800 rounded-2xl font-mono text-xs space-y-2 text-slate-200"></div>
         <div class="flex gap-2">
             <button onclick="window.print()" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold py-2.5 rounded-xl transition shadow-xs cursor-pointer">
                 🖨️ Print Ticket
             </button>
-            <button onclick="closePrintSlipModal()" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold py-2.5 rounded-xl transition cursor-pointer">
+            <button onclick="closePrintSlipModal()" class="flex-1 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold py-2.5 rounded-xl transition cursor-pointer border border-slate-700/60">
                 Close
             </button>
         </div>
@@ -443,16 +520,16 @@
 </div>
 
 <!-- MODAL 3: REJECT ORDER REASON MODAL -->
-<div id="rejectReasonModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 hidden flex items-center justify-center p-4" onclick="if(event.target===this) closeRejectModal()">
-    <div class="bg-white rounded-3xl max-w-sm w-full p-6 space-y-4 shadow-2xl border border-slate-200">
-        <h3 class="font-bold text-slate-900 text-sm">Reject Order Reason</h3>
+<div id="rejectReasonModal" class="fixed inset-0 bg-slate-950/70 backdrop-blur-xs z-50 hidden flex items-center justify-center p-4" onclick="if(event.target===this) closeRejectModal()">
+    <div class="bg-[#0b1226] rounded-3xl max-w-sm w-full p-6 space-y-4 shadow-2xl border border-slate-800">
+        <h3 class="font-bold text-white text-sm">Reject Order Reason</h3>
         <input type="hidden" id="rejectOrderId">
-        <textarea id="rejectReasonInput" rows="3" placeholder="Reason (e.g. Low file resolution, unreadable text)..." class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs focus:outline-none focus:border-rose-600 font-medium"></textarea>
+        <textarea id="rejectReasonInput" rows="3" placeholder="Reason (e.g. Low file resolution, unreadable text)..." class="w-full bg-[#070b19] border border-slate-700/80 rounded-xl p-3 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-rose-500 font-medium"></textarea>
         <div class="flex gap-2">
             <button onclick="confirmRejectOrderAction()" class="flex-1 bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold py-2.5 rounded-xl transition shadow-xs cursor-pointer">
                 Confirm Reject
             </button>
-            <button onclick="closeRejectModal()" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold py-2.5 rounded-xl transition cursor-pointer">
+            <button onclick="closeRejectModal()" class="flex-1 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold py-2.5 rounded-xl transition cursor-pointer border border-slate-700/60">
                 Cancel
             </button>
         </div>
@@ -460,21 +537,21 @@
 </div>
 
 <!-- MODAL 4: DELETE REGISTERED USER CONFIRMATION -->
-<div id="deleteUserModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-[100] hidden flex items-center justify-center p-4" onclick="if(event.target===this) closeDeleteUserModal()">
-    <div class="bg-white rounded-3xl max-w-sm w-full p-6 space-y-4 shadow-2xl border border-slate-200">
-        <div class="w-12 h-12 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center text-xl font-bold mx-auto border border-rose-100">
+<div id="deleteUserModal" class="fixed inset-0 bg-slate-950/70 backdrop-blur-xs z-[100] hidden flex items-center justify-center p-4" onclick="if(event.target===this) closeDeleteUserModal()">
+    <div class="bg-[#0b1226] rounded-3xl max-w-sm w-full p-6 space-y-4 shadow-2xl border border-slate-800">
+        <div class="w-12 h-12 rounded-2xl bg-rose-500/15 text-rose-400 flex items-center justify-center text-xl font-bold mx-auto border border-rose-500/30">
             <i class="fas fa-user-slash"></i>
         </div>
         <div class="text-center space-y-1">
-            <h3 class="font-extrabold text-slate-900 text-sm">Delete User Account?</h3>
-            <p class="text-xs text-slate-500">Are you sure you want to delete <strong id="deleteUserNameTarget" class="text-slate-800">this user</strong>? This action will permanently remove the record from the database.</p>
+            <h3 class="font-extrabold text-white text-sm">Delete User Account?</h3>
+            <p class="text-xs text-slate-400">Are you sure you want to delete <strong id="deleteUserNameTarget" class="text-white">this user</strong>? This action will permanently remove the record from the database.</p>
         </div>
         <input type="hidden" id="deleteTargetUserId">
         <div class="flex gap-2 pt-2">
             <button onclick="executeDeleteUser()" class="flex-1 bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold py-2.5 rounded-xl transition shadow-xs cursor-pointer">
                 Yes, Delete
             </button>
-            <button onclick="closeDeleteUserModal()" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold py-2.5 rounded-xl transition cursor-pointer">
+            <button onclick="closeDeleteUserModal()" class="flex-1 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold py-2.5 rounded-xl transition cursor-pointer border border-slate-700/60">
                 Cancel
             </button>
         </div>
@@ -482,47 +559,47 @@
 </div>
 
 <!-- MODAL 5: CREATE NEW USER MODAL (CRUD: CREATE) -->
-<div id="createUserModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-[100] hidden flex items-center justify-center p-4" onclick="if(event.target===this) closeCreateUserModal()">
-    <div class="bg-white rounded-3xl max-w-md w-full p-6 space-y-4 shadow-2xl border border-slate-200">
-        <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+<div id="createUserModal" class="fixed inset-0 bg-slate-950/70 backdrop-blur-xs z-[100] hidden flex items-center justify-center p-4" onclick="if(event.target===this) closeCreateUserModal()">
+    <div class="bg-[#0b1226] rounded-3xl max-w-md w-full p-6 space-y-4 shadow-2xl border border-slate-800">
+        <div class="flex items-center justify-between border-b border-slate-800/80 pb-3">
             <div class="flex items-center gap-2">
-                <div class="w-8 h-8 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center font-bold text-sm">
+                <div class="w-8 h-8 rounded-xl bg-purple-500/15 text-purple-400 border border-purple-500/30 flex items-center justify-center font-bold text-sm">
                     <i class="fas fa-user-plus"></i>
                 </div>
-                <h3 class="font-bold text-slate-900 text-sm">Create New Customer Account</h3>
+                <h3 class="font-bold text-white text-sm">Create New Customer Account</h3>
             </div>
-            <button onclick="closeCreateUserModal()" class="text-slate-400 hover:text-slate-600 p-1 rounded-lg">
+            <button onclick="closeCreateUserModal()" class="text-slate-400 hover:text-white p-1 rounded-lg">
                 <i class="fas fa-times text-sm"></i>
             </button>
         </div>
 
         <form onsubmit="submitCreateUserForm(event)" class="space-y-3 text-xs">
             <div>
-                <label class="font-bold text-slate-700 block mb-1">Full Name <span class="text-rose-500">*</span></label>
-                <input type="text" id="createUserName" required placeholder="e.g. Maria Clara Santos" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs focus:outline-none focus:border-purple-600 font-medium">
+                <label class="font-bold text-slate-300 block mb-1">Full Name <span class="text-rose-500">*</span></label>
+                <input type="text" id="createUserName" required placeholder="e.g. Maria Clara Santos" class="w-full bg-[#070b19] border border-slate-700/80 text-white placeholder-slate-500 rounded-xl px-3.5 py-2.5 text-xs focus:outline-none focus:border-purple-500 font-medium">
             </div>
 
             <div>
-                <label class="font-bold text-slate-700 block mb-1">Gmail Address <span class="text-rose-500">*</span></label>
-                <input type="email" id="createUserEmail" required placeholder="maria.clara@gmail.com" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs focus:outline-none focus:border-purple-600 font-medium">
+                <label class="font-bold text-slate-300 block mb-1">Gmail Address <span class="text-rose-500">*</span></label>
+                <input type="email" id="createUserEmail" required placeholder="maria.clara@gmail.com" class="w-full bg-[#070b19] border border-slate-700/80 text-white placeholder-slate-500 rounded-xl px-3.5 py-2.5 text-xs focus:outline-none focus:border-purple-500 font-medium">
                 <span class="text-[10px] text-slate-400">Must be a valid @gmail.com address</span>
             </div>
 
             <div>
-                <label class="font-bold text-slate-700 block mb-1">Phone Number (11-digit)</label>
-                <input type="tel" id="createUserPhone" placeholder="09171234567" maxlength="11" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs focus:outline-none focus:border-purple-600 font-medium">
+                <label class="font-bold text-slate-300 block mb-1">Phone Number (11-digit)</label>
+                <input type="tel" id="createUserPhone" placeholder="09171234567" maxlength="11" class="w-full bg-[#070b19] border border-slate-700/80 text-white placeholder-slate-500 rounded-xl px-3.5 py-2.5 text-xs focus:outline-none focus:border-purple-500 font-medium">
             </div>
 
             <div>
-                <label class="font-bold text-slate-700 block mb-1">Default Password <span class="text-rose-500">*</span></label>
-                <input type="text" id="createUserPassword" value="KczUser2026!" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs focus:outline-none focus:border-purple-600 font-mono">
+                <label class="font-bold text-slate-300 block mb-1">Default Password <span class="text-rose-500">*</span></label>
+                <input type="text" id="createUserPassword" value="KczUser2026!" required class="w-full bg-[#070b19] border border-slate-700/80 text-white rounded-xl px-3.5 py-2.5 text-xs focus:outline-none focus:border-purple-500 font-mono">
             </div>
 
             <div class="flex gap-2 pt-3">
                 <button type="submit" id="createUserSubmitBtn" class="flex-1 bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold py-3 rounded-xl transition shadow-xs cursor-pointer">
                     Create Account
                 </button>
-                <button type="button" onclick="closeCreateUserModal()" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold py-3 rounded-xl transition cursor-pointer">
+                <button type="button" onclick="closeCreateUserModal()" class="flex-1 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold py-3 rounded-xl transition cursor-pointer border border-slate-700/60">
                     Cancel
                 </button>
             </div>
@@ -531,16 +608,16 @@
 </div>
 
 <!-- MODAL 6: EDIT USER MODAL (CRUD: UPDATE) -->
-<div id="editUserModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-[100] hidden flex items-center justify-center p-4" onclick="if(event.target===this) closeEditUserModal()">
-    <div class="bg-white rounded-3xl max-w-md w-full p-6 space-y-4 shadow-2xl border border-slate-200">
-        <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+<div id="editUserModal" class="fixed inset-0 bg-slate-950/70 backdrop-blur-xs z-[100] hidden flex items-center justify-center p-4" onclick="if(event.target===this) closeEditUserModal()">
+    <div class="bg-[#0b1226] rounded-3xl max-w-md w-full p-6 space-y-4 shadow-2xl border border-slate-800">
+        <div class="flex items-center justify-between border-b border-slate-800/80 pb-3">
             <div class="flex items-center gap-2">
-                <div class="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-sm">
+                <div class="w-8 h-8 rounded-xl bg-blue-500/15 text-blue-400 border border-blue-500/30 flex items-center justify-center font-bold text-sm">
                     <i class="fas fa-user-edit"></i>
                 </div>
-                <h3 class="font-bold text-slate-900 text-sm">Edit Customer Profile</h3>
+                <h3 class="font-bold text-white text-sm">Edit Customer Profile</h3>
             </div>
-            <button onclick="closeEditUserModal()" class="text-slate-400 hover:text-slate-600 p-1 rounded-lg">
+            <button onclick="closeEditUserModal()" class="text-slate-400 hover:text-white p-1 rounded-lg">
                 <i class="fas fa-times text-sm"></i>
             </button>
         </div>
@@ -549,35 +626,35 @@
             <input type="hidden" id="editUserId">
 
             <div>
-                <label class="font-bold text-slate-700 block mb-1">User ID</label>
-                <input type="text" id="editUserIdDisplay" disabled class="w-full bg-slate-100 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs font-mono text-slate-500 font-bold">
+                <label class="font-bold text-slate-300 block mb-1">User ID</label>
+                <input type="text" id="editUserIdDisplay" disabled class="w-full bg-[#070b19] border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs font-mono text-slate-400 font-bold">
             </div>
 
             <div>
-                <label class="font-bold text-slate-700 block mb-1">Full Name <span class="text-rose-500">*</span></label>
-                <input type="text" id="editUserName" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs focus:outline-none focus:border-blue-600 font-medium">
+                <label class="font-bold text-slate-300 block mb-1">Full Name <span class="text-rose-500">*</span></label>
+                <input type="text" id="editUserName" required class="w-full bg-[#070b19] border border-slate-700/80 text-white placeholder-slate-500 rounded-xl px-3.5 py-2.5 text-xs focus:outline-none focus:border-blue-500 font-medium">
             </div>
 
             <div>
-                <label class="font-bold text-slate-700 block mb-1">Gmail Address <span class="text-rose-500">*</span></label>
-                <input type="email" id="editUserEmail" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs focus:outline-none focus:border-blue-600 font-medium">
+                <label class="font-bold text-slate-300 block mb-1">Gmail Address <span class="text-rose-500">*</span></label>
+                <input type="email" id="editUserEmail" required class="w-full bg-[#070b19] border border-slate-700/80 text-white placeholder-slate-500 rounded-xl px-3.5 py-2.5 text-xs focus:outline-none focus:border-blue-500 font-medium">
             </div>
 
             <div>
-                <label class="font-bold text-slate-700 block mb-1">Phone Number</label>
-                <input type="tel" id="editUserPhone" placeholder="09171234567" maxlength="11" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs focus:outline-none focus:border-blue-600 font-medium">
+                <label class="font-bold text-slate-300 block mb-1">Phone Number</label>
+                <input type="tel" id="editUserPhone" placeholder="09171234567" maxlength="11" class="w-full bg-[#070b19] border border-slate-700/80 text-white placeholder-slate-500 rounded-xl px-3.5 py-2.5 text-xs focus:outline-none focus:border-blue-500 font-medium">
             </div>
 
             <div>
-                <label class="font-bold text-slate-700 block mb-1">Change Password (Leave blank to keep current)</label>
-                <input type="text" id="editUserPassword" placeholder="Enter new password (optional)" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs focus:outline-none focus:border-blue-600 font-mono">
+                <label class="font-bold text-slate-300 block mb-1">Change Password (Leave blank to keep current)</label>
+                <input type="text" id="editUserPassword" placeholder="Enter new password (optional)" class="w-full bg-[#070b19] border border-slate-700/80 text-white placeholder-slate-500 rounded-xl px-3.5 py-2.5 text-xs focus:outline-none focus:border-blue-500 font-mono">
             </div>
 
             <div class="flex gap-2 pt-3">
                 <button type="submit" id="editUserSubmitBtn" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold py-3 rounded-xl transition shadow-xs cursor-pointer">
                     Save Changes
                 </button>
-                <button type="button" onclick="closeEditUserModal()" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold py-3 rounded-xl transition cursor-pointer">
+                <button type="button" onclick="closeEditUserModal()" class="flex-1 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold py-3 rounded-xl transition cursor-pointer border border-slate-700/60">
                     Cancel
                 </button>
             </div>
@@ -652,6 +729,8 @@ function switchAdminTab(tabId) {
     }
     if (tabId === 'liveChat') {
         fetchAdminChatThread();
+    } else {
+        if (typeof stopAdminChatPolling === 'function') stopAdminChatPolling();
     }
     if (tabId === 'rfidLoyalty') {
         fetchAdminRfidData();
@@ -725,21 +804,21 @@ function renderAdminRfidTable() {
             </thead>
             <tbody class="divide-y divide-slate-100">
                 ${filtered.map(r => `
-                    <tr class="hover:bg-slate-50/80 transition">
-                        <td class="py-4 px-4 font-mono font-bold text-indigo-600 whitespace-nowrap">
-                            <i class="fas fa-credit-card mr-1 text-slate-400"></i> ${r.rfidUid}
+                    <tr class="hover:bg-slate-800/30 transition">
+                        <td class="py-4 px-4 font-mono font-bold text-indigo-400 whitespace-nowrap">
+                            <i class="fas fa-credit-card mr-1 text-slate-500"></i> ${r.rfidUid}
                         </td>
-                        <td class="py-4 px-4 font-bold text-slate-900 whitespace-nowrap">${r.name}</td>
-                        <td class="py-4 px-4 font-mono text-slate-600 whitespace-nowrap">${r.email}</td>
+                        <td class="py-4 px-4 font-bold text-slate-100 whitespace-nowrap">${r.name}</td>
+                        <td class="py-4 px-4 font-mono text-slate-400 whitespace-nowrap">${r.email}</td>
                         <td class="py-4 px-4 text-center whitespace-nowrap">
-                            <span class="bg-amber-50 text-amber-700 border border-amber-200 px-3 py-1 rounded-full font-mono font-extrabold text-xs">
+                            <span class="bg-amber-500/15 text-amber-300 border border-amber-500/30 px-3 py-1 rounded-full font-mono font-extrabold text-xs">
                                 ⭐ ${r.points} PTS
                             </span>
                         </td>
-                        <td class="py-4 px-4 text-slate-500 whitespace-nowrap">${r.lastTap}</td>
+                        <td class="py-4 px-4 text-slate-400 whitespace-nowrap">${r.lastTap}</td>
                         <td class="py-4 px-4 text-right whitespace-nowrap">
-                            <button onclick="adminTapSpecificCard('${r.rfidUid}')" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold px-3 py-1.5 rounded-xl transition cursor-pointer text-xs inline-flex items-center gap-1.5 shadow-2xs">
-                                <i class="fas fa-plus-circle text-indigo-600"></i> +20 Pts
+                            <button onclick="adminTapSpecificCard('${r.rfidUid}')" class="bg-indigo-500/15 hover:bg-indigo-500/25 text-indigo-300 border border-indigo-500/30 font-bold px-3 py-1.5 rounded-xl transition cursor-pointer text-xs inline-flex items-center gap-1.5 shadow-2xs">
+                                <i class="fas fa-plus-circle text-indigo-400"></i> +20 Pts
                             </button>
                         </td>
                     </tr>
@@ -863,18 +942,18 @@ function renderRegisteredUsers() {
             </thead>
             <tbody class="divide-y divide-slate-100">
                 ${filtered.map(u => `
-                    <tr class="hover:bg-slate-50/80 transition">
-                        <td class="p-4 font-mono font-bold text-slate-800">${u.id}</td>
-                        <td class="p-4 font-bold text-slate-900">${u.name}</td>
-                        <td class="p-4 text-slate-600 font-mono">${u.email}</td>
-                        <td class="p-4 text-slate-500">${u.phone || '—'}</td>
-                        <td class="p-4 text-slate-500">${u.dateJoined || '—'}</td>
+                    <tr class="hover:bg-slate-800/30 transition">
+                        <td class="p-4 font-mono font-bold text-slate-300">${u.id}</td>
+                        <td class="p-4 font-bold text-slate-100">${u.name}</td>
+                        <td class="p-4 text-slate-400 font-mono">${u.email}</td>
+                        <td class="p-4 text-slate-400">${u.phone || '—'}</td>
+                        <td class="p-4 text-slate-400">${u.dateJoined || '—'}</td>
                         <td class="p-4 text-right">
                             <div class="flex items-center justify-end gap-1.5">
-                                <button onclick="openEditUserModal('${u.id}')" class="bg-blue-50 hover:bg-blue-100 text-blue-600 font-bold px-3 py-1.5 rounded-xl transition cursor-pointer text-xs flex items-center gap-1.5">
+                                <button onclick="openEditUserModal('${u.id}')" class="bg-blue-500/15 hover:bg-blue-500/25 text-blue-300 border border-blue-500/30 font-bold px-3 py-1.5 rounded-xl transition cursor-pointer text-xs flex items-center gap-1.5">
                                     <i class="fas fa-edit text-[10px]"></i> Edit
                                 </button>
-                                <button onclick="openDeleteUserModal('${u.id}', '${(u.name || u.email || '').replace(/'/g, "\\'")}')" class="bg-rose-50 hover:bg-rose-100 text-rose-600 font-bold px-3 py-1.5 rounded-xl transition cursor-pointer text-xs flex items-center gap-1.5">
+                                <button onclick="openDeleteUserModal('${u.id}', '${(u.name || u.email || '').replace(/'/g, "\\'")}')" class="bg-rose-500/15 hover:bg-rose-500/25 text-rose-300 border border-rose-500/30 font-bold px-3 py-1.5 rounded-xl transition cursor-pointer text-xs flex items-center gap-1.5">
                                     <i class="fas fa-trash-alt text-[10px]"></i> Delete
                                 </button>
                             </div>
@@ -1249,7 +1328,7 @@ function renderAdminOrders() {
 
 function renderAdminRowHTML(o) {
     const isGCash = o.payment === 'GCash' || o.payment === 'GCash Online';
-    const payBadge = isGCash ? 'bg-blue-50 text-blue-700 border-blue-200' : 'bg-amber-50 text-amber-700 border-amber-200';
+    const payBadge = isGCash ? 'bg-blue-500/15 text-blue-300 border-blue-500/30' : 'bg-amber-500/15 text-amber-300 border-amber-500/30';
     const statusPill = getStatusPillHTML(o.status);
 
     const s = (o.status || '').toLowerCase();
@@ -1275,21 +1354,21 @@ function renderAdminRowHTML(o) {
     const fileTarget = o.fileUrl || o.file_url || o.url || (typeof o.file === 'string' && (o.file.startsWith('http') || o.file.startsWith('/')) ? o.file : null);
 
     return `
-        <tr class="hover:bg-slate-50/80 transition relative">
-            <td class="py-2.5 px-2.5 font-mono font-extrabold text-slate-900 whitespace-nowrap text-[11px]">${o.id}</td>
-            <td class="py-2.5 px-2.5 font-bold text-slate-800 text-xs max-w-[100px] truncate" title="${o.customer || 'Guest'}">${o.customer || 'Guest'}</td>
+        <tr class="hover:bg-slate-800/30 transition relative">
+            <td class="py-2.5 px-2.5 font-mono font-extrabold text-slate-100 whitespace-nowrap text-[11px]">${o.id}</td>
+            <td class="py-2.5 px-2.5 font-bold text-slate-200 text-xs max-w-[100px] truncate" title="${o.customer || 'Guest'}">${o.customer || 'Guest'}</td>
             <td class="py-2.5 px-2.5 max-w-[160px]">
-                <div class="font-bold text-slate-900 text-xs truncate" title="${escapeHtml(o.service || 'Document Printing')}">${escapeHtml(o.service || 'Document Printing')}</div>
+                <div class="font-bold text-slate-100 text-xs truncate" title="${escapeHtml(o.service || 'Document Printing')}">${escapeHtml(o.service || 'Document Printing')}</div>
                 <div class="text-[10px] text-slate-400 truncate">${escapeHtml(o.paperSize || 'Specs')} • ${formatInteger(o.copies || 1)}x</div>
                 ${(o.customerNote || o.note) ? `
-                    <div class="mt-1 inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-amber-50 text-amber-700 border border-amber-200 text-[9px] font-semibold max-w-[150px] truncate" title="Special Instructions: ${escapeHtml(o.customerNote || o.note)}">
-                        <i class="fas fa-sticky-note text-[8px] text-amber-600 shrink-0"></i>
+                    <div class="mt-1 inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-amber-500/15 text-amber-300 border border-amber-500/30 text-[9px] font-semibold max-w-[150px] truncate" title="Special Instructions: ${escapeHtml(o.customerNote || o.note)}">
+                        <i class="fas fa-sticky-note text-[8px] text-amber-400 shrink-0"></i>
                         <span class="truncate">${escapeHtml(o.customerNote || o.note)}</span>
                     </div>
                 ` : ''}
             </td>
             <td class="py-2.5 px-2.5 whitespace-nowrap"><span class="border px-2 py-0.5 rounded-full text-[9px] font-bold ${payBadge}">${escapeHtml(o.payment || 'GCash')}</span></td>
-            <td class="py-2.5 px-2.5 font-mono font-extrabold text-slate-900 text-right whitespace-nowrap text-xs">${formatCurrency(o.total || 0)}</td>
+            <td class="py-2.5 px-2.5 font-mono font-extrabold text-slate-100 text-right whitespace-nowrap text-xs">${formatCurrency(o.total || 0)}</td>
             <td class="py-2.5 px-2.5 text-center whitespace-nowrap">${statusPill}</td>
             <td class="py-2.5 px-2.5 text-right whitespace-nowrap">
                 <div class="flex items-center justify-end gap-1 relative">
@@ -1302,33 +1381,33 @@ function renderAdminRowHTML(o) {
                                 <i class="fas fa-chevron-down text-[8px]"></i>
                             </button>
 
-                            <div id="statusMenu-${o.id}" class="status-dropdown-menu absolute right-0 top-full mt-1 w-44 bg-white rounded-2xl shadow-xl border border-slate-200 hidden text-left overflow-hidden divide-y divide-slate-100 z-50">
-                                <button onclick="updateOrderStatusFromBackend('${o.id}', 'Approved')" class="w-full px-3.5 py-2 hover:bg-blue-50 text-blue-700 font-bold text-xs text-left block cursor-pointer">✓ Approved</button>
-                                <button onclick="updateOrderStatusFromBackend('${o.id}', 'Printing')" class="w-full px-3.5 py-2 hover:bg-indigo-50 text-indigo-700 font-bold text-xs text-left block cursor-pointer">🖨️ Start Printing</button>
-                                <button onclick="updateOrderStatusFromBackend('${o.id}', 'Ready for Pickup')" class="w-full px-3.5 py-2 hover:bg-amber-50 text-amber-700 font-bold text-xs text-left block cursor-pointer">📦 Ready for Pickup</button>
-                                <button onclick="updateOrderStatusFromBackend('${o.id}', 'Completed')" class="w-full px-3.5 py-2 hover:bg-emerald-50 text-emerald-700 font-bold text-xs text-left block cursor-pointer">🎉 Complete Order</button>
+                            <div id="statusMenu-${o.id}" class="status-dropdown-menu absolute right-0 top-full mt-1 w-44 bg-[#0f172a] rounded-2xl shadow-xl border border-slate-700/80 hidden text-left overflow-hidden divide-y divide-slate-800 z-50">
+                                <button onclick="updateOrderStatusFromBackend('${o.id}', 'Approved')" class="w-full px-3.5 py-2 hover:bg-blue-500/20 text-blue-300 font-bold text-xs text-left block cursor-pointer">✓ Approved</button>
+                                <button onclick="updateOrderStatusFromBackend('${o.id}', 'Printing')" class="w-full px-3.5 py-2 hover:bg-indigo-500/20 text-indigo-300 font-bold text-xs text-left block cursor-pointer">🖨️ Start Printing</button>
+                                <button onclick="updateOrderStatusFromBackend('${o.id}', 'Ready for Pickup')" class="w-full px-3.5 py-2 hover:bg-amber-500/20 text-amber-300 font-bold text-xs text-left block cursor-pointer">📦 Ready for Pickup</button>
+                                <button onclick="updateOrderStatusFromBackend('${o.id}', 'Completed')" class="w-full px-3.5 py-2 hover:bg-emerald-500/20 text-emerald-300 font-bold text-xs text-left block cursor-pointer">🎉 Complete Order</button>
                             </div>
                         </div>
                     ` : ''}
 
                     <div class="relative action-menu-container">
-                        <button onclick="toggleActionMenuDropdown(event, '${o.id}')" class="w-7 h-7 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center transition cursor-pointer">
+                        <button onclick="toggleActionMenuDropdown(event, '${o.id}')" class="w-7 h-7 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700/60 flex items-center justify-center transition cursor-pointer">
                             <i class="fas fa-ellipsis-v text-[10px]"></i>
                         </button>
-                        <div id="actionMenu-${o.id}" class="action-menu-dropdown absolute right-0 top-full mt-1 w-44 bg-white rounded-2xl shadow-xl border border-slate-200 hidden text-left overflow-hidden divide-y divide-slate-100 z-50">
-                            <button onclick="openReviewSpecsModal('${o.id}')" class="w-full px-3.5 py-2 hover:bg-slate-50 text-slate-700 font-medium text-xs text-left flex items-center gap-2 cursor-pointer">
-                                <i class="fas fa-eye text-blue-600"></i> Review Specs & File
+                        <div id="actionMenu-${o.id}" class="action-menu-dropdown absolute right-0 top-full mt-1 w-44 bg-[#0f172a] rounded-2xl shadow-xl border border-slate-700/80 hidden text-left overflow-hidden divide-y divide-slate-800 z-50">
+                            <button onclick="openReviewSpecsModal('${o.id}')" class="w-full px-3.5 py-2 hover:bg-slate-800 text-slate-300 font-medium text-xs text-left flex items-center gap-2 cursor-pointer">
+                                <i class="fas fa-eye text-blue-400"></i> Review Specs & File
                             </button>
                             ${fileTarget ? `
-                            <a href="${fileTarget}" target="_blank" download class="w-full px-3.5 py-2 hover:bg-blue-50 text-blue-700 font-bold text-xs text-left flex items-center gap-2 cursor-pointer">
-                                <i class="fas fa-file-download text-blue-600"></i> Open Attached File
+                            <a href="${fileTarget}" target="_blank" download class="w-full px-3.5 py-2 hover:bg-blue-500/20 text-blue-300 font-bold text-xs text-left flex items-center gap-2 cursor-pointer">
+                                <i class="fas fa-file-download text-blue-400"></i> Open Attached File
                             </a>
                             ` : ''}
-                            <button onclick="openPrintSlipModal('${o.id}')" class="w-full px-3.5 py-2 hover:bg-slate-50 text-slate-700 font-medium text-xs text-left flex items-center gap-2 cursor-pointer">
-                                <i class="fas fa-print text-purple-600"></i> Print Job Slip
+                            <button onclick="openPrintSlipModal('${o.id}')" class="w-full px-3.5 py-2 hover:bg-slate-800 text-slate-300 font-medium text-xs text-left flex items-center gap-2 cursor-pointer">
+                                <i class="fas fa-print text-purple-400"></i> Print Job Slip
                             </button>
-                            <button onclick="openRejectReasonModal('${o.id}')" class="w-full px-3.5 py-2 hover:bg-rose-50 text-rose-600 font-bold text-xs text-left flex items-center gap-2 cursor-pointer">
-                                <i class="fas fa-times-circle text-rose-600"></i> Reject Order
+                            <button onclick="openRejectReasonModal('${o.id}')" class="w-full px-3.5 py-2 hover:bg-rose-500/20 text-rose-300 font-bold text-xs text-left flex items-center gap-2 cursor-pointer">
+                                <i class="fas fa-times-circle text-rose-400"></i> Reject Order
                             </button>
                         </div>
                     </div>
@@ -1340,7 +1419,7 @@ function renderAdminRowHTML(o) {
 
 function renderAdminCardHTML(o) {
     const isGCash = o.payment === 'GCash' || o.payment === 'GCash Online';
-    const payBadge = isGCash ? 'bg-blue-50 text-blue-700 border-blue-200' : 'bg-amber-50 text-amber-700 border-amber-200';
+    const payBadge = isGCash ? 'bg-blue-500/15 text-blue-300 border-blue-500/30' : 'bg-amber-500/15 text-amber-300 border-amber-500/30';
     const statusPill = getStatusPillHTML(o.status);
 
     const s = (o.status || '').toLowerCase();
@@ -1353,37 +1432,37 @@ function renderAdminCardHTML(o) {
     const isFinished = s.includes('complete') || s.includes('reject');
 
     return `
-        <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-xs space-y-3 flex flex-col justify-between">
+        <div class="bg-[#0b1226] border border-slate-800 rounded-2xl p-4 shadow-xs space-y-3 flex flex-col justify-between">
             <div class="space-y-2">
-                <div class="flex justify-between items-center border-b border-slate-100 pb-2">
-                    <span class="font-mono font-extrabold text-slate-900 text-xs">${escapeHtml(o.id)}</span>
+                <div class="flex justify-between items-center border-b border-slate-800/80 pb-2">
+                    <span class="font-mono font-extrabold text-slate-100 text-xs">${escapeHtml(o.id)}</span>
                     <span class="border px-2 py-0.5 rounded-full text-[9px] font-bold ${payBadge}">${escapeHtml(o.payment || 'GCash')}</span>
                 </div>
                 <div>
-                    <h4 class="font-bold text-slate-900 text-xs">${escapeHtml(o.service || 'Document Printing')}</h4>
-                    <p class="text-[10px] text-slate-500">Customer: ${escapeHtml(o.customer || 'Guest')}</p>
-                    <p class="text-[10px] text-slate-400 pt-0.5">${escapeHtml(o.paperSize || 'Custom Specs')} • ${formatInteger(o.copies || 1)} copies</p>
+                    <h4 class="font-bold text-slate-100 text-xs">${escapeHtml(o.service || 'Document Printing')}</h4>
+                    <p class="text-[10px] text-slate-400">Customer: ${escapeHtml(o.customer || 'Guest')}</p>
+                    <p class="text-[10px] text-slate-500 pt-0.5">${escapeHtml(o.paperSize || 'Custom Specs')} • ${formatInteger(o.copies || 1)} copies</p>
                 </div>
                 ${(o.customerNote || o.note) ? `
-                    <div class="bg-amber-50/70 border border-amber-200/80 rounded-xl p-2.5 text-xs text-slate-800">
-                        <div class="font-bold text-amber-800 text-[10px] uppercase tracking-wider flex items-center gap-1 mb-0.5">
-                            <i class="fas fa-sticky-note text-amber-600 text-[9px]"></i> Special Instructions:
+                    <div class="bg-amber-500/10 border border-amber-500/20 rounded-xl p-2.5 text-xs text-slate-200">
+                        <div class="font-bold text-amber-400 text-[10px] uppercase tracking-wider flex items-center gap-1 mb-0.5">
+                            <i class="fas fa-sticky-note text-amber-400 text-[9px]"></i> Special Instructions:
                         </div>
-                        <p class="line-clamp-2 whitespace-pre-wrap text-[11px] text-slate-700 font-medium">${escapeHtml(o.customerNote || o.note)}</p>
+                        <p class="line-clamp-2 whitespace-pre-wrap text-[11px] text-slate-300 font-medium">${escapeHtml(o.customerNote || o.note)}</p>
                     </div>
                 ` : ''}
             </div>
 
-            <div class="pt-2 border-t border-slate-100 space-y-2">
+            <div class="pt-2 border-t border-slate-800/80 space-y-2">
                 <div class="flex justify-between items-center">
-                    <span class="font-mono font-extrabold text-slate-900 text-xs">${formatCurrency(o.total || 0)}</span>
+                    <span class="font-mono font-extrabold text-slate-100 text-xs">${formatCurrency(o.total || 0)}</span>
                     ${statusPill}
                 </div>
                 <div class="flex items-center gap-2 pt-1">
                     ${!isFinished ? `
                         <button onclick="updateOrderStatusFromBackend('${o.id}', '${nextStatus}')" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold text-[10px] py-1.5 rounded-lg cursor-pointer">${btnText}</button>
                     ` : ''}
-                    <button onclick="openReviewSpecsModal('${o.id}')" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-[10px] px-2.5 py-1.5 rounded-lg cursor-pointer">Specs & File</button>
+                    <button onclick="openReviewSpecsModal('${o.id}')" class="bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-[10px] px-2.5 py-1.5 rounded-lg cursor-pointer border border-slate-700/60">Specs & File</button>
                 </div>
             </div>
         </div>
@@ -1392,12 +1471,12 @@ function renderAdminCardHTML(o) {
 
 function getStatusPillHTML(status) {
     const s = (status || '').toLowerCase();
-    if (s.includes('reject')) return '<span class="bg-rose-100 text-rose-800 border border-rose-200 px-2.5 py-0.5 rounded-full text-[10px] font-bold">❌ Rejected</span>';
-    if (s.includes('complete')) return '<span class="bg-emerald-100 text-emerald-800 border border-emerald-200 px-2.5 py-0.5 rounded-full text-[10px] font-bold">🎉 Completed</span>';
-    if (s.includes('ready') || s.includes('pickup')) return '<span class="bg-amber-100 text-amber-800 border border-amber-200 px-2.5 py-0.5 rounded-full text-[10px] font-bold">📦 Ready for Pickup</span>';
-    if (s.includes('print')) return '<span class="bg-blue-100 text-blue-800 border border-blue-200 px-2.5 py-0.5 rounded-full text-[10px] font-bold">🖨️ Printing</span>';
-    if (s.includes('approve')) return '<span class="bg-indigo-100 text-indigo-800 border border-indigo-200 px-2.5 py-0.5 rounded-full text-[10px] font-bold">✓ Approved</span>';
-    return '<span class="bg-amber-50 text-amber-700 border border-amber-200 px-2.5 py-0.5 rounded-full text-[10px] font-bold">Order Submitted</span>';
+    if (s.includes('reject')) return '<span class="bg-rose-500/15 text-rose-300 border border-rose-500/30 px-2.5 py-0.5 rounded-full text-[10px] font-bold">❌ Rejected</span>';
+    if (s.includes('complete')) return '<span class="bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 px-2.5 py-0.5 rounded-full text-[10px] font-bold">🎉 Completed</span>';
+    if (s.includes('ready') || s.includes('pickup')) return '<span class="bg-amber-500/15 text-amber-300 border border-amber-500/30 px-2.5 py-0.5 rounded-full text-[10px] font-bold">📦 Ready for Pickup</span>';
+    if (s.includes('print')) return '<span class="bg-blue-500/15 text-blue-300 border border-blue-500/30 px-2.5 py-0.5 rounded-full text-[10px] font-bold">🖨️ Printing</span>';
+    if (s.includes('approve')) return '<span class="bg-indigo-500/15 text-indigo-300 border border-indigo-500/30 px-2.5 py-0.5 rounded-full text-[10px] font-bold">✓ Approved</span>';
+    return '<span class="bg-amber-500/15 text-amber-300 border border-amber-500/30 px-2.5 py-0.5 rounded-full text-[10px] font-bold">Order Submitted</span>';
 }
 
 function toggleStatusDropdownMenu(event, orderId) {
@@ -1465,48 +1544,48 @@ function openReviewSpecsModal(orderId) {
 
     const customerNote = String(o.customerNote || o.note || '').trim();
     const noteHTML = customerNote !== ''
-        ? `<div class="p-3 bg-amber-50/80 border border-amber-200 rounded-2xl text-xs text-slate-800 space-y-1">
-             <div class="font-bold text-amber-800 uppercase tracking-wider text-[10px] flex items-center gap-1.5">
-                 <i class="fas fa-sticky-note text-amber-600"></i> Customer Note / Special Instructions
+        ? `<div class="p-3 bg-amber-500/10 border border-amber-500/20 rounded-2xl text-xs text-slate-200 space-y-1">
+             <div class="font-bold text-amber-400 uppercase tracking-wider text-[10px] flex items-center gap-1.5">
+                 <i class="fas fa-sticky-note text-amber-400"></i> Customer Note / Special Instructions
              </div>
-             <p class="whitespace-pre-wrap font-medium leading-relaxed">${escapeHtml(customerNote)}</p>
+             <p class="whitespace-pre-wrap font-medium leading-relaxed text-slate-300">${escapeHtml(customerNote)}</p>
            </div>`
-        : `<div class="p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-[11px] text-slate-400 italic">
+        : `<div class="p-2.5 bg-slate-800/60 border border-slate-700/60 rounded-xl text-[11px] text-slate-400 italic">
              No special instructions
            </div>`;
 
     if (body) {
         body.innerHTML = `
-            <div class="space-y-1"><strong>Order ID:</strong> <span class="font-mono">${escapeHtml(o.id)}</span></div>
-            <div class="space-y-1"><strong>Customer:</strong> ${escapeHtml(o.customer || 'Guest')}</div>
-            <div class="space-y-1"><strong>Service:</strong> ${escapeHtml(o.service || 'Document Printing')}</div>
-            <div class="space-y-1"><strong>Paper Specs:</strong> ${escapeHtml(o.paperSize || 'Standard Specs')}</div>
-            <div class="space-y-1"><strong>Copies / Quantity:</strong> ${formatInteger(o.copies || 1)}</div>
-            <div class="space-y-1"><strong>Color Mode:</strong> ${escapeHtml(o.colorMode || 'Full Color')}</div>
-            <div class="space-y-1"><strong>Payment Method:</strong> ${escapeHtml(o.payment || 'GCash')}</div>
-            <div class="space-y-1"><strong>Total Amount:</strong> ${formatCurrency(o.total || 0)}</div>
-            <div class="space-y-1"><strong>Submitted Time:</strong> ${escapeHtml(o.orderDate || 'Today')}</div>
+            <div class="space-y-1"><strong class="text-slate-300">Order ID:</strong> <span class="font-mono text-slate-100">${escapeHtml(o.id)}</span></div>
+            <div class="space-y-1"><strong class="text-slate-300">Customer:</strong> <span class="text-slate-100">${escapeHtml(o.customer || 'Guest')}</span></div>
+            <div class="space-y-1"><strong class="text-slate-300">Service:</strong> <span class="text-slate-100">${escapeHtml(o.service || 'Document Printing')}</span></div>
+            <div class="space-y-1"><strong class="text-slate-300">Paper Specs:</strong> <span class="text-slate-100">${escapeHtml(o.paperSize || 'Standard Specs')}</span></div>
+            <div class="space-y-1"><strong class="text-slate-300">Copies / Quantity:</strong> <span class="text-slate-100">${formatInteger(o.copies || 1)}</span></div>
+            <div class="space-y-1"><strong class="text-slate-300">Color Mode:</strong> <span class="text-slate-100">${escapeHtml(o.colorMode || 'Full Color')}</span></div>
+            <div class="space-y-1"><strong class="text-slate-300">Payment Method:</strong> <span class="text-slate-100">${escapeHtml(o.payment || 'GCash')}</span></div>
+            <div class="space-y-1"><strong class="text-slate-300">Total Amount:</strong> <span class="text-slate-100">${formatCurrency(o.total || 0)}</span></div>
+            <div class="space-y-1"><strong class="text-slate-300">Submitted Time:</strong> <span class="text-slate-100">${escapeHtml(o.orderDate || 'Today')}</span></div>
 
-            <div class="pt-3 border-t border-slate-100 space-y-1.5">
-                <strong class="text-slate-800 flex items-center gap-1.5">
-                    <i class="fas fa-comment-dots text-slate-500"></i> Customer Note:
+            <div class="pt-3 border-t border-slate-700/60 space-y-1.5">
+                <strong class="text-slate-300 flex items-center gap-1.5">
+                    <i class="fas fa-comment-dots text-slate-400"></i> Customer Note:
                 </strong>
                 ${noteHTML}
             </div>
             
-            <div class="pt-3 border-t border-slate-100 space-y-2">
-                <strong class="text-slate-800">Attached Customer File:</strong>
-                <div class="p-3 bg-blue-50/60 border border-blue-200 rounded-2xl flex items-center justify-between gap-2">
+            <div class="pt-3 border-t border-slate-700/60 space-y-2">
+                <strong class="text-slate-300">Attached Customer File:</strong>
+                <div class="p-3 bg-blue-500/10 border border-blue-500/20 rounded-2xl flex items-center justify-between gap-2">
                     <div class="flex items-center gap-2 overflow-hidden">
-                        <i class="fas fa-file-alt text-blue-600 text-base flex-shrink-0"></i>
-                        <span class="font-bold text-slate-800 text-xs truncate" title="${escapeHtml(fileName)}">${escapeHtml(fileName)}</span>
+                        <i class="fas fa-file-alt text-blue-400 text-base flex-shrink-0"></i>
+                        <span class="font-bold text-slate-200 text-xs truncate" title="${escapeHtml(fileName)}">${escapeHtml(fileName)}</span>
                     </div>
                     ${hasValidUrl ? `
                         <a href="${fileUrl}" target="_blank" download class="bg-blue-600 hover:bg-blue-700 text-white font-bold text-[11px] px-3 py-1.5 rounded-xl transition flex items-center gap-1 flex-shrink-0 shadow-2xs">
                             <i class="fas fa-external-link-alt text-[10px]"></i> Open File
                         </a>
                     ` : `
-                        <button onclick="alert('File Name: ' + ${JSON.stringify(fileName)} + '\\nNote: Walang direct web URL na naka-link.')" class="bg-slate-700 hover:bg-slate-800 text-white font-bold text-[11px] px-3 py-1.5 rounded-xl transition flex items-center gap-1 flex-shrink-0">
+                        <button onclick="alert('File Name: ' + ${JSON.stringify(fileName)} + '\\nNote: Walang direct web URL na naka-link.')" class="bg-slate-700 hover:bg-slate-600 text-white font-bold text-[11px] px-3 py-1.5 rounded-xl transition flex items-center gap-1 flex-shrink-0 border border-slate-600">
                             <i class="fas fa-info-circle text-[10px]"></i> File Info
                         </button>
                     `}
@@ -1733,41 +1812,471 @@ function renderAnalyticsCharts(data) {
     }
 }
 
-function fetchAdminChatThread() {
-    fetch('/api/chat').then(res => res.json()).then(msgs => {
-        const thread = document.getElementById('adminChatThread');
-        if (!thread) return;
-        if (!msgs || msgs.length === 0) {
-            thread.innerHTML = `<div class="text-center text-slate-400 py-12 text-xs">No active chat messages.</div>`;
-            return;
+// ===========================================================================
+// LIVE CUSTOMER CHAT — MESSENGER-STYLE INBOX LOGIC
+// ===========================================================================
+
+let adminConversations = [];
+let adminActiveConvId = null;
+let adminChatPollingTimer = null;
+let adminSearchQuery = '';
+let adminIsSending = false;
+let adminLastRenderedMessagesHash = '';
+
+const AVATAR_PALETTES = [
+    { bg: 'bg-blue-500/20', text: 'text-blue-300', border: 'border-blue-500/40' },
+    { bg: 'bg-emerald-500/20', text: 'text-emerald-300', border: 'border-emerald-500/40' },
+    { bg: 'bg-purple-500/20', text: 'text-purple-300', border: 'border-purple-500/40' },
+    { bg: 'bg-rose-500/20', text: 'text-rose-300', border: 'border-rose-500/40' },
+    { bg: 'bg-amber-500/20', text: 'text-amber-300', border: 'border-amber-500/40' },
+    { bg: 'bg-indigo-500/20', text: 'text-indigo-300', border: 'border-indigo-500/40' },
+    { bg: 'bg-teal-500/20', text: 'text-teal-300', border: 'border-teal-500/40' }
+];
+
+function getAvatarPalette(str) {
+    if (!str) return AVATAR_PALETTES[0];
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) {
+        hash = (hash << 5) - hash + str.charCodeAt(i);
+        hash |= 0;
+    }
+    const idx = Math.abs(hash) % AVATAR_PALETTES.length;
+    return AVATAR_PALETTES[idx];
+}
+
+function getInitials(name) {
+    if (!name) return 'C';
+    const parts = name.trim().split(/\s+/);
+    if (parts.length === 1) return parts[0].substring(0, 2).toUpperCase();
+    return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+}
+
+function formatMessengerTime(isoStr) {
+    if (!isoStr) return '';
+    try {
+        const d = new Date(isoStr);
+        if (isNaN(d.getTime())) return isoStr;
+        const now = new Date();
+        const diffMs = now - d;
+        const diffSec = Math.floor(diffMs / 1000);
+        const diffMin = Math.floor(diffSec / 60);
+        const diffHr = Math.floor(diffMin / 60);
+
+        if (diffSec < 60) return 'Just now';
+        if (diffMin < 60) return `${diffMin} min ago`;
+        if (diffHr < 24 && now.getDate() === d.getDate()) {
+            return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
         }
-        thread.innerHTML = msgs.map(m => {
-            const isStaff = m.sender === 'staff';
-            return `
-                <div class="flex flex-col ${isStaff ? 'items-end' : 'items-start'}">
-                    <div class="${isStaff ? 'bg-slate-900 text-white rounded-2xl rounded-tr-xs' : 'bg-white border border-slate-200 text-slate-800 rounded-2xl rounded-tl-xs'} p-3 max-w-[80%] shadow-2xs">
-                        ${m.message}
-                    </div>
-                    <span class="text-[9px] text-slate-400 pt-0.5 px-1">${isStaff ? 'Staff' : (m.customerId || 'Customer')} • ${m.time || 'Just now'}</span>
-                </div>
-            `;
-        }).join('');
-        thread.scrollTop = thread.scrollHeight;
+        const yesterday = new Date(now);
+        yesterday.setDate(now.getDate() - 1);
+        if (yesterday.getDate() === d.getDate() && yesterday.getMonth() === d.getMonth()) {
+            return 'Yesterday';
+        }
+        return d.toLocaleDateString([], { month: 'short', day: 'numeric' });
+    } catch (e) {
+        return '';
+    }
+}
+
+function sortAdminConversationsInPlace() {
+    // Sort strictly by latest message activity descending!
+    adminConversations.sort((a, b) => {
+        const timeA = new Date(a.updatedAt || a.lastMessageAt || a.createdAt || 0).getTime();
+        const timeB = new Date(b.updatedAt || b.lastMessageAt || b.createdAt || 0).getTime();
+        return timeB - timeA;
     });
 }
 
+function stopAdminChatPolling() {
+    if (adminChatPollingTimer) {
+        clearInterval(adminChatPollingTimer);
+        adminChatPollingTimer = null;
+    }
+}
+
+function fetchAdminChatThread() {
+    // Start or restart polling interval (every 2.5s)
+    stopAdminChatPolling();
+    loadAdminConversations(true);
+    adminChatPollingTimer = setInterval(() => {
+        loadAdminConversations(false);
+    }, 2500);
+}
+
+function loadAdminConversations(isInitial = false) {
+    fetch('/api/chat/conversations')
+        .then(res => res.json())
+        .then(data => {
+            if (!data || !data.success) return;
+            const newConvs = data.conversations || [];
+            
+            // Check if updated to avoid re-rendering DOM unnecessarily
+            const oldOrderKey = adminConversations.map(c => `${c.id}:${c.lastMessageAt}:${c.unreadCountAdmin}`).join('|');
+            const newOrderKey = newConvs.map(c => `${c.id}:${c.lastMessageAt}:${c.unreadCountAdmin}`).join('|');
+
+            adminConversations = newConvs;
+            sortAdminConversationsInPlace();
+
+            if (oldOrderKey !== newOrderKey || isInitial) {
+                renderAdminConversationsList();
+            }
+
+            // Auto-select first conversation on desktop if none selected
+            if (!adminActiveConvId && adminConversations.length > 0 && window.innerWidth >= 768) {
+                selectAdminConversation(adminConversations[0].id);
+            } else if (adminActiveConvId) {
+                fetchAdminActiveMessages(false);
+            }
+        })
+        .catch(err => {
+            console.warn("Error fetching admin conversations:", err);
+        });
+}
+
+function renderAdminConversationsList() {
+    const listEl = document.getElementById('adminConversationsList');
+    if (!listEl) return;
+
+    let totalUnread = 0;
+    adminConversations.forEach(c => {
+        totalUnread += (c.unreadCountAdmin || 0);
+    });
+
+    const badgeEl = document.getElementById('adminTotalUnreadBadge');
+    if (badgeEl) {
+        if (totalUnread > 0) {
+            badgeEl.textContent = `${totalUnread} unread`;
+            badgeEl.classList.remove('hidden');
+        } else {
+            badgeEl.classList.add('hidden');
+        }
+    }
+
+    let filtered = adminConversations;
+    if (adminSearchQuery.trim()) {
+        const q = adminSearchQuery.trim().toLowerCase();
+        filtered = adminConversations.filter(c => 
+            (c.customerName || '').toLowerCase().includes(q) ||
+            (c.customerEmail || '').toLowerCase().includes(q) ||
+            (c.lastMessage || '').toLowerCase().includes(q)
+        );
+    }
+
+    if (filtered.length === 0) {
+        listEl.innerHTML = `
+            <div class="p-8 text-center text-slate-400 text-xs">
+                ${adminSearchQuery ? 'No customer conversations match your search.' : 'No customer conversations yet.'}
+            </div>
+        `;
+        return;
+    }
+
+    listEl.innerHTML = filtered.map(c => {
+        const isSelected = c.id === adminActiveConvId;
+        const unreadCount = c.unreadCountAdmin || 0;
+        const palette = getAvatarPalette(c.customerName || c.customerEmail);
+        const initials = getInitials(c.customerName || c.customerEmail);
+        const timeFormatted = formatMessengerTime(c.lastMessageAt || c.updatedAt);
+        const isSenderStaff = c.lastMessageSender === 'admin' || c.lastMessageSender === 'staff';
+        const prefix = isSenderStaff ? '<span class="text-slate-400 font-normal">You: </span>' : '';
+        const previewText = c.lastMessage ? `${prefix}${escapeHtml(c.lastMessage)}` : '<span class="italic text-slate-400">Started a conversation</span>';
+
+        return `
+            <div onclick="selectAdminConversation('${c.id}')"
+                 class="p-3.5 flex items-center gap-3 cursor-pointer transition-all border-l-4 ${
+                     isSelected 
+                         ? 'bg-blue-600/20 border-blue-500 shadow-2xs' 
+                         : 'bg-transparent hover:bg-slate-800/40 border-transparent'
+                 }">
+                <!-- Circular Avatar -->
+                <div class="relative flex-shrink-0">
+                    <div class="w-11 h-11 rounded-full ${palette.bg} ${palette.text} border ${palette.border} font-bold text-xs flex items-center justify-center shadow-2xs">
+                        ${initials}
+                    </div>
+                    <span class="absolute bottom-0 right-0 w-3 h-3 rounded-full bg-emerald-500 border-2 border-[#0b1226]"></span>
+                </div>
+
+                <!-- Conversation Info -->
+                <div class="flex-1 min-w-0">
+                    <div class="flex items-center justify-between gap-1 mb-0.5">
+                        <span class="font-extrabold text-xs truncate ${unreadCount > 0 ? 'text-white' : 'text-slate-200'}">
+                            ${escapeHtml(c.customerName || c.customerEmail || 'Customer')}
+                        </span>
+                        <span class="text-[10px] ${unreadCount > 0 ? 'text-blue-400 font-bold' : 'text-slate-400'} flex-shrink-0 whitespace-nowrap">
+                            ${timeFormatted}
+                        </span>
+                    </div>
+                    <div class="flex items-center justify-between gap-2">
+                        <div class="text-[11px] truncate ${unreadCount > 0 ? 'font-bold text-slate-100' : 'text-slate-400'}">
+                            ${previewText}
+                        </div>
+                        ${unreadCount > 0 ? `
+                            <span class="flex-shrink-0 min-w-5 h-5 px-1.5 rounded-full bg-blue-600 text-white font-black text-[10px] flex items-center justify-center shadow-xs animate-pulse">
+                                ${unreadCount}
+                            </span>
+                        ` : ''}
+                    </div>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+function filterAdminConversations() {
+    const input = document.getElementById('adminConvSearchInput');
+    const clearBtn = document.getElementById('adminConvSearchClear');
+    adminSearchQuery = input ? input.value : '';
+    if (clearBtn) {
+        if (adminSearchQuery) clearBtn.classList.remove('hidden');
+        else clearBtn.classList.add('hidden');
+    }
+    renderAdminConversationsList();
+}
+
+function clearAdminConvSearch() {
+    const input = document.getElementById('adminConvSearchInput');
+    const clearBtn = document.getElementById('adminConvSearchClear');
+    if (input) input.value = '';
+    if (clearBtn) clearBtn.classList.add('hidden');
+    adminSearchQuery = '';
+    renderAdminConversationsList();
+}
+
+function selectAdminConversation(convId) {
+    adminActiveConvId = convId;
+    const conv = adminConversations.find(c => c.id === convId);
+    
+    // Clear unread count locally immediately
+    if (conv && conv.unreadCountAdmin > 0) {
+        conv.unreadCountAdmin = 0;
+        fetch(`/api/chat/conversations/${convId}/read`, { method: 'POST' }).catch(() => {});
+    }
+
+    renderAdminConversationsList();
+
+    // Update Chat Header
+    if (conv) {
+        const nameEl = document.getElementById('adminActiveUserName');
+        const emailEl = document.getElementById('adminActiveUserEmail');
+        const avatarEl = document.getElementById('adminActiveUserAvatar');
+        const badgeEl = document.getElementById('adminActiveUserBadge');
+
+        if (nameEl) nameEl.textContent = conv.customerName || conv.customerEmail || 'Customer';
+        if (emailEl) emailEl.textContent = `${conv.customerEmail || ''} ${conv.customerPhone ? '• ' + conv.customerPhone : ''}`;
+        if (badgeEl) badgeEl.classList.remove('hidden');
+
+        if (avatarEl) {
+            const palette = getAvatarPalette(conv.customerName || conv.customerEmail);
+            avatarEl.className = `w-10 h-10 rounded-full ${palette.bg} ${palette.text} border ${palette.border} font-bold text-xs flex items-center justify-center flex-shrink-0 shadow-2xs`;
+            avatarEl.textContent = getInitials(conv.customerName || conv.customerEmail);
+        }
+    }
+
+    // Toggle view on mobile
+    toggleAdminChatMobileView(true);
+
+    // Fetch messages and scroll to bottom
+    fetchAdminActiveMessages(true);
+
+    // Focus input
+    setTimeout(() => {
+        const input = document.getElementById('adminChatInput');
+        if (input) input.focus();
+    }, 100);
+}
+
+function fetchAdminActiveMessages(scrollToBottom = false) {
+    if (!adminActiveConvId) return;
+
+    fetch(`/api/chat/conversations/${adminActiveConvId}/messages`)
+        .then(res => res.json())
+        .then(data => {
+            if (!data || !data.success) return;
+            const msgs = data.messages || [];
+            
+            const newHash = msgs.map(m => `${m.id}:${m.read}`).join('|');
+            if (newHash === adminLastRenderedMessagesHash && !scrollToBottom) {
+                return; // Nothing changed
+            }
+            adminLastRenderedMessagesHash = newHash;
+
+            const thread = document.getElementById('adminChatThread');
+            if (!thread) return;
+
+            if (msgs.length === 0) {
+                thread.innerHTML = `
+                    <div class="text-center text-slate-400 py-16 text-xs flex flex-col items-center gap-2">
+                        <i class="far fa-comments text-2xl text-slate-300"></i>
+                        <span>No messages in this conversation yet. Send a greeting to start chatting!</span>
+                    </div>
+                `;
+                return;
+            }
+
+            const currentConv = adminConversations.find(c => c.id === adminActiveConvId);
+            const custInitials = getInitials(currentConv ? currentConv.customerName : 'Customer');
+            const custPalette = getAvatarPalette(currentConv ? (currentConv.customerName || currentConv.customerEmail) : 'Cust');
+
+            thread.innerHTML = msgs.map((m, idx) => {
+                const isStaff = m.senderRole === 'admin' || m.senderRole === 'staff';
+                const showAvatar = !isStaff;
+                const timeText = m.time || (m.createdAt ? formatMessengerTime(m.createdAt) : 'Just now');
+                const isSeen = m.read;
+
+                return `
+                    <div class="flex items-end gap-2 ${isStaff ? 'justify-end' : 'justify-start'} group">
+                        ${showAvatar ? `
+                            <div class="w-7 h-7 rounded-full ${custPalette.bg} ${custPalette.text} font-bold text-[10px] flex items-center justify-center flex-shrink-0 shadow-2xs border ${custPalette.border}">
+                                ${custInitials}
+                            </div>
+                        ` : ''}
+
+                        <div class="max-w-[75%] sm:max-w-[65%] flex flex-col ${isStaff ? 'items-end' : 'items-start'}">
+                            <div class="p-3 text-xs leading-relaxed whitespace-pre-wrap break-words shadow-2xs ${
+                                isStaff
+                                    ? 'bg-blue-600 text-white rounded-2xl rounded-br-xs'
+                                    : 'bg-[#0f172a] border border-slate-700/80 text-slate-100 rounded-2xl rounded-bl-xs'
+                            }">
+                                ${escapeHtml(m.message || m.text || '')}
+                            </div>
+                            <div class="flex items-center gap-1.5 px-1 pt-0.5 text-[10px] text-slate-400">
+                                <span>${timeText}</span>
+                                ${isStaff ? `
+                                    <span>•</span>
+                                    <span class="${isSeen ? 'text-blue-400 font-bold' : 'text-slate-500'}">
+                                        ${isSeen ? 'Seen' : 'Delivered'}
+                                    </span>
+                                ` : ''}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            if (scrollToBottom) {
+                thread.scrollTop = thread.scrollHeight;
+            }
+        })
+        .catch(err => {
+            console.warn("Error fetching conversation messages:", err);
+        });
+}
+
+function handleAdminChatKeydown(event) {
+    if (event.key === 'Enter' && !event.shiftKey) {
+        event.preventDefault();
+        sendAdminChatMessage();
+    }
+}
+
 function sendAdminChatMessage() {
+    if (adminIsSending) return;
+    if (!adminActiveConvId) {
+        alert("Paki-pili muna ang customer mula sa listahan bago mag-reply.");
+        return;
+    }
+
     const input = document.getElementById('adminChatInput');
     if (!input || !input.value.trim()) return;
+
     const text = input.value.trim();
-    fetch('/api/chat', {
+    if (text.length > 2000) {
+        alert("Masyadong mahaba ang mensahe (maximum 2,000 characters).");
+        return;
+    }
+
+    adminIsSending = true;
+    const sendStatusEl = document.getElementById('adminChatSendStatus');
+    if (sendStatusEl) sendStatusEl.textContent = 'Sending...';
+
+    // Optimistic UI Update: Render message instantly
+    const thread = document.getElementById('adminChatThread');
+    const nowIso = new Date().toISOString();
+    const tempMsgId = 'temp_' + Date.now();
+
+    if (thread) {
+        const tempBubble = document.createElement('div');
+        tempBubble.id = tempMsgId;
+        tempBubble.className = 'flex items-end justify-end gap-2 group';
+        tempBubble.innerHTML = `
+            <div class="max-w-[75%] sm:max-w-[65%] flex flex-col items-end">
+                <div class="p-3 text-xs leading-relaxed whitespace-pre-wrap break-words shadow-2xs bg-blue-600 text-white rounded-2xl rounded-br-xs">
+                    ${escapeHtml(text)}
+                </div>
+                <div class="flex items-center gap-1.5 px-1 pt-0.5 text-[10px] text-slate-400">
+                    <span>Just now</span>
+                    <span>•</span>
+                    <span class="text-blue-400">Sending...</span>
+                </div>
+            </div>
+        `;
+        thread.appendChild(tempBubble);
+        thread.scrollTop = thread.scrollHeight;
+    }
+
+    // Immediately update conversation preview & move it to the very top of the list!
+    const activeConv = adminConversations.find(c => c.id === adminActiveConvId);
+    if (activeConv) {
+        activeConv.lastMessage = text;
+        activeConv.lastMessageSender = 'admin';
+        activeConv.lastMessageAt = nowIso;
+        activeConv.updatedAt = nowIso;
+        sortAdminConversationsInPlace();
+        renderAdminConversationsList();
+    }
+
+    input.value = '';
+    input.style.height = 'auto';
+
+    fetch(`/api/chat/conversations/${adminActiveConvId}/messages`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: text, sender: 'staff', customerId: 'CUST-101' })
-    }).then(res => res.json()).then(() => {
-        input.value = '';
-        fetchAdminChatThread();
+        body: JSON.stringify({ message: text })
+    })
+    .then(res => res.json())
+    .then(data => {
+        adminIsSending = false;
+        if (sendStatusEl) sendStatusEl.textContent = '';
+        if (data && data.success) {
+            // Update temp element indicator
+            const tempEl = document.getElementById(tempMsgId);
+            if (tempEl) {
+                const statusSpan = tempEl.querySelector('.text-blue-400');
+                if (statusSpan) {
+                    statusSpan.className = 'text-slate-400';
+                    statusSpan.textContent = 'Delivered';
+                }
+            }
+            fetchAdminActiveMessages(false);
+        } else {
+            alert("❌ " + (data.message || "Failed to send message."));
+            const tempEl = document.getElementById(tempMsgId);
+            if (tempEl) tempEl.remove();
+        }
+    })
+    .catch(err => {
+        adminIsSending = false;
+        if (sendStatusEl) sendStatusEl.textContent = '';
+        alert("Network error: Hindi maipadala ang mensahe.");
+        const tempEl = document.getElementById(tempMsgId);
+        if (tempEl) tempEl.remove();
     });
 }
+
+function toggleAdminChatMobileView(showChatPane) {
+    if (window.innerWidth >= 768) return; // Only relevant for mobile screens
+    const sidebar = document.getElementById('adminChatSidebar');
+    const mainPane = document.getElementById('adminChatMainPane');
+    if (!sidebar || !mainPane) return;
+
+    if (showChatPane) {
+        sidebar.classList.add('hidden');
+        mainPane.classList.remove('hidden');
+    } else {
+        sidebar.classList.remove('hidden');
+        mainPane.classList.add('hidden');
+    }
+}
+
 </script>
 {% endblock %}

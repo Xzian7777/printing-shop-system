@@ -283,23 +283,52 @@
         <div id="custPaginationContainer" class="flex flex-col sm:flex-row justify-between items-center gap-3 pt-4 border-t border-slate-100 text-xs font-medium text-slate-500"></div>
     </div>
 
-    <!-- 3. CHAT SUPPORT TAB CONTENT -->
-    <div id="custSection-chat" class="cust-section-content hidden bg-white rounded-2xl border border-slate-200 p-5 h-[480px] flex flex-col justify-between shadow-xs">
-        <div class="font-bold text-xs text-slate-700 border-b border-slate-100 pb-3 flex items-center justify-between">
-            <span>💬 Live Support Chat with Staff</span>
-            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-        </div>
-        <div id="customerChatThread" class="space-y-3 overflow-y-auto text-xs flex-1 p-3 bg-slate-50/50 rounded-xl my-2">
-            <div class="flex flex-col items-start">
-                <div class="bg-white border border-slate-200 p-3 rounded-2xl max-w-[80%] text-slate-800 shadow-2xs">
-                    Hello! Paano po namin kayo matutulungan sa inyong print job o order ngayon?
+    <!-- 3. CHAT SUPPORT TAB CONTENT (MESSENGER-STYLE) -->
+    <div id="custSection-chat" class="cust-section-content hidden bg-white rounded-3xl border border-slate-200 h-[580px] flex flex-col justify-between shadow-xs overflow-hidden">
+        <!-- Chat Header -->
+        <div class="px-5 py-3.5 border-b border-slate-100 flex items-center justify-between bg-slate-50/70">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-full bg-blue-600 text-white font-extrabold flex items-center justify-center text-sm shadow-xs">
+                    KZ
                 </div>
-                <span class="text-[9px] text-slate-400 pl-1 pt-0.5">Staff Support • 10:00 AM</span>
+                <div>
+                    <div class="font-extrabold text-xs text-slate-800 flex items-center gap-2">
+                        <span>Kez C-Em Zek Shop Support</span>
+                        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                    </div>
+                    <div class="text-[11px] text-slate-400">Live Support • Available to answer questions & quotes</div>
+                </div>
+            </div>
+            <span class="text-[10px] bg-emerald-50 text-emerald-700 font-bold px-3 py-1 rounded-full border border-emerald-200">
+                Staff Online
+            </span>
+        </div>
+
+        <!-- Chat Message Thread Container -->
+        <div id="customerChatThread" class="space-y-3 overflow-y-auto text-xs flex-1 p-4 bg-slate-50/40">
+            <div class="text-center text-slate-400 py-12 flex flex-col items-center gap-2">
+                <i class="fas fa-spinner fa-spin text-blue-500 text-base"></i>
+                <span>Loading messages...</span>
             </div>
         </div>
-        <div class="flex gap-2 pt-2 border-t border-slate-100">
-            <input type="text" id="custChatInput" placeholder="I-type ang iyong mensahe..." onkeydown="if(event.key==='Enter') sendCustomerChatMessage()" class="flex-1 bg-slate-50 border border-slate-200 text-xs px-3.5 py-2.5 rounded-xl focus:outline-none focus:border-blue-600">
-            <button onclick="sendCustomerChatMessage()" class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-5 py-2.5 rounded-xl transition shadow-xs cursor-pointer">Send</button>
+
+        <!-- Chat Input Footer -->
+        <div class="p-3.5 border-t border-slate-200 bg-white">
+            <div class="flex items-end gap-2">
+                <textarea id="custChatInput" rows="1"
+                          placeholder="I-type ang iyong mensahe dito... (Press Enter to send, Shift+Enter for newline)"
+                          onkeydown="handleCustomerChatKeydown(event)"
+                          class="flex-1 bg-slate-50 border border-slate-200 text-xs px-4 py-3 rounded-2xl focus:outline-none focus:border-blue-600 focus:bg-white resize-none font-medium text-slate-800 transition max-h-32 min-h-[44px]"></textarea>
+                <button id="custChatSendBtn" onclick="sendCustomerChatMessage()"
+                        class="bg-blue-600 hover:bg-blue-700 active:scale-95 text-white text-xs font-bold px-5 py-3 rounded-2xl transition shadow-xs cursor-pointer flex items-center gap-2 flex-shrink-0">
+                    <span>Send</span>
+                    <i class="fas fa-paper-plane text-xs"></i>
+                </button>
+            </div>
+            <div class="flex justify-between items-center text-[10px] text-slate-400 mt-1.5 px-1">
+                <span>Press <kbd class="px-1 py-0.5 bg-slate-100 rounded text-slate-600 font-mono">Enter</kbd> to send • <kbd class="px-1 py-0.5 bg-slate-100 rounded text-slate-600 font-mono">Shift + Enter</kbd> for newline</span>
+                <span id="custChatSendStatus" class="font-medium text-blue-600"></span>
+            </div>
         </div>
     </div>
 
@@ -424,7 +453,11 @@ function switchCustomerTab(tabId) {
     }
 
     if (tabId === 'myOrders') fetchCustomerOrders();
-    if (tabId === 'chat') fetchCustomerChatMessages();
+    if (tabId === 'chat') {
+        fetchCustomerChatMessages();
+    } else {
+        if (typeof stopCustomerChatPolling === 'function') stopCustomerChatPolling();
+    }
 }
 
 // ─── Upload state ────────────────────────────────────────────────────────────
@@ -1411,40 +1444,119 @@ function deleteCustomerOrder(orderId) {
     }
 }
 
-function fetchCustomerChatMessages() {
-    fetch('/api/chat')
-    .then(res => {
-        if (res.status === 401) {
-            window.location.href = '/login';
-            return;
-        }
-        return res.json();
-    })
-    .then(msgs => {
-        const thread = document.getElementById('customerChatThread');
-        if (!thread) return;
+// ===========================================================================
+// LIVE CUSTOMER CHAT MESSENGER LOGIC
+// ===========================================================================
 
-        if (!msgs || msgs.length === 0) {
-            thread.innerHTML = `<div class="text-center text-slate-400 py-12 text-xs">Wala pang chat messages.</div>`;
-            return;
-        }
+let customerChatPollingTimer = null;
+let customerLastMessagesHash = '';
+let customerIsSending = false;
+let customerActiveConvId = null;
 
-        thread.innerHTML = msgs.map(m => {
-            const isCust = m.sender === 'customer';
-            return `
-                <div class="flex flex-col ${isCust ? 'items-end' : 'items-start'}">
-                    <div class="${isCust ? 'bg-blue-600 text-white rounded-2xl rounded-tr-xs' : 'bg-white border border-slate-200 text-slate-800 rounded-2xl rounded-tl-xs'} p-3 max-w-[80%] shadow-2xl">
-                        ${m.message}
+function stopCustomerChatPolling() {
+    if (customerChatPollingTimer) {
+        clearInterval(customerChatPollingTimer);
+        customerChatPollingTimer = null;
+    }
+}
+
+function handleCustomerChatKeydown(event) {
+    if (event.key === 'Enter' && !event.shiftKey) {
+        event.preventDefault();
+        sendCustomerChatMessage();
+    }
+}
+
+function fetchCustomerChatMessages(scrollToBottom = false) {
+    stopCustomerChatPolling();
+    loadCustomerMessages(scrollToBottom || true);
+    customerChatPollingTimer = setInterval(() => {
+        loadCustomerMessages(false);
+    }, 2500);
+}
+
+function loadCustomerMessages(scrollToBottom = false) {
+    fetch('/api/chat/my-conversation')
+        .then(res => {
+            if (res.status === 401) {
+                window.location.href = '/login';
+                return null;
+            }
+            return res.json();
+        })
+        .then(data => {
+            if (!data || !data.success) return;
+            customerActiveConvId = data.conversation ? data.conversation.id : null;
+            const msgs = data.messages || [];
+
+            const newHash = msgs.map(m => `${m.id}:${m.read}`).join('|');
+            if (newHash === customerLastMessagesHash && !scrollToBottom) {
+                return; // Nothing changed
+            }
+            customerLastMessagesHash = newHash;
+
+            const thread = document.getElementById('customerChatThread');
+            if (!thread) return;
+
+            if (msgs.length === 0) {
+                thread.innerHTML = `
+                    <div class="text-center text-slate-400 py-16 text-xs flex flex-col items-center gap-2">
+                        <div class="w-12 h-12 rounded-full bg-blue-50 text-blue-500 flex items-center justify-center text-xl shadow-xs">
+                            💬
+                        </div>
+                        <span class="font-bold text-slate-600">Mag-iwan ng mensahe para sa aming staff!</span>
+                        <span class="text-slate-400 text-[11px] max-w-xs">I-type ang inyong katanungan patungkol sa inyong print job, sizes, o payment methods.</span>
                     </div>
-                    <span class="text-[9px] text-slate-400 pt-0.5 px-1">${m.sender === 'customer' ? 'You' : 'Staff'} • ${m.time || 'Just now'}</span>
-                </div>
-            `;
-        }).join('');
-        thread.scrollTop = thread.scrollHeight;
-    });
+                `;
+                return;
+            }
+
+            thread.innerHTML = msgs.map(m => {
+                const isCust = m.senderRole === 'customer' || m.sender === 'customer';
+                const timeText = m.time || 'Just now';
+                const isSeen = m.read;
+
+                return `
+                    <div class="flex items-end gap-2 ${isCust ? 'justify-end' : 'justify-start'} group">
+                        ${!isCust ? `
+                            <div class="w-7 h-7 rounded-full bg-blue-600 text-white font-bold text-[10px] flex items-center justify-center flex-shrink-0 shadow-2xs">
+                                KZ
+                            </div>
+                        ` : ''}
+
+                        <div class="max-w-[80%] sm:max-w-[70%] flex flex-col ${isCust ? 'items-end' : 'items-start'}">
+                            <div class="p-3 text-xs leading-relaxed whitespace-pre-wrap break-words shadow-2xs ${
+                                isCust
+                                    ? 'bg-blue-600 text-white rounded-2xl rounded-br-xs'
+                                    : 'bg-white border border-slate-200 text-slate-800 rounded-2xl rounded-bl-xs'
+                            }">
+                                ${escapeHtml(m.message || m.text || '')}
+                            </div>
+                            <div class="flex items-center gap-1.5 px-1 pt-0.5 text-[10px] text-slate-400">
+                                <span>${timeText}</span>
+                                ${isCust ? `
+                                    <span>•</span>
+                                    <span class="${isSeen ? 'text-blue-600 font-bold' : 'text-slate-400'}">
+                                        ${isSeen ? 'Seen' : 'Delivered'}
+                                    </span>
+                                ` : ''}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            if (scrollToBottom) {
+                thread.scrollTop = thread.scrollHeight;
+            }
+        })
+        .catch(err => {
+            console.warn("Error fetching customer messages:", err);
+        });
 }
 
 function sendCustomerChatMessage() {
+    if (customerIsSending) return;
     const input = document.getElementById('custChatInput');
     if (!input || !input.value.trim()) {
         alert("⚠️ Hindi pwedeng magpadala ng blangkong mensahe.");
@@ -1452,17 +1564,81 @@ function sendCustomerChatMessage() {
     }
 
     const text = input.value.trim();
-    fetch('/api/chat', {
+    if (text.length > 2000) {
+        alert("⚠️ Masyadong mahaba ang mensahe (maximum 2,000 characters).");
+        return;
+    }
+
+    customerIsSending = true;
+    const statusEl = document.getElementById('custChatSendStatus');
+    if (statusEl) statusEl.textContent = 'Sending...';
+
+    // Optimistic UI Update
+    const thread = document.getElementById('customerChatThread');
+    const tempMsgId = 'cust_temp_' + Date.now();
+
+    if (thread) {
+        const tempBubble = document.createElement('div');
+        tempBubble.id = tempMsgId;
+        tempBubble.className = 'flex items-end justify-end gap-2 group';
+        tempBubble.innerHTML = `
+            <div class="max-w-[80%] sm:max-w-[70%] flex flex-col items-end">
+                <div class="p-3 text-xs leading-relaxed whitespace-pre-wrap break-words shadow-2xs bg-blue-600 text-white rounded-2xl rounded-br-xs">
+                    ${escapeHtml(text)}
+                </div>
+                <div class="flex items-center gap-1.5 px-1 pt-0.5 text-[10px] text-slate-400">
+                    <span>Just now</span>
+                    <span>•</span>
+                    <span class="text-blue-400">Sending...</span>
+                </div>
+            </div>
+        `;
+        thread.appendChild(tempBubble);
+        thread.scrollTop = thread.scrollHeight;
+    }
+
+    input.value = '';
+    input.style.height = 'auto';
+
+    // Determine target URL
+    const postUrl = customerActiveConvId 
+        ? `/api/chat/conversations/${customerActiveConvId}/messages` 
+        : '/api/chat';
+
+    fetch(postUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: text, sender: 'customer', customerId: 'CUST-101' })
+        body: JSON.stringify({ message: text })
     })
     .then(res => res.json())
-    .then(() => {
-        input.value = '';
-        fetchCustomerChatMessages();
+    .then(data => {
+        customerIsSending = false;
+        if (statusEl) statusEl.textContent = '';
+        if (data && data.success) {
+            const tempEl = document.getElementById(tempMsgId);
+            if (tempEl) {
+                const span = tempEl.querySelector('.text-blue-400');
+                if (span) {
+                    span.className = 'text-slate-400';
+                    span.textContent = 'Delivered';
+                }
+            }
+            loadCustomerMessages(false);
+        } else {
+            alert("❌ " + (data.message || "Failed to send message."));
+            const tempEl = document.getElementById(tempMsgId);
+            if (tempEl) tempEl.remove();
+        }
+    })
+    .catch(err => {
+        customerIsSending = false;
+        if (statusEl) statusEl.textContent = '';
+        alert("Network error: Hindi maipadala ang mensahe.");
+        const tempEl = document.getElementById(tempMsgId);
+        if (tempEl) tempEl.remove();
     });
 }
+
 
 function simulateRfidTapAction() {
     fetch('/api/rfid/tap', {

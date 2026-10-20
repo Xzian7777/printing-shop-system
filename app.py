@@ -7,7 +7,9 @@ from firebase_config import (
     update_firebase_password, get_firebase_user_by_email,
     get_store_products, save_store_products, get_inventory,
     log_rfid_tap, get_notifications, create_notification, mark_all_notifications_read,
-    delete_notification, delete_all_notifications
+    delete_notification, delete_all_notifications,
+    get_safe_conversation_id, get_or_create_conversation, get_all_conversations,
+    get_conversation_messages, send_chat_message, seed_initial_conversations_if_needed
 )
 from firebase_admin import auth as firebase_auth
 import datetime
@@ -1459,27 +1461,161 @@ def get_analytics():
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
 
+# ---------------------------------------------------------------------------
+# LIVE CUSTOMER CHAT ENDPOINTS (MESSENGER-STYLE INBOX)
+# ---------------------------------------------------------------------------
+
+@app.route('/api/chat/conversations', methods=['GET'])
+@admin_required
+def get_conversations_endpoint():
+    """
+    Returns all customer conversations for the admin inbox,
+    sorted strictly by the newest message activity at the top!
+    """
+    try:
+        seed_initial_conversations_if_needed()
+        conversations = get_all_conversations()
+        return jsonify({"success": True, "conversations": conversations}), 200
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+@app.route('/api/chat/conversations/<conv_id>/messages', methods=['GET', 'POST'])
+@login_required
+def conversation_messages_endpoint(conv_id):
+    role = session.get('role')
+    user_email = (session.get('email') or '').strip().lower()
+
+    # Security check: Customers can only access their own conversation!
+    if role != 'admin':
+        expected_conv_id = get_safe_conversation_id(user_email)
+        if conv_id != expected_conv_id:
+            return jsonify({"success": False, "message": "Unauthorized! You can only access your own chat conversation."}), 403
+
+    if request.method == 'GET':
+        try:
+            # Mark messages as read based on who is reading
+            mark_role = 'admin' if role == 'admin' else 'customer'
+            messages = get_conversation_messages(conv_id, mark_read_for_role=mark_role)
+            return jsonify({"success": True, "messages": messages}), 200
+        except Exception as e:
+            return jsonify({"success": False, "error": str(e)}), 500
+
+    elif request.method == 'POST':
+        try:
+            data = request.json or {}
+            message_text = str(data.get('message') or data.get('text') or '').strip()
+
+            if not message_text:
+                return jsonify({"success": False, "message": "Bawal magpadala ng blangkong chat message."}), 400
+            if len(message_text) > 2000:
+                return jsonify({"success": False, "message": "Masyadong mahaba ang mensahe (maximum 2,000 characters)."}), 400
+
+            if role == 'admin':
+                sender_role = 'admin'
+                sender_name = 'Admin Staff'
+                sender_email = user_email or ADMIN_EMAIL
+            else:
+                sender_role = 'customer'
+                sender_name = session.get('username') or user_email.split('@')[0]
+                sender_email = user_email
+
+            msg_data = send_chat_message(conv_id, sender_email, sender_role, sender_name, message_text)
+            if not msg_data:
+                return jsonify({"success": False, "message": "Failed to send chat message."}), 500
+
+            return jsonify({"success": True, "message": msg_data, "conversationId": conv_id}), 200
+        except Exception as e:
+            return jsonify({"success": False, "error": str(e)}), 500
+
+@app.route('/api/chat/conversations/<conv_id>/read', methods=['POST'])
+@login_required
+def mark_conversation_read_endpoint(conv_id):
+    role = session.get('role')
+    user_email = (session.get('email') or '').strip().lower()
+
+    if role != 'admin':
+        expected_conv_id = get_safe_conversation_id(user_email)
+        if conv_id != expected_conv_id:
+            return jsonify({"success": False, "message": "Unauthorized"}), 403
+
+    try:
+        mark_role = 'admin' if role == 'admin' else 'customer'
+        get_conversation_messages(conv_id, mark_read_for_role=mark_role)
+        return jsonify({"success": True, "message": "Conversation marked as read."}), 200
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+@app.route('/api/chat/my-conversation', methods=['GET'])
+@login_required
+def get_my_conversation_endpoint():
+    try:
+        user_email = (session.get('email') or '').strip().lower()
+        if not user_email:
+            return jsonify({"success": False, "message": "Customer email not found in session."}), 401
+
+        user_name = session.get('username') or user_email.split('@')[0]
+        conv = get_or_create_conversation(user_email, customer_name=user_name)
+        messages = get_conversation_messages(conv['id'], mark_read_for_role='customer')
+        return jsonify({"success": True, "conversation": conv, "messages": messages}), 200
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
 @app.route('/api/chat', methods=['GET', 'POST'])
 @login_required
 def handle_chat():
+    """
+    Legacy backwards compatibility endpoint.
+    Automatically connects to the real Firestore conversations!
+    """
+    role = session.get('role')
+    user_email = (session.get('email') or '').strip().lower()
+
     if request.method == 'GET':
-        return jsonify(chat_memory_store), 200
+        try:
+            if role == 'customer':
+                conv = get_or_create_conversation(user_email, customer_name=session.get('username'))
+                msgs = get_conversation_messages(conv['id'], mark_read_for_role='customer')
+                return jsonify(msgs), 200
+            else:
+                convs = get_all_conversations()
+                if convs:
+                    first_conv_id = convs[0]['id']
+                    msgs = get_conversation_messages(first_conv_id, mark_read_for_role='admin')
+                    return jsonify(msgs), 200
+                return jsonify([]), 200
+        except Exception as e:
+            return jsonify({"success": False, "error": str(e)}), 500
+
     elif request.method == 'POST':
-        data = request.json or {}
-        message_text = (data.get('message') or '').strip()
+        try:
+            data = request.json or {}
+            message_text = (data.get('message') or data.get('text') or '').strip()
 
-        if not message_text:
-            return jsonify({"success": False, "message": "Bawal magpadala ng blangkong chat message."}), 400
+            if not message_text:
+                return jsonify({"success": False, "message": "Bawal magpadala ng blangkong chat message."}), 400
 
-        msg = {
-            "id": f"chat-{int(datetime.datetime.now().timestamp())}",
-            "customerId": data.get('customerId', 'CUST-101'),
-            "sender": data.get('sender', 'customer'),
-            "message": message_text,
-            "time": datetime.datetime.now().strftime('%I:%M %p')
-        }
-        chat_memory_store.append(msg)
-        return jsonify({"success": True}), 200
+            if role == 'customer':
+                conv = get_or_create_conversation(user_email, customer_name=session.get('username'))
+                conv_id = conv['id']
+                sender_role = 'customer'
+                sender_name = session.get('username') or user_email.split('@')[0]
+                sender_email = user_email
+            else:
+                conv_id = data.get('conversationId')
+                if not conv_id:
+                    convs = get_all_conversations()
+                    conv_id = convs[0]['id'] if convs else None
+                if not conv_id:
+                    return jsonify({"success": False, "message": "No conversation selected."}), 400
+                sender_role = 'admin'
+                sender_name = 'Admin Staff'
+                sender_email = user_email or ADMIN_EMAIL
+
+            msg_data = send_chat_message(conv_id, sender_email, sender_role, sender_name, message_text)
+            return jsonify({"success": True, "message": msg_data}), 200
+        except Exception as e:
+            return jsonify({"success": False, "error": str(e)}), 500
+
 
 @app.route('/api/rfid/tap', methods=['POST'])
 @login_required

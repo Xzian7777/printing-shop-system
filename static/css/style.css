@@ -375,3 +375,56 @@ body.bg-\[\#070b19\] .store-cat-btn.bg-blue-600 {
     color: #ffffff !important;
     border-color: #2563eb !important;
 }
+
+/* Dynamic Pastel Badges & Icon Containers Harmonization */
+body.bg-\[\#070b19\] .bg-blue-50 {
+    background-color: rgba(59, 130, 246, 0.15) !important;
+    color: #93c5fd !important;
+    border-color: rgba(59, 130, 246, 0.3) !important;
+}
+body.bg-\[\#070b19\] .bg-indigo-50 {
+    background-color: rgba(99, 102, 241, 0.15) !important;
+    color: #a5b4fc !important;
+    border-color: rgba(99, 102, 241, 0.3) !important;
+}
+body.bg-\[\#070b19\] .bg-emerald-50 {
+    background-color: rgba(16, 185, 129, 0.15) !important;
+    color: #6ee7b7 !important;
+    border-color: rgba(16, 185, 129, 0.3) !important;
+}
+body.bg-\[\#070b19\] .bg-amber-50,
+body.bg-\[\#070b19\] .bg-amber-50\/70,
+body.bg-\[\#070b19\] .bg-amber-50\/80 {
+    background-color: rgba(245, 158, 11, 0.15) !important;
+    color: #fcd34d !important;
+    border-color: rgba(245, 158, 11, 0.3) !important;
+}
+body.bg-\[\#070b19\] .bg-rose-50 {
+    background-color: rgba(244, 63, 94, 0.15) !important;
+    color: #fda4af !important;
+    border-color: rgba(244, 63, 94, 0.3) !important;
+}
+body.bg-\[\#070b19\] .bg-purple-50 {
+    background-color: rgba(168, 85, 247, 0.15) !important;
+    color: #d8b4fe !important;
+    border-color: rgba(168, 85, 247, 0.3) !important;
+}
+body.bg-\[\#070b19\] .bg-orange-50 {
+    background-color: rgba(249, 115, 22, 0.15) !important;
+    color: #fdba74 !important;
+    border-color: rgba(249, 115, 22, 0.3) !important;
+}
+
+/* Dropdown Hover States in Dark Mode */
+body.bg-\[\#070b19\] .action-menu-dropdown button:hover,
+body.bg-\[\#070b19\] .action-menu-dropdown a:hover,
+body.bg-\[\#070b19\] .status-dropdown-menu button:hover {
+    background-color: rgba(255, 255, 255, 0.08) !important;
+}
+body.bg-\[\#070b19\] .action-menu-dropdown a.hover\:bg-blue-50:hover,
+body.bg-\[\#070b19\] .action-menu-dropdown a {
+    color: #93c5fd !important;
+}
+body.bg-\[\#070b19\] .action-menu-dropdown button.hover\:bg-rose-50:hover {
+    color: #fda4af !important;
+}

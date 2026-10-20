@@ -1,6 +1,8 @@
 import firebase_admin
 from firebase_admin import credentials, firestore, auth
 import datetime
+import uuid
+import re
 
 # Initialize Firebase Admin SDK
 try:
@@ -322,3 +324,261 @@ def get_analytics_summary():
         "totalSales": total_sales,
         "activeOrders": len([o for o in orders if o.get('status') not in ['Completed', 'Rejected']])
     }
+
+# ---------------------------------------------------------------------------
+# LIVE CUSTOMER CHAT & CONVERSATIONS (FIRESTORE)
+# ---------------------------------------------------------------------------
+
+def get_safe_conversation_id(email):
+    if not email:
+        return None
+    safe_email = re.sub(r'[^a-zA-Z0-9]', '_', email.strip().lower())
+    return f"conv_{safe_email}"
+
+def get_or_create_conversation(customer_email, customer_name=None, customer_phone=None, customer_id=None):
+    if db is None or not customer_email:
+        return None
+    email_clean = customer_email.strip().lower()
+    conv_id = get_safe_conversation_id(email_clean)
+    conv_ref = db.collection('conversations').document(conv_id)
+    doc = conv_ref.get()
+    
+    if doc.exists:
+        data = doc.to_dict()
+        data['id'] = conv_id
+        updates = {}
+        if customer_name and (not data.get('customerName') or data.get('customerName') == email_clean.split('@')[0]):
+            updates['customerName'] = customer_name
+            data['customerName'] = customer_name
+        if customer_phone and not data.get('customerPhone'):
+            updates['customerPhone'] = customer_phone
+            data['customerPhone'] = customer_phone
+        if customer_id and not data.get('customerId'):
+            updates['customerId'] = customer_id
+            data['customerId'] = customer_id
+        if updates:
+            conv_ref.update(updates)
+        return data
+
+    # Lookup customer profile in Firestore 'customers' if name not provided
+    name = customer_name
+    phone = customer_phone
+    cid = customer_id
+    if not name or not phone or not cid:
+        for c in get_customers():
+            if isinstance(c, dict) and c.get('email', '').strip().lower() == email_clean:
+                if not name:
+                    name = c.get('fullName') or c.get('username')
+                if not phone:
+                    phone = c.get('contact') or c.get('phone')
+                if not cid:
+                    cid = c.get('id')
+                break
+
+    now_iso = datetime.datetime.now().isoformat()
+    new_conv = {
+        'id': conv_id,
+        'customerId': cid or f"CUST-{int(datetime.datetime.now().timestamp())}",
+        'customerEmail': email_clean,
+        'customerName': name or email_clean.split('@')[0],
+        'customerPhone': phone or '',
+        'lastMessage': '',
+        'lastMessageSender': '',
+        'lastMessageSenderName': '',
+        'lastMessageAt': now_iso,
+        'updatedAt': now_iso,
+        'createdAt': now_iso,
+        'unreadCountAdmin': 0,
+        'unreadCountCustomer': 0
+    }
+    conv_ref.set(new_conv)
+    return new_conv
+
+def get_all_conversations():
+    """
+    Fetches all conversations sorted by latest message activity descending.
+    The customer with the newest message will always appear at the top!
+    """
+    if db is None:
+        return []
+    try:
+        convs = []
+        docs = db.collection('conversations').stream()
+        for doc in docs:
+            cdata = doc.to_dict()
+            cdata['id'] = doc.id
+            convs.append(cdata)
+        
+        # Sort descending by updatedAt / lastMessageAt so newest activity is at the very top
+        convs.sort(key=lambda x: str(x.get('updatedAt') or x.get('lastMessageAt') or x.get('createdAt') or ''), reverse=True)
+        return convs
+    except Exception as e:
+        print(f"Error fetching conversations: {e}")
+        return []
+
+def get_conversation_messages(conv_id, mark_read_for_role=None):
+    """
+    Fetches messages for a conversation ordered by createdAt asc.
+    If mark_read_for_role is 'admin', marks customer messages as read and clears unreadCountAdmin.
+    If mark_read_for_role is 'customer', marks admin messages as read and clears unreadCountCustomer.
+    """
+    if db is None or not conv_id:
+        return []
+    try:
+        conv_ref = db.collection('conversations').document(conv_id)
+        messages_ref = conv_ref.collection('messages')
+        docs = messages_ref.stream()
+        messages = []
+        unread_doc_refs = []
+        for doc in docs:
+            m = doc.to_dict()
+            m['id'] = doc.id
+            messages.append(m)
+            if mark_read_for_role == 'admin' and m.get('senderRole') == 'customer' and not m.get('read', False):
+                unread_doc_refs.append(doc.reference)
+            elif mark_read_for_role == 'customer' and m.get('senderRole') in ['admin', 'staff'] and not m.get('read', False):
+                unread_doc_refs.append(doc.reference)
+
+        messages.sort(key=lambda x: str(x.get('createdAt') or x.get('timestamp') or ''))
+
+        # Update read status if any unread
+        if unread_doc_refs:
+            for ref in unread_doc_refs:
+                try:
+                    ref.update({'read': True, 'readAt': datetime.datetime.now().isoformat()})
+                except Exception:
+                    pass
+            if mark_read_for_role == 'admin':
+                try:
+                    conv_ref.update({'unreadCountAdmin': 0})
+                except Exception:
+                    pass
+            elif mark_read_for_role == 'customer':
+                try:
+                    conv_ref.update({'unreadCountCustomer': 0})
+                except Exception:
+                    pass
+
+        return messages
+    except Exception as e:
+        print(f"Error fetching messages for {conv_id}: {e}")
+        return []
+
+def send_chat_message(conv_id, sender_email, sender_role, sender_name, message_text):
+    """
+    Saves a message in the conversation and updates lastMessage & updatedAt
+    so the conversation jumps to the top immediately!
+    """
+    if db is None or not conv_id or not message_text:
+        return None
+    try:
+        conv_ref = db.collection('conversations').document(conv_id)
+        conv_doc = conv_ref.get()
+        if not conv_doc.exists:
+            get_or_create_conversation(sender_email if sender_role == 'customer' else '')
+            conv_doc = conv_ref.get()
+
+        now_dt = datetime.datetime.now()
+        now_iso = now_dt.isoformat()
+        time_formatted = now_dt.strftime('%I:%M %p').lstrip('0')
+
+        msg_id = f"msg_{int(now_dt.timestamp()*1000)}_{uuid.uuid4().hex[:6]}"
+        msg_data = {
+            'id': msg_id,
+            'conversationId': conv_id,
+            'senderId': sender_email,
+            'senderRole': sender_role, # 'customer' or 'admin'
+            'senderName': sender_name or ('Staff' if sender_role == 'admin' else 'Customer'),
+            'message': message_text,
+            'text': message_text,
+            'time': time_formatted,
+            'createdAt': now_iso,
+            'timestamp': now_iso,
+            'read': False
+        }
+
+        # Save message in subcollection
+        conv_ref.collection('messages').document(msg_id).set(msg_data)
+
+        # Update conversation preview and timestamp to move it to the top
+        conv_update = {
+            'lastMessage': message_text[:120],
+            'lastMessageSender': sender_role,
+            'lastMessageSenderName': sender_name or ('Staff' if sender_role == 'admin' else 'Customer'),
+            'lastMessageAt': now_iso,
+            'updatedAt': now_iso
+        }
+        if sender_role == 'customer':
+            current_unread = (conv_doc.to_dict() or {}).get('unreadCountAdmin', 0) if conv_doc.exists else 0
+            conv_update['unreadCountAdmin'] = current_unread + 1
+        elif sender_role in ['admin', 'staff']:
+            current_unread = (conv_doc.to_dict() or {}).get('unreadCountCustomer', 0) if conv_doc.exists else 0
+            conv_update['unreadCountCustomer'] = current_unread + 1
+
+        conv_ref.set(conv_update, merge=True)
+        return msg_data
+    except Exception as e:
+        print(f"Error sending chat message in {conv_id}: {e}")
+        return None
+
+def seed_initial_conversations_if_needed():
+    if db is None:
+        return
+    try:
+        existing = list(db.collection('conversations').limit(1).stream())
+        if existing:
+            return
+        
+        customers = get_customers() or []
+        now = datetime.datetime.now()
+        
+        # Match user's illustration (Customer A with unread 1, Customer B, Customer C)
+        for idx, c in enumerate(customers[:4]):
+            if not isinstance(c, dict):
+                continue
+            email = c.get('email', '').strip().lower()
+            if not email or '@' not in email:
+                continue
+            
+            name = c.get('fullName') or c.get('username') or f"Customer {chr(65+idx)}"
+            cid = c.get('id') or f"CUST-{idx+101}"
+            conv = get_or_create_conversation(email, customer_name=name, customer_phone=c.get('contact'), customer_id=cid)
+            
+            offset_minutes = (idx + 1) * 12
+            past_time = now - datetime.timedelta(minutes=offset_minutes)
+            past_iso = past_time.isoformat()
+            
+            msg_texts = [
+                "Hello po, available pa ba ito?",
+                "Thank you po!",
+                "Saan po makikita order ko?",
+                "Magkano po tarpaulin print?"
+            ]
+            sample_text = msg_texts[idx % len(msg_texts)]
+            
+            conv_id = conv['id']
+            msg_id = f"msg_{int(past_time.timestamp()*1000)}_{idx}"
+            db.collection('conversations').document(conv_id).collection('messages').document(msg_id).set({
+                'id': msg_id,
+                'conversationId': conv_id,
+                'senderId': email,
+                'senderRole': 'customer',
+                'senderName': name,
+                'message': sample_text,
+                'text': sample_text,
+                'time': past_time.strftime('%I:%M %p').lstrip('0'),
+                'createdAt': past_iso,
+                'timestamp': past_iso,
+                'read': idx != 0
+            })
+            db.collection('conversations').document(conv_id).update({
+                'lastMessage': sample_text,
+                'lastMessageSender': 'customer',
+                'lastMessageSenderName': name,
+                'lastMessageAt': past_iso,
+                'updatedAt': past_iso,
+                'unreadCountAdmin': 1 if idx == 0 else 0
+            })
+        print("[OK] Initial messenger conversations seeded for existing customers!")
+    except Exception as e:
+        print(f"Error seeding initial conversations: {e}")
