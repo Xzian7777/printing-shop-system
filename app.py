@@ -9,7 +9,8 @@ from firebase_config import (
     log_rfid_tap, get_notifications, create_notification, mark_all_notifications_read,
     delete_notification, delete_all_notifications,
     get_safe_conversation_id, get_or_create_conversation, get_all_conversations,
-    get_conversation_messages, send_chat_message, seed_initial_conversations_if_needed
+    get_conversation_messages, send_chat_message, seed_initial_conversations_if_needed,
+    register_fcm_token, remove_fcm_token, send_fcm_push_notification
 )
 from firebase_admin import auth as firebase_auth
 import datetime
@@ -1628,6 +1629,111 @@ def handle_rfid_tap():
         return jsonify({"success": True, "earnedPoints": earned_points, "message": f"RFID Card {card_uid} successfully logged."}), 200
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
+
+
+# ---------------------------------------------------------------------------
+# PUSH NOTIFICATION & SERVICE WORKER API ENDPOINTS
+# ---------------------------------------------------------------------------
+
+@app.route('/firebase-messaging-sw.js', methods=['GET'])
+def service_worker_file():
+    """
+    Serves the Firebase Cloud Messaging service worker from the root domain.
+    Required by the browser Service Worker specification for root scope.
+    """
+    from flask import send_from_directory, make_response
+    response = make_response(send_from_directory('static', 'firebase-messaging-sw.js'))
+    response.headers['Content-Type'] = 'application/javascript'
+    response.headers['Service-Worker-Allowed'] = '/'
+    return response
+
+@app.route('/api/notifications/public-config', methods=['GET'])
+def get_notification_public_config():
+    """
+    Exposes client-safe public web configuration and VAPID key.
+    Never exposes any server secret, private key, or service account credential.
+    """
+    return jsonify({
+        "success": True,
+        "firebaseConfig": {
+            "apiKey": os.getenv("FIREBASE_API_KEY", "AIzaSyBDk0kto8_VpvtzkQBdjrVP2YHOuUZ17rQ"),
+            "authDomain": "printingshop-7fd66.firebaseapp.com",
+            "projectId": "printingshop-7fd66",
+            "storageBucket": "printingshop-7fd66.firebasestorage.app",
+            "messagingSenderId": "800500466642",
+            "appId": "1:800500466642:web:762350381a60650b16fe0b"
+        },
+        "vapidKey": os.getenv("FIREBASE_VAPID_KEY", "BO_6tU9-14iS5_Nn2YgN_3f7hJ7y4y_dummy_vapid_key_if_needed")
+    }), 200
+
+@app.route('/api/notifications/fcm-token', methods=['POST'])
+@login_required
+def save_fcm_token_endpoint():
+    """
+    Associates an FCM push token with the authenticated session user.
+    """
+    try:
+        data = request.json or {}
+        token = (data.get('token') or '').strip()
+        device = (data.get('device') or 'Web Browser').strip()
+
+        if not token:
+            return jsonify({"success": False, "message": "Missing FCM token."}), 400
+
+        user_email = (session.get('email') or '').strip().lower()
+        role = session.get('role', 'customer')
+
+        if not user_email and role == 'admin':
+            user_email = ADMIN_EMAIL
+
+        success = register_fcm_token(user_email, role, token, device)
+        if success:
+            return jsonify({"success": True, "message": "Push notification token registered."}), 200
+        else:
+            return jsonify({"success": False, "message": "Failed to save push token."}), 500
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+@app.route('/api/notifications/fcm-token', methods=['DELETE'])
+@login_required
+def delete_fcm_token_endpoint():
+    """
+    Unregisters or removes a push token upon user opt-out or sign-out.
+    """
+    try:
+        data = request.json or {}
+        token = (data.get('token') or '').strip()
+        if not token:
+            return jsonify({"success": False, "message": "Missing FCM token."}), 400
+
+        remove_fcm_token(token)
+        return jsonify({"success": True, "message": "Push token deleted."}), 200
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+@app.route('/api/notifications/test-push', methods=['POST'])
+@login_required
+def test_push_endpoint():
+    """
+    Sends a test push notification to verify browser notification delivery for the current user.
+    """
+    try:
+        role = session.get('role', 'customer')
+        email = (session.get('email') or '').strip().lower()
+        if not email and role == 'admin':
+            email = ADMIN_EMAIL
+
+        result = send_fcm_push_notification(
+            recipient_role=role,
+            recipient_email=email,
+            title="Kez C-Em Zek Test Push",
+            body="Live notifications are active on this device!",
+            click_url=f"/admin?tab=liveChat" if role == 'admin' else "/customer?tab=chat"
+        )
+        return jsonify({"success": True, "result": result}), 200
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
 
 if __name__ == '__main__':
     print("=" * 60)

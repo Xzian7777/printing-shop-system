@@ -1,5 +1,5 @@
 import firebase_admin
-from firebase_admin import credentials, firestore, auth
+from firebase_admin import credentials, firestore, auth, messaging
 import datetime
 import uuid
 import re
@@ -397,24 +397,75 @@ def get_or_create_conversation(customer_email, customer_name=None, customer_phon
 def get_all_conversations():
     """
     Fetches all conversations sorted by latest message activity descending.
-    The customer with the newest message will always appear at the top!
+    Ensures that ALL registered customers appear in the inbox (even those who have never
+    chatted yet). Customers with active conversations appear first sorted by newest message,
+    while registered customers with no conversation yet are neatly appended below them.
     """
     if db is None:
         return []
     try:
-        convs = []
+        convs_by_email = {}
+        # 1. Fetch existing conversations from Firestore
         docs = db.collection('conversations').stream()
         for doc in docs:
             cdata = doc.to_dict()
             cdata['id'] = doc.id
-            convs.append(cdata)
-        
-        # Sort descending by updatedAt / lastMessageAt so newest activity is at the very top
-        convs.sort(key=lambda x: str(x.get('updatedAt') or x.get('lastMessageAt') or x.get('createdAt') or ''), reverse=True)
+            c_email = (cdata.get('customerEmail') or '').strip().lower()
+            if c_email:
+                cdata['hasChat'] = bool(cdata.get('lastMessage') or cdata.get('lastMessageAt'))
+                convs_by_email[c_email] = cdata
+
+        # 2. Fetch all registered customers to ensure complete customer inbox list
+        try:
+            customers = get_customers() or []
+            for c in customers:
+                if not isinstance(c, dict):
+                    continue
+                c_email = (c.get('email') or '').strip().lower()
+                if not c_email or '@' not in c_email:
+                    continue
+                # Skip if already in conversations
+                if c_email in convs_by_email:
+                    continue
+                
+                # Build an entry for this customer who has never chatted yet
+                c_name = c.get('fullName') or c.get('name') or c.get('username') or c_email.split('@')[0]
+                c_id = c.get('id') or f"CUST-{abs(hash(c_email)) % 899 + 100}"
+                conv_id = get_safe_conversation_id(c_email)
+                convs_by_email[c_email] = {
+                    'id': conv_id,
+                    'customerId': c_id,
+                    'customerEmail': c_email,
+                    'customerName': c_name,
+                    'customerPhone': c.get('contact') or c.get('phone') or '',
+                    'lastMessage': '',
+                    'lastMessageSender': '',
+                    'lastMessageSenderName': '',
+                    'lastMessageAt': '',
+                    'updatedAt': '',
+                    'createdAt': c.get('regDate') or '',
+                    'unreadCountAdmin': 0,
+                    'unreadCountCustomer': 0,
+                    'hasChat': False
+                }
+        except Exception as err:
+            print(f"Warning: could not merge registered customers into conversations: {err}")
+
+        convs = list(convs_by_email.values())
+
+        # Sort so active chats are at top with newest message first,
+        # then non-chatted customers sorted alphabetically by name
+        convs.sort(key=lambda x: (
+            1 if (x.get('lastMessage') or x.get('lastMessageAt')) else 0,
+            str(x.get('updatedAt') or x.get('lastMessageAt') or ''),
+            str(x.get('customerName') or '').lower()
+        ), reverse=True)
+
         return convs
     except Exception as e:
         print(f"Error fetching conversations: {e}")
         return []
+
 
 def get_conversation_messages(conv_id, mark_read_for_role=None):
     """
@@ -516,6 +567,53 @@ def send_chat_message(conv_id, sender_email, sender_role, sender_name, message_t
             conv_update['unreadCountCustomer'] = current_unread + 1
 
         conv_ref.set(conv_update, merge=True)
+
+        # Trigger background Push Notification to counter-party
+        try:
+            conv_data = conv_doc.to_dict() if conv_doc and conv_doc.exists else {}
+            customer_email = conv_data.get('customerEmail') or (sender_email if sender_role == 'customer' else '')
+            customer_name = conv_data.get('customerName') or sender_name or 'Customer'
+
+            snippet = message_text.strip()
+            if len(snippet) > 85:
+                snippet = snippet[:82] + "..."
+
+            if sender_role == 'customer':
+                # Customer sent a message -> notify Admin / Staff
+                notif_title = f"New message from {customer_name}"
+                notif_url = f"/admin?tab=liveChat&convId={conv_id}"
+                send_fcm_push_notification(
+                    recipient_role='admin',
+                    recipient_email=None,
+                    title=notif_title,
+                    body=snippet,
+                    click_url=notif_url,
+                    data_payload={
+                        'conversation_id': conv_id,
+                        'sender_role': 'customer',
+                        'sender_email': sender_email,
+                        'customer_name': customer_name
+                    }
+                )
+            elif sender_role in ['admin', 'staff']:
+                # Admin/Staff replied -> notify the Customer
+                notif_title = "New reply from Kez C-Em Zek"
+                notif_url = "/customer?tab=chat"
+                send_fcm_push_notification(
+                    recipient_role='customer',
+                    recipient_email=customer_email,
+                    title=notif_title,
+                    body=snippet,
+                    click_url=notif_url,
+                    data_payload={
+                        'conversation_id': conv_id,
+                        'sender_role': 'admin',
+                        'sender_email': sender_email
+                    }
+                )
+        except Exception as notif_err:
+            print(f"Non-fatal push notification trigger error: {notif_err}")
+
         return msg_data
     except Exception as e:
         print(f"Error sending chat message in {conv_id}: {e}")
@@ -581,4 +679,154 @@ def seed_initial_conversations_if_needed():
             })
         print("[OK] Initial messenger conversations seeded for existing customers!")
     except Exception as e:
-        print(f"Error seeding initial conversations: {e}")
+        print(f"Error seeding initial conversations: {e}")
+
+
+# ---------------------------------------------------------------------------
+# PUSH NOTIFICATION & FCM TOKEN SERVICES
+# ---------------------------------------------------------------------------
+
+def register_fcm_token(email, role, token, device_info=None):
+    """
+    Saves or updates an FCM Web Push registration token in Firestore.
+    Associates the token with the authenticated user email and role.
+    """
+    if db is None or not token or not email:
+        return False
+    try:
+        clean_email = email.strip().lower()
+        token_doc_id = re.sub(r'[^a-zA-Z0-9]', '_', token[-40:])
+        token_ref = db.collection('fcm_tokens').document(token_doc_id)
+        
+        now_iso = datetime.datetime.now().isoformat()
+        token_data = {
+            'token': token,
+            'email': clean_email,
+            'role': role or 'customer',
+            'device': device_info or 'Web Browser',
+            'updatedAt': now_iso,
+            'createdAt': now_iso,
+            'active': True
+        }
+        token_ref.set(token_data, merge=True)
+        return True
+    except Exception as e:
+        print(f"Error registering FCM token: {e}")
+        return False
+
+def remove_fcm_token(token):
+    """
+    Deactivates or deletes an FCM token on logout or opt-out.
+    """
+    if db is None or not token:
+        return False
+    try:
+        token_doc_id = re.sub(r'[^a-zA-Z0-9]', '_', token[-40:])
+        db.collection('fcm_tokens').document(token_doc_id).delete()
+        return True
+    except Exception as e:
+        print(f"Error removing FCM token: {e}")
+        return False
+
+def send_fcm_push_notification(recipient_role, recipient_email, title, body, click_url=None, data_payload=None):
+    """
+    Sends browser background push notification via Firebase Cloud Messaging.
+    - If recipient_role == 'admin', sends to all active admin tokens.
+    - If recipient_role == 'customer', sends to tokens associated with recipient_email.
+    - Never throws an uncaught error if delivery fails or token is expired.
+    """
+    if db is None or not title:
+        return {"success": False, "sent_count": 0, "message": "Firebase db unavailable"}
+    
+    try:
+        # 1. Query target tokens
+        tokens_ref = db.collection('fcm_tokens')
+        if recipient_role in ['admin', 'staff']:
+            query = tokens_ref.where('role', 'in', ['admin', 'staff']).where('active', '==', True)
+        else:
+            if not recipient_email:
+                return {"success": False, "sent_count": 0, "message": "Recipient email required for customer push"}
+            clean_email = recipient_email.strip().lower()
+            query = tokens_ref.where('email', '==', clean_email).where('active', '==', True)
+
+        docs = query.stream()
+        active_tokens = []
+        doc_refs_by_token = {}
+        for d in docs:
+            tdata = d.to_dict()
+            tok = tdata.get('token')
+            if tok and tok not in active_tokens:
+                active_tokens.append(tok)
+                doc_refs_by_token[tok] = d.reference
+
+        if not active_tokens:
+            return {"success": True, "sent_count": 0, "message": "No active tokens for recipient"}
+
+        # 2. Prepare payload
+        payload_data = {
+            'click_url': click_url or '/',
+            'title': title,
+            'body': body or '',
+            'timestamp': str(int(datetime.datetime.now().timestamp()))
+        }
+        if data_payload and isinstance(data_payload, dict):
+            for k, v in data_payload.items():
+                payload_data[str(k)] = str(v)
+
+        webpush_config = messaging.WebpushConfig(
+            notification=messaging.WebpushNotification(
+                title=title,
+                body=body,
+                icon='/static/icons/icon-192.png',
+                badge='/static/icons/icon-192.png',
+                tag=f"kcz_chat_{payload_data.get('conversation_id', 'general')}",
+                renotify=True,
+                data=payload_data
+            ),
+            fcm_options=messaging.WebpushFCMOptions(
+                link=click_url or '/'
+            )
+        )
+
+        sent_count = 0
+        invalid_tokens = []
+
+        for token in active_tokens:
+            try:
+                msg = messaging.Message(
+                    notification=messaging.Notification(
+                        title=title,
+                        body=body
+                    ),
+                    data=payload_data,
+                    webpush=webpush_config,
+                    token=token
+                )
+                messaging.send(msg)
+                sent_count += 1
+            except messaging.UnregisteredError:
+                invalid_tokens.append(token)
+            except Exception as token_err:
+                err_str = str(token_err).lower()
+                if 'unregistered' in err_str or 'invalid' in err_str or 'not found' in err_str:
+                    invalid_tokens.append(token)
+                else:
+                    print(f"Push send warning for token: {token_err}")
+
+        # Clean up expired or unregistered tokens
+        for inv_tok in invalid_tokens:
+            try:
+                ref = doc_refs_by_token.get(inv_tok)
+                if ref:
+                    ref.delete()
+            except Exception:
+                pass
+
+        return {
+            "success": True,
+            "sent_count": sent_count,
+            "invalid_cleaned": len(invalid_tokens)
+        }
+    except Exception as e:
+        print(f"Error in send_fcm_push_notification: {e}")
+        return {"success": False, "sent_count": 0, "error": str(e)}

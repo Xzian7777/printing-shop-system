@@ -1,7 +1,13 @@
-{% extends "base.html" %}
+﻿{% extends "base.html" %}
 
 {% block content %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<!-- Firebase Compat SDK (required for FCM push notifications) -->
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging-compat.js"></script>
+<!-- Push Notification Manager -->
+<script src="{{ url_for('static', filename='js/push_notifications.js') }}"></script>
 
 <!-- GLOBAL NETWORK & API ERROR TOAST NOTIFICATION -->
 <div id="globalErrorToast" class="fixed bottom-5 right-5 z-[150] hidden max-w-md bg-slate-900 text-white p-4 rounded-2xl shadow-2xl border border-rose-500/40 flex items-center justify-between gap-4 transition-all duration-300">
@@ -226,8 +232,12 @@
                             <div id="adminActiveUserEmail" class="text-[11px] text-slate-400 truncate">Choose a customer from the left to view messages</div>
                         </div>
                     </div>
-                    <!-- Live indicator -->
+                    <!-- Live indicator + Push Notification Toggle -->
                     <div class="flex items-center gap-2">
+                        <button type="button" class="push-notif-toggle-btn px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700/80 text-xs font-bold transition flex items-center gap-1.5 cursor-pointer" title="Enable browser push notifications for new customer messages">
+                            <i class="far fa-bell text-slate-400"></i>
+                            <span>Enable Alerts</span>
+                        </button>
                         <span class="text-[10px] bg-emerald-500/15 text-emerald-400 font-bold px-2.5 py-1 rounded-full border border-emerald-500/30 flex items-center gap-1.5">
                             <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
                             <span>Live Support Active</span>
@@ -699,6 +709,9 @@ function escapeHtml(str) {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+    // Initialize push notifications (user-initiated via the bell button)
+    if (typeof kczInitPushNotifications === 'function') kczInitPushNotifications();
+
     fetchAdminOrders();
     setInterval(fetchAdminOrders, 10000);
 
