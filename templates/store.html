@@ -4,11 +4,11 @@
 <div class="space-y-8 pb-12">
 
     <!-- STORE HEADER BANNER -->
-    <div class="bg-gradient-to-r from-blue-700 via-indigo-700 to-slate-900 text-white rounded-3xl p-6 sm:p-10 shadow-lg relative overflow-hidden">
+    <div class="bg-gradient-to-r from-emerald-800 via-teal-900 to-slate-900 text-white rounded-3xl p-6 sm:p-10 shadow-lg relative overflow-hidden">
         <div class="absolute right-0 top-0 w-96 h-96 bg-white/5 rounded-full blur-3xl -z-0 pointer-events-none"></div>
         <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
             <div class="space-y-2 max-w-xl">
-                <span id="storeBadgeLabel" class="bg-blue-500/30 text-blue-200 border border-blue-400/30 text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wider">
+                <span id="storeBadgeLabel" class="bg-emerald-500/30 text-emerald-200 border border-emerald-400/30 text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wider">
                     🛒 In-Store School & Art Supplies
                 </span>
                 <h1 id="storeTitleText" class="text-2xl sm:text-3xl font-extrabold tracking-tight">Kez C-Em Zek Store Catalog</h1>
@@ -18,7 +18,7 @@
             </div>
             
             <!-- CART SUMMARY QUICK BUTTON (Visible for Customers) -->
-            <button id="customerCartBtn" onclick="toggleCartDrawer(true)" class="bg-amber-400 hover:bg-amber-300 text-slate-900 font-bold text-xs px-5 py-3.5 rounded-2xl transition shadow-md flex items-center justify-center gap-2 cursor-pointer self-start md:self-auto">
+            <button id="customerCartBtn" onclick="toggleCartDrawer(true)" class="bg-amber-400 hover:bg-amber-300 text-black font-bold text-xs px-5 py-3.5 rounded-2xl transition shadow-md flex items-center justify-center gap-2 cursor-pointer self-start md:self-auto">
                 <i class="fas fa-shopping-cart text-sm"></i>
                 <span>View Cart & Checkout</span>
                 <span id="cartBadgeCount" class="bg-slate-900 text-amber-300 px-2 py-0.5 rounded-full font-mono text-[11px]">0</span>
@@ -26,7 +26,7 @@
 
             <!-- ADMIN QUICK ACTIONS (Visible for Admins) -->
             <div id="adminStoreActions" class="hidden flex items-center gap-3">
-                <button onclick="openAddProductModal()" class="bg-emerald-500 hover:bg-emerald-400 text-slate-900 font-bold text-xs px-5 py-3.5 rounded-2xl transition shadow-md flex items-center gap-2 cursor-pointer">
+                <button onclick="openAddProductModal()" class="bg-emerald-500 hover:bg-emerald-400 text-black font-bold text-xs px-5 py-3.5 rounded-2xl transition shadow-md flex items-center gap-2 cursor-pointer">
                     <i class="fas fa-plus text-sm"></i>
                     <span>+ Add New Product</span>
                 </button>
@@ -38,22 +38,22 @@
     <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-xs flex flex-col sm:flex-row justify-between items-center gap-4">
         <!-- Search Bar -->
         <div class="relative w-full sm:w-80">
-            <i class="fas fa-search absolute left-3.5 top-3 text-slate-400 text-xs"></i>
-            <input type="text" id="storeSearchInput" oninput="filterStoreProducts()" placeholder="Search notebooks, pens, art supplies..." class="w-full bg-slate-50 border border-slate-200 pl-9 pr-4 py-2 rounded-xl text-xs text-slate-800 focus:outline-none focus:border-blue-600 font-medium">
+            <i class="fas fa-search absolute left-3.5 top-3 text-slate-700 text-xs"></i>
+            <input type="text" id="storeSearchInput" oninput="filterStoreProducts()" placeholder="Search notebooks, pens, art supplies..." class="w-full bg-slate-50 border border-slate-200 pl-9 pr-4 py-2 rounded-xl text-xs text-black focus:outline-none focus:border-emerald-600 font-medium">
         </div>
 
         <!-- Category Pills -->
         <div class="flex items-center gap-1.5 overflow-x-auto w-full sm:w-auto text-xs font-semibold">
-            <button onclick="setStoreCategory('all')" id="catBtn-all" class="store-cat-btn px-4 py-2 rounded-xl bg-blue-600 text-white transition cursor-pointer">All Items</button>
-            <button onclick="setStoreCategory('notebooks')" id="catBtn-notebooks" class="store-cat-btn px-4 py-2 rounded-xl bg-slate-100 text-slate-600 hover:bg-slate-200 transition cursor-pointer">Notebooks</button>
-            <button onclick="setStoreCategory('pens')" id="catBtn-pens" class="store-cat-btn px-4 py-2 rounded-xl bg-slate-100 text-slate-600 hover:bg-slate-200 transition cursor-pointer">Pens & Writing</button>
-            <button onclick="setStoreCategory('art')" id="catBtn-art" class="store-cat-btn px-4 py-2 rounded-xl bg-slate-100 text-slate-600 hover:bg-slate-200 transition cursor-pointer">Art Supplies</button>
+            <button onclick="setStoreCategory('all')" id="catBtn-all" class="store-cat-btn px-4 py-2 rounded-xl bg-emerald-600 text-white transition cursor-pointer">All Items</button>
+            <button onclick="setStoreCategory('notebooks')" id="catBtn-notebooks" class="store-cat-btn px-4 py-2 rounded-xl bg-slate-100 text-black hover:bg-slate-200 transition cursor-pointer">Notebooks</button>
+            <button onclick="setStoreCategory('pens')" id="catBtn-pens" class="store-cat-btn px-4 py-2 rounded-xl bg-slate-100 text-black hover:bg-slate-200 transition cursor-pointer">Pens & Writing</button>
+            <button onclick="setStoreCategory('art')" id="catBtn-art" class="store-cat-btn px-4 py-2 rounded-xl bg-slate-100 text-black hover:bg-slate-200 transition cursor-pointer">Art Supplies</button>
         </div>
     </div>
 
     <!-- PRODUCTS GRID -->
     <div id="storeProductsGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div class="col-span-full text-center py-12 text-slate-400 text-xs">Loading store products from database...</div>
+        <div class="col-span-full text-center py-12 text-slate-700 text-xs">Loading store products from database...</div>
     </div>
 
     <!-- STORE PAGINATION BAR CONTAINER -->
@@ -66,13 +66,13 @@
                 <i class="fas fa-lock"></i>
             </div>
             <div>
-                <h3 class="text-base font-extrabold text-slate-900">Sign In Required</h3>
-                <p class="text-xs text-slate-500 mt-1 leading-relaxed">
+                <h3 class="text-base font-extrabold text-black">Sign In Required</h3>
+                <p class="text-xs text-slate-800 mt-1 leading-relaxed">
                     Kailangan mo munang mag-sign in para makapag-add o makapag-type ng quantity ng items sa iyong shopping cart.
                 </p>
             </div>
             <div class="flex gap-2 pt-2">
-                <button onclick="closeLoginPromptModal()" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold py-3 rounded-xl transition cursor-pointer">
+                <button onclick="closeLoginPromptModal()" class="flex-1 bg-slate-100 hover:bg-slate-200 text-black text-xs font-bold py-3 rounded-xl transition cursor-pointer">
                     Cancel
                 </button>
                 <a href="/login" class="flex-1 bg-gradient-to-r from-[#f09433] via-[#dc2743] to-[#bc1888] hover:opacity-95 text-white text-xs font-bold py-3 rounded-xl transition shadow-md flex items-center justify-center gap-1.5 cursor-pointer font-bold">
@@ -90,34 +90,34 @@
                 <div class="flex items-center gap-3">
                     <div class="w-10 h-10 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center text-lg font-bold">📦</div>
                     <div>
-                        <h3 class="font-bold text-slate-900 text-sm">Add New Store Product</h3>
-                        <p class="text-[11px] text-slate-500">Magdagdag ng bagong item sa store catalog at inventory</p>
+                        <h3 class="font-bold text-black text-sm">Add New Store Product</h3>
+                        <p class="text-[11px] text-slate-800">Magdagdag ng bagong item sa store catalog at inventory</p>
                     </div>
                 </div>
-                <button onclick="closeAddProductModal()" class="text-slate-400 hover:text-slate-600 p-2 rounded-xl cursor-pointer">
+                <button onclick="closeAddProductModal()" class="text-slate-700 hover:text-black p-2 rounded-xl cursor-pointer">
                     <i class="fas fa-times text-sm"></i>
                 </button>
             </div>
 
             <div class="space-y-4 text-xs">
                 <div class="space-y-1">
-                    <label class="block font-bold text-slate-700">Product Name</label>
-                    <input type="text" id="newProdName" placeholder="e.g. Correction Tape 5m" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs text-slate-800 focus:outline-none focus:border-blue-600 font-medium">
+                    <label class="block font-bold text-black">Product Name</label>
+                    <input type="text" id="newProdName" placeholder="e.g. Correction Tape 5m" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs text-black focus:outline-none focus:border-blue-600 font-medium">
                 </div>
 
                 <div class="grid grid-cols-2 gap-4">
                     <div class="space-y-1">
-                        <label class="block font-bold text-slate-700">Category</label>
-                        <select id="newProdCategory" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs text-slate-800 focus:outline-none focus:border-blue-600 font-medium">
+                        <label class="block font-bold text-black">Category</label>
+                        <select id="newProdCategory" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs text-black focus:outline-none focus:border-blue-600 font-medium">
                             <option value="notebooks">Notebooks</option>
                             <option value="pens">Pens & Writing</option>
                             <option value="art">Art Supplies</option>
                         </select>
                     </div>
                     <div class="space-y-1">
-                        <label class="block font-bold text-slate-700">Product Image URL or Import</label>
+                        <label class="block font-bold text-black">Product Image URL or Import</label>
                         <div class="flex gap-2">
-                            <input type="text" id="newProdImage" placeholder="https://..." class="flex-1 bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs text-slate-800 focus:outline-none focus:border-blue-600 font-medium">
+                            <input type="text" id="newProdImage" placeholder="https://..." class="flex-1 bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs text-black focus:outline-none focus:border-blue-600 font-medium">
                             <input type="file" id="newProdFileImport" accept="image/*" onchange="handleProductFileImport(event, 'new')" class="hidden">
                             <label for="newProdFileImport" class="bg-blue-50 hover:bg-blue-100 text-blue-700 font-bold px-3 py-3 rounded-xl cursor-pointer border border-blue-200 transition text-center flex items-center justify-center" title="Import Image File">
                                 <i class="fas fa-upload"></i>
@@ -128,25 +128,25 @@
 
                 <div class="grid grid-cols-2 gap-4">
                     <div class="space-y-1">
-                        <label class="block font-bold text-slate-700">Price (₱)</label>
-                        <input type="number" id="newProdPrice" value="30.00" min="0.01" max="999999" step="0.25" onkeydown="return !['e', 'E', '+', '-'].includes(event.key)" oninput="if(this.value.length > 8) this.value = this.value.slice(0, 8); if(parseFloat(this.value) < 0) this.value = 0;" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs text-slate-800 focus:outline-none focus:border-blue-600 font-medium">
-                        <span class="text-[10px] text-slate-400">Hal. 30.00 (Max: ₱999,999)</span>
+                        <label class="block font-bold text-black">Price (₱)</label>
+                        <input type="number" id="newProdPrice" value="30.00" min="0.01" max="999999" step="0.25" onkeydown="return !['e', 'E', '+', '-'].includes(event.key)" oninput="if(this.value.length > 8) this.value = this.value.slice(0, 8); if(parseFloat(this.value) < 0) this.value = 0;" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs text-black focus:outline-none focus:border-blue-600 font-medium">
+                        <span class="text-[10px] text-slate-700">Hal. 30.00 (Max: ₱999,999)</span>
                     </div>
                     <div class="space-y-1">
-                        <label class="block font-bold text-slate-700">Initial Stock (pcs)</label>
-                        <input type="number" id="newProdStock" value="100" min="0" max="99999" step="1" onkeydown="return !['e', 'E', '+', '-', '.'].includes(event.key)" oninput="this.value = this.value.replace(/[^0-9]/g, ''); if(this.value.length > 5) this.value = this.value.slice(0, 5);" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs text-slate-800 focus:outline-none focus:border-blue-600 font-medium">
-                        <span class="text-[10px] text-slate-400">Bilang ng piraso (0 - 99,999)</span>
+                        <label class="block font-bold text-black">Initial Stock (pcs)</label>
+                        <input type="number" id="newProdStock" value="100" min="0" max="99999" step="1" onkeydown="return !['e', 'E', '+', '-', '.'].includes(event.key)" oninput="this.value = this.value.replace(/[^0-9]/g, ''); if(this.value.length > 5) this.value = this.value.slice(0, 5);" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs text-black focus:outline-none focus:border-blue-600 font-medium">
+                        <span class="text-[10px] text-slate-700">Bilang ng piraso (0 - 99,999)</span>
                     </div>
                 </div>
 
                 <div class="space-y-1">
-                    <label class="block font-bold text-slate-700">Description</label>
-                    <input type="text" id="newProdDesc" placeholder="e.g. Smooth tear-proof correction tape." class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs text-slate-800 focus:outline-none focus:border-blue-600 font-medium">
+                    <label class="block font-bold text-black">Description</label>
+                    <input type="text" id="newProdDesc" placeholder="e.g. Smooth tear-proof correction tape." class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs text-black focus:outline-none focus:border-blue-600 font-medium">
                 </div>
             </div>
 
             <div class="flex gap-3 pt-2">
-                <button onclick="closeAddProductModal()" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold py-3 rounded-xl transition cursor-pointer">
+                <button onclick="closeAddProductModal()" class="flex-1 bg-slate-100 hover:bg-slate-200 text-black text-xs font-bold py-3 rounded-xl transition cursor-pointer">
                     Cancel
                 </button>
                 <button onclick="submitNewProduct()" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold py-3 rounded-xl transition shadow-md cursor-pointer flex items-center justify-center gap-2">
@@ -164,11 +164,11 @@
                 <div class="flex items-center gap-3">
                     <div class="w-10 h-10 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-lg font-bold">✏️</div>
                     <div>
-                        <h3 class="font-bold text-slate-900 text-sm">Edit Store Product & Import Image</h3>
-                        <p class="text-[11px] text-slate-500">I-update ang details o mag-import ng bagong larawan</p>
+                        <h3 class="font-bold text-black text-sm">Edit Store Product & Import Image</h3>
+                        <p class="text-[11px] text-slate-800">I-update ang details o mag-import ng bagong larawan</p>
                     </div>
                 </div>
-                <button onclick="closeEditProductModal()" class="text-slate-400 hover:text-slate-600 p-2 rounded-xl cursor-pointer">
+                <button onclick="closeEditProductModal()" class="text-slate-700 hover:text-black p-2 rounded-xl cursor-pointer">
                     <i class="fas fa-times text-sm"></i>
                 </button>
             </div>
@@ -176,23 +176,23 @@
             <input type="hidden" id="editProdId">
             <div class="space-y-4 text-xs">
                 <div class="space-y-1">
-                    <label class="block font-bold text-slate-700">Product Name</label>
-                    <input type="text" id="editProdName" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs text-slate-800 focus:outline-none focus:border-blue-600 font-medium">
+                    <label class="block font-bold text-black">Product Name</label>
+                    <input type="text" id="editProdName" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs text-black focus:outline-none focus:border-blue-600 font-medium">
                 </div>
 
                 <div class="grid grid-cols-2 gap-4">
                     <div class="space-y-1">
-                        <label class="block font-bold text-slate-700">Category</label>
-                        <select id="editProdCategory" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs text-slate-800 focus:outline-none focus:border-blue-600 font-medium">
+                        <label class="block font-bold text-black">Category</label>
+                        <select id="editProdCategory" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs text-black focus:outline-none focus:border-blue-600 font-medium">
                             <option value="notebooks">Notebooks</option>
                             <option value="pens">Pens & Writing</option>
                             <option value="art">Art Supplies</option>
                         </select>
                     </div>
                     <div class="space-y-1">
-                        <label class="block font-bold text-slate-700">Product Image URL or Import</label>
+                        <label class="block font-bold text-black">Product Image URL or Import</label>
                         <div class="flex gap-2">
-                            <input type="text" id="editProdImage" placeholder="https://..." class="flex-1 bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs text-slate-800 focus:outline-none focus:border-blue-600 font-medium">
+                            <input type="text" id="editProdImage" placeholder="https://..." class="flex-1 bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs text-black focus:outline-none focus:border-blue-600 font-medium">
                             <input type="file" id="editProdFileImport" accept="image/*" onchange="handleProductFileImport(event, 'edit')" class="hidden">
                             <label for="editProdFileImport" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold px-3 py-3 rounded-xl cursor-pointer border border-indigo-200 transition text-center flex items-center justify-center" title="Import Image File">
                                 <i class="fas fa-upload"></i>
@@ -203,29 +203,29 @@
 
                 <div class="grid grid-cols-2 gap-4">
                     <div class="space-y-1">
-                        <label class="block font-bold text-slate-700">Price (₱)</label>
-                        <input type="number" id="editProdPrice" min="0.01" max="999999" step="0.25" onkeydown="return !['e', 'E', '+', '-'].includes(event.key)" oninput="if(this.value.length > 8) this.value = this.value.slice(0, 8); if(parseFloat(this.value) < 0) this.value = 0;" placeholder="0.00" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs text-slate-800 focus:outline-none focus:border-blue-600 font-medium">
-                        <span class="text-[10px] text-slate-400">Hal. 19.00 (Max: ₱999,999)</span>
+                        <label class="block font-bold text-black">Price (₱)</label>
+                        <input type="number" id="editProdPrice" min="0.01" max="999999" step="0.25" onkeydown="return !['e', 'E', '+', '-'].includes(event.key)" oninput="if(this.value.length > 8) this.value = this.value.slice(0, 8); if(parseFloat(this.value) < 0) this.value = 0;" placeholder="0.00" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs text-black focus:outline-none focus:border-blue-600 font-medium">
+                        <span class="text-[10px] text-slate-700">Hal. 19.00 (Max: ₱999,999)</span>
                     </div>
                     <div class="space-y-1">
-                        <label class="block font-bold text-slate-700">Stock (pcs)</label>
-                        <input type="number" id="editProdStock" min="0" max="99999" step="1" onkeydown="return !['e', 'E', '+', '-', '.'].includes(event.key)" oninput="this.value = this.value.replace(/[^0-9]/g, ''); if(this.value.length > 5) this.value = this.value.slice(0, 5);" placeholder="0" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs text-slate-800 focus:outline-none focus:border-blue-600 font-medium">
-                        <span class="text-[10px] text-slate-400">Bilang ng piraso (0 - 99,999)</span>
+                        <label class="block font-bold text-black">Stock (pcs)</label>
+                        <input type="number" id="editProdStock" min="0" max="99999" step="1" onkeydown="return !['e', 'E', '+', '-', '.'].includes(event.key)" oninput="this.value = this.value.replace(/[^0-9]/g, ''); if(this.value.length > 5) this.value = this.value.slice(0, 5);" placeholder="0" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs text-black focus:outline-none focus:border-blue-600 font-medium">
+                        <span class="text-[10px] text-slate-700">Bilang ng piraso (0 - 99,999)</span>
                     </div>
                 </div>
 
                 <div class="space-y-1">
-                    <label class="block font-bold text-slate-700">Description</label>
-                    <input type="text" id="editProdDesc" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs text-slate-800 focus:outline-none focus:border-blue-600 font-medium">
+                    <label class="block font-bold text-black">Description</label>
+                    <input type="text" id="editProdDesc" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs text-black focus:outline-none focus:border-blue-600 font-medium">
                 </div>
             </div>
 
             <div class="flex gap-2 pt-2">
-                <button onclick="deleteProductFromModal()" class="bg-rose-50 hover:bg-rose-100 text-rose-600 font-bold px-3 py-3 rounded-xl transition border border-rose-200 cursor-pointer flex items-center justify-center gap-1.5" title="Delete Product">
-                    <i class="fas fa-trash-alt text-xs"></i>
-                    <span>Delete</span>
+                <button onclick="deleteProductFromModal()" class="bg-amber-50 hover:bg-amber-100 text-amber-700 font-bold px-3 py-3 rounded-xl transition border border-amber-200 cursor-pointer flex items-center justify-center gap-1.5" title="Archive Product">
+                    <i class="fas fa-box-archive text-xs"></i>
+                    <span>Archive</span>
                 </button>
-                <button onclick="closeEditProductModal()" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold py-3 rounded-xl transition cursor-pointer">
+                <button onclick="closeEditProductModal()" class="flex-1 bg-slate-100 hover:bg-slate-200 text-black text-xs font-bold py-3 rounded-xl transition cursor-pointer">
                     Cancel
                 </button>
                 <button onclick="submitEditProduct()" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold py-3 rounded-xl transition shadow-md cursor-pointer flex items-center justify-center gap-2">
@@ -236,23 +236,25 @@
         </div>
     </div>
 
-    <!-- CUSTOM DELETE CONFIRMATION MODAL (Admin Only) -->
-    <div id="deleteConfirmModalBackdrop" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 hidden flex items-center justify-center p-4">
+    <!-- CUSTOM ARCHIVE CONFIRMATION MODAL (Admin Only) -->
+    <div id="deleteConfirmModalBackdrop" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 hidden flex items-center justify-center p-4" onclick="if(event.target===this) closeDeleteConfirmModal()">
         <div class="bg-white rounded-3xl max-w-sm w-full p-6 text-center space-y-4 shadow-2xl border border-slate-200">
-            <div class="w-12 h-12 rounded-2xl bg-rose-100 text-rose-600 flex items-center justify-center mx-auto text-xl font-bold">
-                <i class="fas fa-exclamation-triangle"></i>
+            <div class="w-12 h-12 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center mx-auto text-xl font-bold border border-amber-200">
+                <i class="fas fa-box-archive"></i>
             </div>
             <div>
-                <h3 class="text-base font-extrabold text-slate-900">Delete Product?</h3>
-                <p class="text-xs text-slate-500 mt-1 leading-relaxed" id="deleteConfirmItemName">Are you sure you want to delete this product from inventory?</p>
+                <h3 class="text-base font-extrabold text-black">Archive Product?</h3>
+                <p class="text-xs text-slate-600 mt-1.5 leading-relaxed" id="deleteConfirmItemName">
+                    This item will be moved to the <strong class="text-emerald-700 font-bold">System Archive</strong>. It will not be permanently deleted and can be restored anytime from the Admin Archive tab.
+                </p>
             </div>
             <div class="flex gap-2 pt-2">
-                <button onclick="closeDeleteConfirmModal()" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold py-3 rounded-xl transition cursor-pointer">
+                <button onclick="closeDeleteConfirmModal()" class="flex-1 bg-slate-100 hover:bg-slate-200 text-black text-xs font-bold py-3 rounded-xl transition cursor-pointer border border-slate-200">
                     Cancel
                 </button>
-                <button onclick="executeProductDeletion()" id="btnConfirmDelete" class="flex-1 bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold py-3 rounded-xl transition shadow-md cursor-pointer flex items-center justify-center gap-1.5">
-                    <i class="fas fa-trash-alt text-xs"></i>
-                    <span>Yes, Delete</span>
+                <button onclick="executeProductDeletion()" id="btnConfirmDelete" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold py-3 rounded-xl transition shadow-md cursor-pointer flex items-center justify-center gap-1.5">
+                    <i class="fas fa-box-archive text-xs"></i>
+                    <span>Yes, Archive Product</span>
                 </button>
             </div>
         </div>
@@ -265,24 +267,24 @@
                 <div class="flex items-center gap-2.5">
                     <div class="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold text-sm">📦</div>
                     <div>
-                        <h3 class="font-bold text-slate-900 text-xs uppercase tracking-wider">Restock Inventory</h3>
-                        <p class="text-[10px] text-slate-500" id="restockItemNameLabel">Item Name</p>
+                        <h3 class="font-bold text-black text-xs uppercase tracking-wider">Restock Inventory</h3>
+                        <p class="text-[10px] text-slate-800" id="restockItemNameLabel">Item Name</p>
                     </div>
                 </div>
-                <button onclick="closeRestockModal()" class="text-slate-400 hover:text-slate-600 p-1 rounded-lg cursor-pointer">
+                <button onclick="closeRestockModal()" class="text-slate-700 hover:text-black p-1 rounded-lg cursor-pointer">
                     <i class="fas fa-times text-sm"></i>
                 </button>
             </div>
 
             <div class="space-y-3 text-xs">
                 <div class="space-y-1">
-                    <label class="block font-bold text-slate-700">Enter Custom Quantity to Add (pcs):</label>
-                    <input type="number" id="customRestockQtyInput" value="50" min="1" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-sm font-mono font-extrabold text-slate-900 focus:outline-none focus:border-emerald-600">
+                    <label class="block font-bold text-black">Enter Custom Quantity to Add (pcs):</label>
+                    <input type="number" id="customRestockQtyInput" value="50" min="1" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-sm font-mono font-extrabold text-black focus:outline-none focus:border-emerald-600">
                 </div>
             </div>
 
             <div class="flex gap-2 pt-1">
-                <button onclick="closeRestockModal()" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold py-2.5 rounded-xl transition cursor-pointer">
+                <button onclick="closeRestockModal()" class="flex-1 bg-slate-100 hover:bg-slate-200 text-black text-xs font-bold py-2.5 rounded-xl transition cursor-pointer">
                     Cancel
                 </button>
                 <button onclick="submitCustomRestock()" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold py-2.5 rounded-xl transition shadow-md cursor-pointer flex items-center justify-center gap-1.5">
@@ -301,24 +303,24 @@
             <div class="flex items-center gap-2">
                 <div class="w-8 h-8 rounded-xl bg-blue-600 text-white flex items-center justify-center font-bold text-xs">🛒</div>
                 <div>
-                    <h3 class="font-bold text-xs text-slate-900 uppercase tracking-wider">Your Shopping Cart</h3>
-                    <p class="text-[10px] text-slate-500">Selected store supplies for pickup</p>
+                    <h3 class="font-bold text-xs text-black uppercase tracking-wider">Your Shopping Cart</h3>
+                    <p class="text-[10px] text-slate-800">Selected store supplies for pickup</p>
                 </div>
             </div>
-            <button onclick="toggleCartDrawer(false)" class="text-slate-400 hover:text-slate-700 p-2 rounded-xl transition cursor-pointer">
+            <button onclick="toggleCartDrawer(false)" class="text-slate-700 hover:text-black p-2 rounded-xl transition cursor-pointer">
                 <i class="fas fa-times text-sm"></i>
             </button>
         </div>
 
         <!-- Cart Items List -->
         <div id="cartItemsContainer" class="flex-1 p-5 overflow-y-auto space-y-3 divide-y divide-slate-100">
-            <div class="text-center py-12 text-slate-400 text-xs">Your cart is empty.</div>
+            <div class="text-center py-12 text-slate-700 text-xs">Your cart is empty.</div>
         </div>
 
         <!-- Checkout Controls -->
         <div class="p-6 border-t border-slate-200 bg-slate-50 space-y-4">
             <div class="space-y-1.5 text-xs">
-                <label class="block font-semibold text-slate-700">Payment Option</label>
+                <label class="block font-semibold text-black">Payment Option</label>
                 <div class="grid grid-cols-2 gap-2">
                     <label class="border border-slate-200 bg-white p-2.5 rounded-xl flex items-center gap-2 cursor-pointer text-[11px] font-bold">
                         <input type="radio" name="storePaymentMethod" value="GCash" checked class="text-blue-600">
@@ -332,7 +334,7 @@
             </div>
 
             <div class="flex justify-between items-baseline pt-2">
-                <span class="text-xs font-bold text-slate-500 uppercase">Subtotal</span>
+                <span class="text-xs font-bold text-slate-800 uppercase">Subtotal</span>
                 <span id="cartSubtotalAmount" class="text-2xl font-extrabold font-mono text-amber-600">₱0.00</span>
             </div>
 
@@ -348,10 +350,10 @@
         <div class="bg-white rounded-3xl max-w-2xl w-full shadow-2xl border border-slate-100 overflow-hidden transform transition-all my-8 animate-in fade-in zoom-in-95 duration-200">
             <!-- Modal Header / Close -->
             <div class="flex justify-between items-center px-6 py-4 border-b border-slate-100 bg-slate-50/50">
-                <span class="text-xs font-extrabold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+                <span class="text-xs font-extrabold uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
                     <i class="fas fa-store text-blue-600"></i> Product Overview
                 </span>
-                <button onclick="closeProductDetailModal()" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-800 transition flex items-center justify-center cursor-pointer">
+                <button onclick="closeProductDetailModal()" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-800 hover:text-black transition flex items-center justify-center cursor-pointer">
                     <i class="fas fa-times text-sm"></i>
                 </button>
             </div>
@@ -364,7 +366,7 @@
                         <img id="detailModalImg" src="" alt="Product image" class="w-full h-full object-cover">
                         <div id="detailModalBadge" class="absolute top-3 left-3"></div>
                     </div>
-                    <div class="flex items-center justify-between px-1 text-xs text-slate-400">
+                    <div class="flex items-center justify-between px-1 text-xs text-slate-700">
                         <span class="flex items-center gap-1"><i class="fas fa-shield-alt text-emerald-500"></i> 100% Authentic</span>
                         <span class="flex items-center gap-1"><i class="fas fa-store-alt text-blue-500"></i> Store Pick-up</span>
                     </div>
@@ -376,7 +378,7 @@
                         <div class="inline-block px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-blue-50 text-blue-600 uppercase tracking-wider mb-1" id="detailModalCategory">
                             General Supplies
                         </div>
-                        <h2 id="detailModalName" class="text-xl font-black text-slate-900 leading-snug">Product Name</h2>
+                        <h2 id="detailModalName" class="text-xl font-black text-black leading-snug">Product Name</h2>
                         
                         <!-- Shopee Style Price Box -->
                         <div class="my-3 p-3.5 rounded-2xl bg-gradient-to-r from-blue-50/70 to-indigo-50/40 border border-blue-100 flex items-baseline gap-3">
@@ -387,33 +389,33 @@
                         <!-- Stock & Status -->
                         <div class="space-y-2 text-xs py-2 border-y border-slate-100">
                             <div class="flex justify-between items-center">
-                                <span class="text-slate-400">Availability:</span>
-                                <span id="detailModalStock" class="font-mono font-bold text-slate-800">0 pcs in stock</span>
+                                <span class="text-slate-700">Availability:</span>
+                                <span id="detailModalStock" class="font-mono font-bold text-black">0 pcs in stock</span>
                             </div>
                             <div class="flex justify-between items-center">
-                                <span class="text-slate-400">Shop Location:</span>
-                                <span class="font-medium text-slate-700">Main Counter (Store Front)</span>
+                                <span class="text-slate-700">Shop Location:</span>
+                                <span class="font-medium text-black">Main Counter (Store Front)</span>
                             </div>
                         </div>
 
                         <!-- Description Box -->
                         <div class="pt-3">
-                            <h4 class="text-xs font-bold text-slate-800 uppercase tracking-wider mb-1">Product Description</h4>
-                            <div class="p-3 bg-slate-50 rounded-2xl border border-slate-100 text-xs text-slate-600 leading-relaxed max-h-28 overflow-y-auto" id="detailModalDesc">
+                            <h4 class="text-xs font-bold text-black uppercase tracking-wider mb-1">Product Description</h4>
+                            <div class="p-3 bg-slate-50 rounded-2xl border border-slate-100 text-xs text-black leading-relaxed max-h-28 overflow-y-auto" id="detailModalDesc">
                                 No description provided.
                             </div>
                         </div>
 
                         <!-- Quantity Stepper (Shopee Style) -->
                         <div class="pt-3 border-t border-slate-100 flex items-center justify-between">
-                            <span class="text-xs font-bold text-slate-700">Quantity:</span>
+                            <span class="text-xs font-bold text-black">Quantity:</span>
                             <div class="flex items-center gap-2">
                                 <div class="flex items-center border border-slate-200 rounded-xl bg-slate-50 p-1">
-                                    <button type="button" onclick="changeDetailModalQty(-1)" class="w-8 h-8 bg-white hover:bg-slate-100 text-slate-700 rounded-lg text-sm font-bold transition flex items-center justify-center cursor-pointer shadow-2xs">−</button>
+                                    <button type="button" onclick="changeDetailModalQty(-1)" class="w-8 h-8 bg-white hover:bg-slate-100 text-black rounded-lg text-sm font-bold transition flex items-center justify-center cursor-pointer shadow-2xs">−</button>
                                     <input type="number" id="detailModalQtyInput" value="1" min="1" onchange="validateDetailModalQty()" class="w-14 text-center text-sm font-extrabold font-mono bg-transparent focus:outline-none focus:bg-white focus:rounded-md py-1 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none">
-                                    <button type="button" onclick="changeDetailModalQty(1)" class="w-8 h-8 bg-white hover:bg-slate-100 text-slate-700 rounded-lg text-sm font-bold transition flex items-center justify-center cursor-pointer shadow-2xs">+</button>
+                                    <button type="button" onclick="changeDetailModalQty(1)" class="w-8 h-8 bg-white hover:bg-slate-100 text-black rounded-lg text-sm font-bold transition flex items-center justify-center cursor-pointer shadow-2xs">+</button>
                                 </div>
-                                <span class="text-[11px] text-slate-400 font-medium" id="detailModalMaxStockHint">(Max: 0 pcs)</span>
+                                <span class="text-[11px] text-slate-700 font-medium" id="detailModalMaxStockHint">(Max: 0 pcs)</span>
                             </div>
                         </div>
                     </div>
@@ -437,6 +439,16 @@
 </div>
 
 <script>
+function escapeHtml(str) {
+    if (!str) return '';
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+}
+
 let STORE_PRODUCTS = [];
 let cartState = {};
 let currentCategory = 'all';
@@ -533,7 +545,7 @@ function setStoreCategory(cat) {
     currentCategory = cat;
     currentStorePage = 1; // Reset to page 1
     document.querySelectorAll('.store-cat-btn').forEach(btn => {
-        btn.className = "store-cat-btn px-4 py-2 rounded-xl bg-slate-100 text-slate-600 hover:bg-slate-200 transition cursor-pointer";
+        btn.className = "store-cat-btn px-4 py-2 rounded-xl bg-slate-100 text-black hover:bg-slate-200 transition cursor-pointer";
     });
     const activeBtn = document.getElementById(`catBtn-${cat}`);
     if (activeBtn) activeBtn.className = "store-cat-btn px-4 py-2 rounded-xl bg-blue-600 text-white transition cursor-pointer";
@@ -567,7 +579,7 @@ function renderStoreProducts() {
 
     if (filtered.length === 0) {
         grid.innerHTML = `
-            <div class="col-span-full text-center py-12 text-slate-400 text-xs font-semibold bg-slate-50/50 rounded-3xl border border-dashed border-slate-200 p-6 space-y-2">
+            <div class="col-span-full text-center py-12 text-slate-700 text-xs font-semibold bg-slate-50/50 rounded-3xl border border-dashed border-slate-200 p-6 space-y-2">
                 <div>📦 Walang nahanap na produkto sa database.</div>
                 ${isAdminUser ? '<div class="text-[11px] text-blue-600 font-bold">Pindutin ang "+ Add New Product" sa itaas para magdagdag ng unang item sa iyong store catalog.</div>' : ''}
             </div>
@@ -612,27 +624,27 @@ function renderStoreProducts() {
                         </div>
                         <div>
                             <div class="flex justify-between items-start">
-                                <h3 class="font-bold text-sm text-slate-900">${p.name}</h3>
+                                <h3 class="font-bold text-sm text-black">${p.name}</h3>
                                 <div class="flex items-center gap-1">
                                     <button onclick="openEditProductModal('${p.id}')" class="text-indigo-600 hover:text-indigo-800 p-1.5 rounded-lg hover:bg-indigo-50 transition cursor-pointer" title="Edit Product">
                                         <i class="fas fa-edit text-sm"></i>
                                     </button>
-                                    <button onclick="deleteProduct('${p.id}')" class="text-rose-600 hover:text-rose-800 p-1.5 rounded-lg hover:bg-rose-50 transition cursor-pointer" title="Delete Product">
-                                        <i class="fas fa-trash-alt text-sm"></i>
+                                    <button onclick="deleteProduct('${p.id}')" class="text-amber-600 hover:text-amber-800 p-1.5 rounded-lg hover:bg-amber-50 transition cursor-pointer" title="Archive Product">
+                                        <i class="fas fa-box-archive text-sm"></i>
                                     </button>
                                 </div>
                             </div>
-                            <p class="text-[11px] text-slate-500 pt-0.5 leading-relaxed">${p.desc || ''}</p>
+                            <p class="text-[11px] text-slate-800 pt-0.5 leading-relaxed">${p.desc || ''}</p>
                         </div>
                     </div>
                     <div class="space-y-3 pt-2 border-t border-slate-100">
                         <div class="flex justify-between items-center text-xs">
-                            <span class="text-slate-500">Current Stock:</span>
-                            <span class="font-mono font-extrabold ${isOut ? 'text-rose-600 text-base' : (isLow ? 'text-amber-600 text-base' : 'text-slate-900 text-base')}">${(parseInt(p.stock, 10) || 0).toLocaleString()} pcs</span>
+                            <span class="text-slate-800">Current Stock:</span>
+                            <span class="font-mono font-extrabold ${isOut ? 'text-rose-600 text-base' : (isLow ? 'text-amber-600 text-base' : 'text-black text-base')}">${(parseInt(p.stock, 10) || 0).toLocaleString()} pcs</span>
                         </div>
                         <div class="flex justify-between items-center text-xs">
-                            <span class="text-slate-500">Price:</span>
-                            <span class="font-mono font-bold text-slate-700">₱${(parseFloat(p.price) && isFinite(p.price) ? Math.min(parseFloat(p.price), 999999).toFixed(2) : '0.00')}</span>
+                            <span class="text-slate-800">Price:</span>
+                            <span class="font-mono font-bold text-black">₱${(parseFloat(p.price) && isFinite(p.price) ? Math.min(parseFloat(p.price), 999999).toFixed(2) : '0.00')}</span>
                         </div>
                         
                         <button onclick="openRestockModal('${p.id}', '${p.name}')" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs py-2.5 rounded-xl transition shadow-2xs cursor-pointer flex items-center justify-center gap-1.5">
@@ -651,28 +663,28 @@ function renderStoreProducts() {
                         ${badgeHTML}
                     </div>
                     <div onclick="openProductDetailModal('${p.id}')" class="cursor-pointer">
-                        <h3 class="font-bold text-sm text-slate-900 group-hover:text-blue-600 transition-colors line-clamp-1">${p.name}</h3>
-                        <p class="text-[11px] text-slate-500 pt-0.5 leading-relaxed line-clamp-2">${p.desc || ''}</p>
+                        <h3 class="font-bold text-sm text-black group-hover:text-blue-600 transition-colors line-clamp-1">${p.name}</h3>
+                        <p class="text-[11px] text-slate-800 pt-0.5 leading-relaxed line-clamp-2">${p.desc || ''}</p>
                     </div>
                 </div>
                 <div class="space-y-3 pt-2 border-t border-slate-100">
                     <div class="flex justify-between items-center text-xs">
-                        <span class="text-slate-400">Available Stock:</span>
-                        <span class="font-mono font-bold ${isOut ? 'text-rose-600' : (isLow ? 'text-amber-600' : 'text-slate-800')}">${(parseInt(p.stock, 10) || 0).toLocaleString()} pcs</span>
+                        <span class="text-slate-700">Available Stock:</span>
+                        <span class="font-mono font-bold ${isOut ? 'text-rose-600' : (isLow ? 'text-amber-600' : 'text-black')}">${(parseInt(p.stock, 10) || 0).toLocaleString()} pcs</span>
                     </div>
                     <div class="flex justify-between items-center">
-                        <span class="text-xs text-slate-400">Price:</span>
-                        <span class="font-mono font-extrabold text-slate-900 text-base">₱${(parseFloat(p.price) && isFinite(p.price) ? Math.min(parseFloat(p.price), 999999).toFixed(2) : '0.00')}</span>
+                        <span class="text-xs text-slate-700">Price:</span>
+                        <span class="font-mono font-extrabold text-black text-base">₱${(parseFloat(p.price) && isFinite(p.price) ? Math.min(parseFloat(p.price), 999999).toFixed(2) : '0.00')}</span>
                     </div>
 
                     <div class="flex gap-2 pt-1">
                         <button onclick="${isOut ? 'alert(\"Item is currently out of stock.\")' : `addToCartDirect('${p.id}')`}"
-                            class="flex-1 flex items-center justify-center gap-1.5 ${isOut ? 'bg-slate-100 text-slate-400 cursor-not-allowed border border-slate-200' : 'bg-white border border-blue-500 text-blue-600 hover:bg-blue-50 cursor-pointer'} font-bold text-xs py-2.5 rounded-xl transition">
+                            class="flex-1 flex items-center justify-center gap-1.5 ${isOut ? 'bg-slate-100 text-slate-700 cursor-not-allowed border border-slate-200' : 'bg-white border border-blue-500 text-blue-600 hover:bg-blue-50 cursor-pointer'} font-bold text-xs py-2.5 rounded-xl transition">
                             <i class="fas fa-cart-plus text-xs"></i>
                             ${isOut ? 'Out of Stock' : 'Add to Cart'}
                         </button>
                         <button onclick="${isOut ? 'alert(\"Item is currently out of stock.\")' : `buyNow('${p.id}')`}"
-                            class="flex-1 flex items-center justify-center gap-1.5 ${isOut ? 'bg-slate-300 text-slate-500 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700 text-white cursor-pointer'} font-bold text-xs py-2.5 rounded-xl transition shadow-sm">
+                            class="flex-1 flex items-center justify-center gap-1.5 ${isOut ? 'bg-slate-300 text-slate-800 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700 text-white cursor-pointer'} font-bold text-xs py-2.5 rounded-xl transition shadow-sm">
                             <i class="fas fa-bolt text-xs"></i>
                             Buy Now
                         </button>
@@ -689,20 +701,20 @@ function renderStoreProducts() {
         for (let i = 1; i <= totalPages; i++) {
             const isActive = i === currentStorePage;
             paginationBtns += `
-                <button onclick="changeStorePage(${i})" class="w-8 h-8 rounded-xl text-xs font-bold transition ${isActive ? 'bg-blue-600 text-white' : 'bg-slate-100 hover:bg-slate-200 text-slate-700'}">${i}</button>
+                <button onclick="changeStorePage(${i})" class="w-8 h-8 rounded-xl text-xs font-bold transition ${isActive ? 'bg-blue-600 text-white' : 'bg-slate-100 hover:bg-slate-200 text-black'}">${i}</button>
             `;
         }
 
         paginationContainer.innerHTML = `
-            <span class="text-slate-500 font-medium">
-                Showing <strong class="text-slate-800">${startIndex + 1}</strong> to <strong class="text-slate-800">${Math.min(startIndex + storePageSize, filtered.length)}</strong> of <strong class="text-slate-800">${filtered.length}</strong> items
+            <span class="text-slate-800 font-medium">
+                Showing <strong class="text-black">${startIndex + 1}</strong> to <strong class="text-black">${Math.min(startIndex + storePageSize, filtered.length)}</strong> of <strong class="text-black">${filtered.length}</strong> items
             </span>
             <div class="flex items-center gap-1.5">
-                <button onclick="changeStorePage(${currentStorePage - 1})" ${currentStorePage === 1 ? 'disabled' : ''} class="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 disabled:opacity-40 disabled:hover:bg-slate-100 text-slate-700 font-bold transition text-xs">
+                <button onclick="changeStorePage(${currentStorePage - 1})" ${currentStorePage === 1 ? 'disabled' : ''} class="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 disabled:opacity-40 disabled:hover:bg-slate-100 text-black font-bold transition text-xs">
                     <i class="fas fa-chevron-left text-[10px] mr-1"></i> Prev
                 </button>
                 ${paginationBtns}
-                <button onclick="changeStorePage(${currentStorePage + 1})" ${currentStorePage === totalPages ? 'disabled' : ''} class="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 disabled:opacity-40 disabled:hover:bg-slate-100 text-slate-700 font-bold transition text-xs">
+                <button onclick="changeStorePage(${currentStorePage + 1})" ${currentStorePage === totalPages ? 'disabled' : ''} class="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 disabled:opacity-40 disabled:hover:bg-slate-100 text-black font-bold transition text-xs">
                     Next <i class="fas fa-chevron-right text-[10px] ml-1"></i>
                 </button>
             </div>
@@ -757,7 +769,10 @@ function deleteProduct(prodId) {
     if (!prod) return;
 
     pendingDeleteProdId = prodId;
-    document.getElementById('deleteConfirmItemName').textContent = `Sigurado ka bang gusto mong burahin ang produktong "${prod.name}" sa inventory? Hindi na ito mababawi.`;
+    const descEl = document.getElementById('deleteConfirmItemName');
+    if (descEl) {
+        descEl.innerHTML = `Are you sure you want to move <strong class="text-black font-bold">"${escapeHtml(prod.name)}"</strong> to the <strong class="text-emerald-700 font-bold">System Archive</strong>?<br><span class="text-slate-500 text-[11px] mt-1 block">It will not be permanently deleted and can be restored anytime from the Admin Archive tab.</span>`;
+    }
     document.getElementById('deleteConfirmModalBackdrop').classList.remove('hidden');
 }
 
@@ -781,22 +796,25 @@ async function executeProductDeletion() {
 
     if (btn) {
         btn.disabled = true;
-        btn.innerText = "Deleting...";
+        btn.innerText = "Archiving...";
     }
 
     try {
+        const res = await fetch(`/api/store/products/${prodId}`, { method: 'DELETE' });
+        const data = await res.json();
         STORE_PRODUCTS = STORE_PRODUCTS.filter(p => String(p.id) !== String(prodId));
-        await saveProductsToBackend();
         closeDeleteConfirmModal();
         renderStoreProducts();
+        alert("📦 Product successfully moved to System Archive! It can be restored anytime from the Archive tab.");
     } catch (err) {
-        console.error("Error executing deletion:", err);
+        console.error("Error archiving product:", err);
         closeDeleteConfirmModal();
         renderStoreProducts();
+        alert("Server error occurred while archiving the product.");
     } finally {
         if (btn) {
             btn.disabled = false;
-            btn.innerHTML = `<i class="fas fa-trash-alt text-xs"></i> <span>Yes, Delete</span>`;
+            btn.innerHTML = `<i class="fas fa-box-archive text-xs"></i> <span>Yes, Archive Product</span>`;
         }
     }
 }
@@ -1083,7 +1101,7 @@ function openProductDetailModal(prodId) {
         if (isOut) {
             badgeEl.innerHTML = `<span class="bg-rose-500 text-white font-extrabold text-[10px] px-2.5 py-1 rounded-full shadow-xs">Sold Out</span>`;
         } else if (isLow) {
-            badgeEl.innerHTML = `<span class="bg-amber-400 text-slate-900 font-extrabold text-[10px] px-2.5 py-1 rounded-full shadow-xs">Low Stock</span>`;
+            badgeEl.innerHTML = `<span class="bg-amber-400 text-black font-extrabold text-[10px] px-2.5 py-1 rounded-full shadow-xs">Low Stock</span>`;
         } else {
             badgeEl.innerHTML = `<span class="bg-emerald-500 text-white font-extrabold text-[10px] px-2.5 py-1 rounded-full shadow-xs">In Stock</span>`;
         }
@@ -1105,7 +1123,7 @@ function openProductDetailModal(prodId) {
     const cartBtn = document.getElementById('detailModalAddToCartBtn');
     if (cartBtn) {
         if (isOut) {
-            cartBtn.className = "flex-1 flex items-center justify-center gap-2 bg-slate-100 text-slate-400 font-bold text-xs py-3 rounded-2xl cursor-not-allowed border border-slate-200";
+            cartBtn.className = "flex-1 flex items-center justify-center gap-2 bg-slate-100 text-slate-700 font-bold text-xs py-3 rounded-2xl cursor-not-allowed border border-slate-200";
             cartBtn.onclick = () => alert("Item is currently out of stock.");
             cartBtn.innerHTML = `<i class="fas fa-ban text-xs"></i><span>Out of Stock</span>`;
         } else {
@@ -1119,7 +1137,7 @@ function openProductDetailModal(prodId) {
     const buyBtn = document.getElementById('detailModalBuyNowBtn');
     if (buyBtn) {
         if (isOut) {
-            buyBtn.className = "flex-1 flex items-center justify-center gap-2 bg-slate-200 text-slate-400 font-bold text-xs py-3 rounded-2xl cursor-not-allowed";
+            buyBtn.className = "flex-1 flex items-center justify-center gap-2 bg-slate-200 text-slate-700 font-bold text-xs py-3 rounded-2xl cursor-not-allowed";
             buyBtn.onclick = () => alert("Item is currently out of stock.");
         } else {
             buyBtn.className = "flex-1 flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs py-3 rounded-2xl transition shadow-md shadow-blue-500/20 cursor-pointer";
@@ -1276,7 +1294,7 @@ function updateCartDrawerUI() {
     if (subtotal) subtotal.textContent = `₱${totalPrice.toFixed(2)}`;
 
     if (items.length === 0) {
-        container.innerHTML = `<div class="text-center py-12 text-slate-400 text-xs">Your cart is empty.</div>`;
+        container.innerHTML = `<div class="text-center py-12 text-slate-700 text-xs">Your cart is empty.</div>`;
         return;
     }
 
@@ -1285,12 +1303,12 @@ function updateCartDrawerUI() {
             <div class="flex items-center gap-2.5">
                 <img src="${item.imageUrl || 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=100&q=80'}" class="w-10 h-10 object-cover rounded-lg">
                 <div>
-                    <div class="font-bold text-slate-800">${item.name}</div>
-                    <div class="text-[10px] text-slate-400 font-mono">₱${item.price.toFixed(2)} x ${item.qty}</div>
+                    <div class="font-bold text-black">${item.name}</div>
+                    <div class="text-[10px] text-slate-700 font-mono">₱${item.price.toFixed(2)} x ${item.qty}</div>
                 </div>
             </div>
             <div class="flex items-center gap-2">
-                <span class="font-mono font-bold text-slate-900">₱${(item.price * item.qty).toFixed(2)}</span>
+                <span class="font-mono font-bold text-black">₱${(item.price * item.qty).toFixed(2)}</span>
                 <button onclick="updateItemQty('${item.id}', -999)" class="text-rose-500 hover:text-rose-700 p-1 cursor-pointer">
                     <i class="fas fa-trash-alt text-xs"></i>
                 </button>

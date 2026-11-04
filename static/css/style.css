@@ -19,7 +19,7 @@
 .animate-tap { animation: tapCard 0.3s ease-out forwards; }
 
 /* ==========================================================================
-   REFACTORED GLOBAL DESIGN SYSTEM & UI CLASSES
+   REFACTORED GLOBAL DESIGN SYSTEM & UI CLASSES (Emerald / Green Branding)
    ========================================================================== */
 
 /* Main Containers & Cards */
@@ -32,13 +32,13 @@
     transition: all 0.2s ease-in-out;
 }
 .kcz-card:hover {
-    border-color: #bfdbfe;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    border-color: #a7f3d0;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.08);
 }
 
 /* Tab Action Buttons */
 .kcz-tab-btn-active {
-    background-color: #2563eb;
+    background-color: #059669;
     color: #ffffff;
     padding: 0.75rem 1.25rem;
     border-radius: 0.75rem;
@@ -53,7 +53,7 @@
 }
 .kcz-tab-btn-inactive {
     background-color: transparent;
-    color: #475569;
+    color: #000000; font-weight: 700;
     padding: 0.75rem 1.25rem;
     border-radius: 0.75rem;
     font-weight: 700;
@@ -70,7 +70,7 @@
 
 /* Filter Subcategory Pills */
 .kcz-filter-pill-active {
-    background-color: #2563eb;
+    background-color: #059669;
     color: #ffffff;
     padding: 0.625rem 1rem;
     border-radius: 0.75rem;
@@ -82,7 +82,7 @@
 }
 .kcz-filter-pill-inactive {
     background-color: #f1f5f9;
-    color: #475569;
+    color: #000000; font-weight: 700;
     padding: 0.625rem 1rem;
     border-radius: 0.75rem;
     font-size: 0.75rem;
@@ -120,7 +120,7 @@
     top: 1.5rem;
     left: 2rem;
     height: 0.125rem;
-    background-color: #2563eb;
+    background-color: #059669;
     transition: width 0.5s ease-in-out;
     z-index: 0;
 }
@@ -140,8 +140,8 @@
     z-index: 10;
 }
 .kcz-step-circle-done {
-    background-color: #2563eb;
-    border-color: #2563eb;
+    background-color: #059669;
+    border-color: #059669;
     color: #ffffff;
 }
 .kcz-step-circle-pending {
@@ -158,6 +158,7 @@
     padding: 0.125rem 0.625rem;
     border-radius: 0.5rem;
     font-weight: 700;
+}
     font-size: 0.625rem;
 }
 .kcz-badge-print {
@@ -191,240 +192,293 @@
 /* ==========================================================================
    DARK THEME SYSTEM FOR ADMIN, CUSTOMER & DASHBOARDS
    ========================================================================== */
-body.bg-\[\#070b19\] {
+/* dark override */ .dark-mode {
     background-color: #070b19 !important;
     color: #f1f5f9 !important;
 }
 
 /* Dark Mode Overrides for Containers and Cards */
-body.bg-\[\#070b19\] .bg-white,
-body.bg-\[\#070b19\] .bg-white\/95,
-body.bg-\[\#070b19\] .bg-white\/90,
-body.bg-\[\#070b19\] .bg-white\/80 {
+/* dark override */ .dark-mode .bg-white,
+/* dark override */ .dark-mode .bg-white\/95,
+/* dark override */ .dark-mode .bg-white\/90,
+/* dark override */ .dark-mode .bg-white\/80 {
     background-color: #0b1226 !important;
     border-color: rgba(255, 255, 255, 0.08) !important;
     color: #f1f5f9 !important;
 }
 
 /* Secondary Panels, Table Headers, Filter Bars */
-body.bg-\[\#070b19\] .bg-slate-50,
-body.bg-\[\#070b19\] .bg-slate-50\/80,
-body.bg-\[\#070b19\] .bg-slate-50\/60,
-body.bg-\[\#070b19\] .bg-slate-50\/50,
-body.bg-\[\#070b19\] .bg-slate-50\/30,
-body.bg-\[\#070b19\] .bg-slate-100,
-body.bg-\[\#070b19\] .bg-slate-100\/80 {
+/* dark override */ .dark-mode .bg-slate-50,
+/* dark override */ .dark-mode .bg-slate-50\/80,
+/* dark override */ .dark-mode .bg-slate-50\/60,
+/* dark override */ .dark-mode .bg-slate-50\/50,
+/* dark override */ .dark-mode .bg-slate-50\/30,
+/* dark override */ .dark-mode .bg-slate-100,
+/* dark override */ .dark-mode .bg-slate-100\/80 {
     background-color: #0f1836 !important;
     border-color: rgba(255, 255, 255, 0.08) !important;
     color: #e2e8f0 !important;
 }
 
 /* Headings and High Contrast Text */
-body.bg-\[\#070b19\] .text-slate-900,
-body.bg-\[\#070b19\] .text-slate-800,
-body.bg-\[\#070b19\] h1, 
-body.bg-\[\#070b19\] h2, 
-body.bg-\[\#070b19\] h3, 
-body.bg-\[\#070b19\] h4 {
+/* dark override */ .dark-mode .text-slate-900,
+/* dark override */ .dark-mode .text-slate-800,
+/* dark override */ .dark-mode h1, 
+/* dark override */ .dark-mode h2, 
+/* dark override */ .dark-mode h3, 
+/* dark override */ .dark-mode h4 {
     color: #ffffff !important;
 }
 
 /* Subtext & Labels */
-body.bg-\[\#070b19\] .text-slate-700,
-body.bg-\[\#070b19\] .text-slate-600 {
+/* dark override */ .dark-mode .text-slate-700,
+/* dark override */ .dark-mode .text-slate-600 {
     color: #cbd5e1 !important;
 }
 
-body.bg-\[\#070b19\] .text-slate-500,
-body.bg-\[\#070b19\] .text-slate-400 {
+/* dark override */ .dark-mode .text-slate-500,
+/* dark override */ .dark-mode .text-slate-400 {
     color: #94a3b8 !important;
 }
 
 /* Borders */
-body.bg-\[\#070b19\] .border-slate-100,
-body.bg-\[\#070b19\] .border-slate-200,
-body.bg-\[\#070b19\] .border-slate-200\/90,
-body.bg-\[\#070b19\] .border-slate-200\/80 {
+/* dark override */ .dark-mode .border-slate-100,
+/* dark override */ .dark-mode .border-slate-200,
+/* dark override */ .dark-mode .border-slate-200\/90,
+/* dark override */ .dark-mode .border-slate-200\/80 {
     border-color: rgba(255, 255, 255, 0.08) !important;
 }
 
 /* Table Rows & Hovers */
-body.bg-\[\#070b19\] table tr:hover,
-body.bg-\[\#070b19\] tr:hover {
+/* dark override */ .dark-mode table tr:hover,
+/* dark override */ .dark-mode tr:hover {
     background-color: rgba(255, 255, 255, 0.03) !important;
 }
 
-body.bg-\[\#070b19\] .divide-slate-100 > :not([hidden]) ~ :not([hidden]),
-body.bg-\[\#070b19\] .divide-slate-200 > :not([hidden]) ~ :not([hidden]) {
+/* dark override */ .dark-mode .divide-slate-100 > :not([hidden]) ~ :not([hidden]),
+/* dark override */ .dark-mode .divide-slate-200 > :not([hidden]) ~ :not([hidden]) {
     border-color: rgba(255, 255, 255, 0.06) !important;
 }
 
 /* Inputs, Selects, and Textareas */
-body.bg-\[\#070b19\] input:not([type="checkbox"]):not([type="radio"]),
-body.bg-\[\#070b19\] select,
-body.bg-\[\#070b19\] textarea {
+/* dark override */ .dark-mode input:not([type="checkbox"]):not([type="radio"]),
+/* dark override */ .dark-mode select,
+/* dark override */ .dark-mode textarea {
     background-color: #0b142c !important;
     border-color: rgba(255, 255, 255, 0.12) !important;
     color: #ffffff !important;
 }
 
-body.bg-\[\#070b19\] input::placeholder,
-body.bg-\[\#070b19\] textarea::placeholder {
+/* dark override */ .dark-mode input::placeholder,
+/* dark override */ .dark-mode textarea::placeholder {
     color: #64748b !important;
 }
 
 /* Cards & Components */
-body.bg-\[\#070b19\] .kcz-card {
+/* dark override */ .dark-mode .kcz-card {
     background-color: #0b1226 !important;
     border-color: rgba(255, 255, 255, 0.08) !important;
     color: #f1f5f9 !important;
 }
-body.bg-\[\#070b19\] .kcz-card:hover {
+/* dark override */ .dark-mode .kcz-card:hover {
     border-color: rgba(59, 130, 246, 0.4) !important;
 }
 
 /* Tabs & Buttons */
-body.bg-\[\#070b19\] .admin-tab-btn,
-body.bg-\[\#070b19\] .cust-tab-btn {
+/* dark override */ .dark-mode .admin-tab-btn,
+/* dark override */ .dark-mode .cust-tab-btn {
     color: #cbd5e1 !important;
 }
-body.bg-\[\#070b19\] .admin-tab-btn:hover,
-body.bg-\[\#070b19\] .cust-tab-btn:hover {
+/* dark override */ .dark-mode .admin-tab-btn:hover,
+/* dark override */ .dark-mode .cust-tab-btn:hover {
     background-color: rgba(255, 255, 255, 0.06) !important;
     color: #ffffff !important;
 }
-body.bg-\[\#070b19\] .admin-tab-btn.bg-slate-900,
-body.bg-\[\#070b19\] .cust-tab-btn.bg-blue-600 {
-    background-color: #2563eb !important;
+/* dark override */ .dark-mode .admin-tab-btn.bg-slate-900,
+/* dark override */ .dark-mode .cust-tab-btn.bg-blue-600,
+/* dark override */ .dark-mode .cust-tab-btn.bg-emerald-600 {
+    background-color: #059669 !important;
     color: #ffffff !important;
 }
 
 /* Filter Pills */
-body.bg-\[\#070b19\] .admin-status-pill,
-body.bg-\[\#070b19\] .kcz-filter-pill-inactive {
+/* dark override */ .dark-mode .admin-status-pill,
+/* dark override */ .dark-mode .kcz-filter-pill-inactive {
     background-color: #0f1836 !important;
     color: #94a3b8 !important;
     border: 1px solid rgba(255, 255, 255, 0.06) !important;
 }
-body.bg-\[\#070b19\] .admin-status-pill:hover,
-body.bg-\[\#070b19\] .kcz-filter-pill-inactive:hover {
+/* dark override */ .dark-mode .admin-status-pill:hover,
+/* dark override */ .dark-mode .kcz-filter-pill-inactive:hover {
     background-color: #17234d !important;
     color: #ffffff !important;
 }
-body.bg-\[\#070b19\] .admin-status-pill.bg-slate-900,
-body.bg-\[\#070b19\] .kcz-filter-pill-active {
-    background-color: #2563eb !important;
+/* dark override */ .dark-mode .admin-status-pill.bg-slate-900,
+/* dark override */ .dark-mode .kcz-filter-pill-active {
+    background-color: #059669 !important;
     color: #ffffff !important;
 }
 
 /* Dropdown menus & Popups in Dark Theme */
-body.bg-\[\#070b19\] .status-dropdown-menu,
-body.bg-\[\#070b19\] .action-menu-dropdown {
+/* dark override */ .dark-mode .status-dropdown-menu,
+/* dark override */ .dark-mode .action-menu-dropdown {
     background-color: #0f172a !important;
     border-color: rgba(255, 255, 255, 0.12) !important;
     color: #ffffff !important;
 }
 
 /* Stepper container in dark theme */
-body.bg-\[\#070b19\] .kcz-stepper-container {
+/* dark override */ .dark-mode .kcz-stepper-container {
     background-color: #0b142c !important;
     border-color: rgba(255, 255, 255, 0.06) !important;
 }
-body.bg-\[\#070b19\] .kcz-stepper-bg-line {
+/* dark override */ .dark-mode .kcz-stepper-bg-line {
     background-color: rgba(255, 255, 255, 0.1) !important;
 }
-body.bg-\[\#070b19\] .kcz-step-circle-pending {
+/* dark override */ .dark-mode .kcz-step-circle-pending {
     background-color: #0b1226 !important;
     border-color: rgba(255, 255, 255, 0.2) !important;
     color: #64748b !important;
 }
 
 /* Modals & Slide-out Drawers */
-body.bg-\[\#070b19\] #reviewSpecsModal .bg-white,
-body.bg-\[\#070b19\] #printSlipModal .bg-white,
-body.bg-\[\#070b19\] #rejectReasonModal .bg-white,
-body.bg-\[\#070b19\] #logoutModal .bg-white,
-body.bg-\[\#070b19\] #termsModal .bg-white,
-body.bg-\[\#070b19\] #createUserModal .bg-white,
-body.bg-\[\#070b19\] #editUserModal .bg-white,
-body.bg-\[\#070b19\] #deleteUserModal .bg-white,
-body.bg-\[\#070b19\] #loginPromptModalBackdrop .bg-white,
-body.bg-\[\#070b19\] #addProductModalBackdrop .bg-white,
-body.bg-\[\#070b19\] #editProductModalBackdrop .bg-white,
-body.bg-\[\#070b19\] #deleteConfirmModalBackdrop .bg-white,
-body.bg-\[\#070b19\] #restockModalBackdrop .bg-white,
-body.bg-\[\#070b19\] #cartDrawer,
-body.bg-\[\#070b19\] #productDetailModal .bg-white {
+/* dark override */ .dark-mode #reviewSpecsModal .bg-white,
+/* dark override */ .dark-mode #printSlipModal .bg-white,
+/* dark override */ .dark-mode #rejectReasonModal .bg-white,
+/* dark override */ .dark-mode #logoutModal .bg-white,
+/* dark override */ .dark-mode #termsModal .bg-white,
+/* dark override */ .dark-mode #createUserModal .bg-white,
+/* dark override */ .dark-mode #editUserModal .bg-white,
+/* dark override */ .dark-mode #deleteUserModal .bg-white,
+/* dark override */ .dark-mode #loginPromptModalBackdrop .bg-white,
+/* dark override */ .dark-mode #addProductModalBackdrop .bg-white,
+/* dark override */ .dark-mode #editProductModalBackdrop .bg-white,
+/* dark override */ .dark-mode #deleteConfirmModalBackdrop .bg-white,
+/* dark override */ .dark-mode #restockModalBackdrop .bg-white,
+/* dark override */ .dark-mode #cartDrawer,
+/* dark override */ .dark-mode #productDetailModal .bg-white {
     background-color: #0b1226 !important;
     border-color: rgba(255, 255, 255, 0.12) !important;
     color: #f1f5f9 !important;
 }
 
 /* Store Specific Filter Buttons */
-body.bg-\[\#070b19\] .store-cat-btn {
+/* dark override */ .dark-mode .store-cat-btn {
     background-color: #0f1836 !important;
     color: #94a3b8 !important;
     border: 1px solid rgba(255, 255, 255, 0.08) !important;
 }
-body.bg-\[\#070b19\] .store-cat-btn:hover {
+/* dark override */ .dark-mode .store-cat-btn:hover {
     background-color: #17234d !important;
     color: #ffffff !important;
 }
-body.bg-\[\#070b19\] .store-cat-btn.bg-blue-600 {
-    background-color: #2563eb !important;
+/* dark override */ .dark-mode .store-cat-btn.bg-blue-600,
+/* dark override */ .dark-mode .store-cat-btn.bg-emerald-600 {
+    background-color: #059669 !important;
     color: #ffffff !important;
-    border-color: #2563eb !important;
+    border-color: #059669 !important;
 }
 
 /* Dynamic Pastel Badges & Icon Containers Harmonization */
-body.bg-\[\#070b19\] .bg-blue-50 {
+/* dark override */ .dark-mode .bg-blue-50 {
     background-color: rgba(59, 130, 246, 0.15) !important;
     color: #93c5fd !important;
     border-color: rgba(59, 130, 246, 0.3) !important;
 }
-body.bg-\[\#070b19\] .bg-indigo-50 {
+/* dark override */ .dark-mode .bg-indigo-50 {
     background-color: rgba(99, 102, 241, 0.15) !important;
     color: #a5b4fc !important;
     border-color: rgba(99, 102, 241, 0.3) !important;
 }
-body.bg-\[\#070b19\] .bg-emerald-50 {
+/* dark override */ .dark-mode .bg-emerald-50 {
     background-color: rgba(16, 185, 129, 0.15) !important;
     color: #6ee7b7 !important;
     border-color: rgba(16, 185, 129, 0.3) !important;
 }
-body.bg-\[\#070b19\] .bg-amber-50,
-body.bg-\[\#070b19\] .bg-amber-50\/70,
-body.bg-\[\#070b19\] .bg-amber-50\/80 {
+/* dark override */ .dark-mode .bg-amber-50,
+/* dark override */ .dark-mode .bg-amber-50\/70,
+/* dark override */ .dark-mode .bg-amber-50\/80 {
     background-color: rgba(245, 158, 11, 0.15) !important;
     color: #fcd34d !important;
     border-color: rgba(245, 158, 11, 0.3) !important;
 }
-body.bg-\[\#070b19\] .bg-rose-50 {
+/* dark override */ .dark-mode .bg-rose-50 {
     background-color: rgba(244, 63, 94, 0.15) !important;
     color: #fda4af !important;
     border-color: rgba(244, 63, 94, 0.3) !important;
 }
-body.bg-\[\#070b19\] .bg-purple-50 {
+/* dark override */ .dark-mode .bg-purple-50 {
     background-color: rgba(168, 85, 247, 0.15) !important;
     color: #d8b4fe !important;
     border-color: rgba(168, 85, 247, 0.3) !important;
 }
-body.bg-\[\#070b19\] .bg-orange-50 {
+/* dark override */ .dark-mode .bg-orange-50 {
     background-color: rgba(249, 115, 22, 0.15) !important;
     color: #fdba74 !important;
     border-color: rgba(249, 115, 22, 0.3) !important;
 }
 
 /* Dropdown Hover States in Dark Mode */
-body.bg-\[\#070b19\] .action-menu-dropdown button:hover,
-body.bg-\[\#070b19\] .action-menu-dropdown a:hover,
-body.bg-\[\#070b19\] .status-dropdown-menu button:hover {
+/* dark override */ .dark-mode .action-menu-dropdown button:hover,
+/* dark override */ .dark-mode .action-menu-dropdown a:hover,
+/* dark override */ .dark-mode .status-dropdown-menu button:hover {
     background-color: rgba(255, 255, 255, 0.08) !important;
 }
-body.bg-\[\#070b19\] .action-menu-dropdown a.hover\:bg-blue-50:hover,
-body.bg-\[\#070b19\] .action-menu-dropdown a {
+/* dark override */ .dark-mode .action-menu-dropdown a.hover\:bg-blue-50:hover,
+/* dark override */ .dark-mode .action-menu-dropdown a {
     color: #93c5fd !important;
 }
-body.bg-\[\#070b19\] .action-menu-dropdown button.hover\:bg-rose-50:hover {
+/* dark override */ .dark-mode .action-menu-dropdown button.hover\:bg-rose-50:hover {
     color: #fda4af !important;
+}
+/* Ensure text elements default to high-contrast black on white */
+body {
+    color: #000000;
+}
+.admin-tab-btn:not(.bg-emerald-600),
+.cust-tab-btn:not(.bg-emerald-600) {
+    color: #000000 !important;
+    font-weight: 700;
+}
+.admin-tab-btn:hover,
+.cust-tab-btn:hover {
+    color: #000000 !important;
+}
+.sidebar-text {
+    color: #000000;
+}
+table tbody tr td {
+    color: #000000;
+}
+
+/* High-Contrast Crisp Colors for Admin & Customer */
+.admin-tab-btn.bg-emerald-600,
+.cust-tab-btn.bg-emerald-600 {
+    background-color: #059669 !important;
+    color: #ffffff !important;
+}
+
+.admin-tab-btn:not(.bg-emerald-600) {
+    color: #0f172a !important;
+    font-weight: 700 !important;
+}
+
+.admin-status-pill.bg-emerald-600 {
+    background-color: #059669 !important;
+    color: #ffffff !important;
+}
+
+.admin-status-pill:not(.bg-emerald-600) {
+    color: #0f172a !important;
+    font-weight: 700 !important;
+}
+
+/* Ensure table cells are sharp and clear */
+table th {
+    color: #334155 !important;
+    font-weight: 800 !important;
+}
+
+table td {
+    color: #0f172a !important;
 }

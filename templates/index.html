@@ -1,36 +1,27 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="bg-[#070b19] text-white min-h-screen relative overflow-hidden selection:bg-blue-600 selection:text-white">
+<div class="bg-white text-black min-h-screen relative overflow-hidden selection:bg-emerald-600 selection:text-white">
 
   <!-- ================= TOP AMBIENT GLOWS & PARTICLES ================= -->
   <div class="absolute inset-0 pointer-events-none overflow-hidden z-0">
-    <div class="absolute -top-40 left-1/2 -translate-x-1/2 w-[45rem] h-[30rem] bg-gradient-to-b from-blue-600/25 via-indigo-600/15 to-transparent rounded-full blur-3xl"></div>
-    <div class="absolute top-1/3 -left-32 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl"></div>
-    <div class="absolute top-1/2 -right-32 w-96 h-96 bg-indigo-500/10 rounded-full blur-3xl"></div>
-    
-    <!-- Subtle Starlight / Dust Dots -->
-    <div class="absolute top-24 left-[15%] w-1 h-1 bg-white/40 rounded-full animate-ping duration-1000"></div>
-    <div class="absolute top-48 right-[18%] w-1.5 h-1.5 bg-blue-300/40 rounded-full"></div>
-    <div class="absolute top-72 left-[28%] w-1 h-1 bg-indigo-300/30 rounded-full"></div>
-    <div class="absolute top-36 right-[35%] w-1 h-1 bg-white/30 rounded-full"></div>
-    <div class="absolute top-96 right-[22%] w-1.5 h-1.5 bg-cyan-300/30 rounded-full"></div>
+    <div class="absolute -top-40 left-1/2 -translate-x-1/2 w-[45rem] h-[30rem] bg-gradient-to-b from-emerald-100/50 via-teal-50/30 to-transparent rounded-full blur-3xl"></div>
+    <div class="absolute top-1/3 -left-32 w-96 h-96 bg-emerald-100/30 rounded-full blur-3xl"></div>
+    <div class="absolute top-1/2 -right-32 w-96 h-96 bg-teal-100/20 rounded-full blur-3xl"></div>
   </div>
 
   <!-- ================= TOP NAVIGATION BAR (Clean with Centered Login & Sign Up) ================= -->
-  <header class="relative z-30 w-full px-4 sm:px-6 md:px-8 pt-5 pb-4 flex items-center justify-between">
-    <!-- Brand Logo (Moved to edge, clickable to open sidebar) -->
-    <div class="flex items-center gap-2.5 sm:gap-3 group focus:outline-none text-left -ml-1 sm:ml-0">
-      <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-blue-600 via-indigo-600 to-cyan-400 flex items-center justify-center text-white font-black text-sm shadow-lg shadow-blue-600/30 group-hover:scale-110 group-active:scale-95 transition-all">
-        KCZ
-      </div>
+  <header class="relative z-30 w-full px-4 sm:px-6 md:px-8 pt-5 pb-4 flex items-center justify-between border-b border-slate-100 bg-white/80 backdrop-blur-md">
+    <!-- Brand Logo (Non-clickable per instruction) -->
+    <div class="flex items-center gap-2.5 sm:gap-3 select-none pointer-events-none -ml-1 sm:ml-0">
+      <img src="{{ url_for('static', filename='images/kcz_logo.jpg') }}" alt="KCZ Logo" class="w-10 h-10 rounded-2xl object-cover shadow-xs border border-emerald-500/40">
       <div>
         <div class="flex items-center gap-1.5">
-          <span class="font-extrabold text-base tracking-tight text-white block leading-tight group-hover:text-blue-400 transition-colors">
+          <span class="font-extrabold text-base tracking-tight text-black block leading-tight">
             Kez C-Em Zek
           </span> 
         </div>
-        <span class="text-[9px] font-semibold text-blue-300/70 uppercase tracking-widest block">
+        <span class="text-[9px] font-semibold text-emerald-600 uppercase tracking-widest block">
           Printing Services
         </span>
       </div>
@@ -39,24 +30,24 @@
     <!-- Center Action Buttons (Login & Sign Up in the Middle) -->
     <div class="flex items-center justify-center">
       {% if not session.get('username') %}
-        <div class="flex items-center gap-2 bg-white/5 border border-white/10 backdrop-blur-md p-1.5 rounded-full shadow-lg">
-          <a href="/login" class="text-xs font-bold text-slate-300 hover:text-white px-5 py-2 rounded-full hover:bg-white/10 transition">
+        <div class="flex items-center gap-2 bg-slate-50 border border-slate-200/90 backdrop-blur-md p-1.5 rounded-full shadow-xs">
+          <a href="/login" class="text-xs font-bold text-black hover:text-black px-5 py-2 rounded-full hover:bg-white transition">
             Login
           </a>
-          <a href="/login" class="bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold px-6 py-2 rounded-full transition shadow-lg shadow-blue-600/40 hover:scale-105">
+          <a href="/login" class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold px-6 py-2 rounded-full transition shadow-md shadow-emerald-600/30 hover:scale-105">
             Sign up
           </a>
         </div>
       {% else %}
         <!-- When logged in, show quick portal shortcut pill -->
         {% if session.get('role') == 'admin' %}
-          <a href="/admin" class="bg-blue-600/20 border border-blue-500/40 hover:bg-blue-600/30 text-blue-300 text-xs font-bold px-5 py-2 rounded-full transition flex items-center gap-2">
-            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+          <a href="/admin" class="bg-emerald-50 border border-emerald-200 hover:bg-emerald-100 text-emerald-700 text-xs font-bold px-5 py-2 rounded-full transition flex items-center gap-2">
+            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
             Admin Console
           </a>
         {% else %}
-          <a href="/customer" class="bg-blue-600/20 border border-blue-500/40 hover:bg-blue-600/30 text-blue-300 text-xs font-bold px-5 py-2 rounded-full transition flex items-center gap-2">
-            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+          <a href="/customer" class="bg-emerald-50 border border-emerald-200 hover:bg-emerald-100 text-emerald-700 text-xs font-bold px-5 py-2 rounded-full transition flex items-center gap-2">
+            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
             Customer Portal
           </a>
         {% endif %}
@@ -65,17 +56,23 @@
 
     <!-- Right Actions -->
     <div class="flex items-center gap-3">
+      <!-- Download App Button (MediaFire) -->
+      <a href="https://www.mediafire.com/folder/iubfnfg67ff7t/app" target="_blank" rel="noopener noreferrer" class="hidden sm:inline-flex items-center gap-2 bg-slate-50 hover:bg-emerald-50 text-emerald-700 hover:text-emerald-800 border border-slate-200 hover:border-emerald-300 text-xs font-bold px-4 py-2 rounded-full transition shadow-2xs group" title="Download KCZ Mobile App">
+        <i class="fab fa-android text-emerald-600 text-sm group-hover:scale-110 transition-transform"></i>
+        <span>Download App</span>
+      </a>
+
       {% if session.get('username') %}
         {% if session.get('role') == 'admin' %}
-          <a href="/admin" class="bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold px-5 py-2.5 rounded-full transition shadow-lg shadow-blue-600/30">
+          <a href="/admin" class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold px-5 py-2.5 rounded-full transition shadow-md shadow-emerald-600/20">
             Admin Console &rarr;
           </a>
         {% else %}
-          <a href="/customer" class="bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold px-5 py-2.5 rounded-full transition shadow-lg shadow-blue-600/30">
+          <a href="/customer" class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold px-5 py-2.5 rounded-full transition shadow-md shadow-emerald-600/20">
             Customer Portal &rarr;
           </a>
         {% endif %}
-        <button onclick="openLogoutModal()" class="text-xs font-bold text-slate-400 hover:text-rose-400 transition ml-1">
+        <button onclick="openLogoutModal()" class="text-xs font-bold text-slate-700 hover:text-rose-500 transition ml-1">
           Sign Out
         </button>
       {% else %}
@@ -88,98 +85,302 @@
   <section class="relative z-10 pt-16 sm:pt-24 pb-20 px-6 max-w-5xl mx-auto text-center">
     
     <!-- Headline Title -->
-    <h1 class="text-4xl sm:text-6xl md:text-7xl font-extrabold tracking-tight text-white leading-[1.1] mb-6">
+    <h1 class="text-4xl sm:text-6xl md:text-7xl font-extrabold tracking-tight text-black leading-[1.1] mb-6">
       Elevate Your <br>
-      <span class="text-white">Printing Experience</span>
+      <span class="bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">Printing Experience</span>
     </h1>
 
     <!-- Subtitle Description -->
-    <p class="text-xs sm:text-sm md:text-base text-slate-400 max-w-xl mx-auto font-normal leading-relaxed mb-10">
+    <p class="text-xs sm:text-sm md:text-base text-slate-800 max-w-xl mx-auto font-normal leading-relaxed mb-10">
       Unlock fast, high-quality printing in a streamlined automated workflow, powered by Kez C-Em Zek Web Systems.
     </p>
 
-    <!-- Central Call-To-Action Pill Button (Inspired by "Sign Up & Trade") -->
-    <div class="flex justify-center mb-16 sm:mb-20">
+    <!-- Central Call-To-Action Pill Buttons -->
+    <div class="flex items-center justify-center gap-3.5 mb-16 sm:mb-20 flex-wrap">
       {% if session.get('username') %}
         {% if session.get('role') == 'admin' %}
-          <a href="/admin" class="inline-flex items-center gap-2 bg-white text-slate-900 hover:bg-slate-100 font-extrabold text-xs sm:text-sm px-7 py-3 rounded-full shadow-xl shadow-blue-500/10 hover:scale-105 transition-all">
+          <a href="/admin" class="inline-flex items-center gap-2 bg-emerald-600 text-white hover:bg-emerald-500 font-extrabold text-xs sm:text-sm px-7 py-3.5 rounded-full shadow-lg shadow-emerald-500/25 hover:scale-105 transition-all">
             <span>Open Admin Dashboard</span>
             <i class="fas fa-arrow-right text-xs"></i>
           </a>
         {% else %}
-          <a href="/customer" class="inline-flex items-center gap-2 bg-white text-slate-900 hover:bg-slate-100 font-extrabold text-xs sm:text-sm px-7 py-3 rounded-full shadow-xl shadow-blue-500/10 hover:scale-105 transition-all">
+          <a href="/customer" class="inline-flex items-center gap-2 bg-emerald-600 text-white hover:bg-emerald-500 font-extrabold text-xs sm:text-sm px-7 py-3.5 rounded-full shadow-lg shadow-emerald-500/25 hover:scale-105 transition-all">
             <span>Place Print Order</span>
             <i class="fas fa-arrow-right text-xs"></i>
           </a>
         {% endif %}
       {% else %}
-        <a href="/login" class="inline-flex items-center gap-2 bg-white text-slate-900 hover:bg-slate-100 font-extrabold text-xs sm:text-sm px-7 py-3 rounded-full shadow-xl shadow-blue-500/10 hover:scale-105 transition-all">
+        <a href="/login" class="inline-flex items-center gap-2 bg-emerald-600 text-white hover:bg-emerald-500 font-extrabold text-xs sm:text-sm px-7 py-3.5 rounded-full shadow-lg shadow-emerald-500/25 hover:scale-105 transition-all">
           <span>Sign Up & Print</span>
           <i class="fas fa-arrow-right text-xs"></i>
         </a>
       {% endif %}
+
+      <!-- Download App Button (MediaFire) in Hero CTA -->
+      <a href="https://www.mediafire.com/folder/iubfnfg67ff7t/app" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2.5 bg-white text-emerald-800 hover:text-emerald-900 border border-slate-200 hover:border-emerald-400 font-extrabold text-xs sm:text-sm px-6 py-3.5 rounded-full shadow-md hover:shadow-lg hover:bg-emerald-50/60 transition-all hover:scale-105">
+        <i class="fab fa-android text-emerald-600 text-base"></i>
+        <span>Download App</span>
+        <i class="fas fa-download text-xs text-emerald-600"></i>
+      </a>
     </div>
 
-    <!-- ================= MODERN WIREFRAME GLOBE GRAPHIC + FLOATING STAT PILLS ================= -->
+    <!-- ================= LOGO GRAPHIC SHOWCASE + FLOATING STAT PILLS ================= -->
     <div class="relative max-w-3xl mx-auto h-72 sm:h-96 flex items-center justify-center">
       
-      <!-- SVG Geometric Wireframe Mesh (Representing Modern Connected Grid) -->
-      <svg class="w-full h-full text-blue-500/60" viewBox="0 0 600 360" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <!-- Main Ellipses Arc -->
-        <ellipse cx="300" cy="270" rx="260" ry="160" stroke="#3b82f6" stroke-width="1.8" stroke-opacity="0.75" />
-        <ellipse cx="300" cy="270" rx="220" ry="190" stroke="#6366f1" stroke-width="1.4" stroke-opacity="0.6" />
-        <ellipse cx="300" cy="270" rx="170" ry="210" stroke="#3b82f6" stroke-width="1.6" stroke-opacity="0.8" />
-        <ellipse cx="300" cy="270" rx="270" ry="120" stroke="#60a5fa" stroke-width="1.2" stroke-opacity="0.6" />
-        <ellipse cx="300" cy="270" rx="110" ry="220" stroke="#818cf8" stroke-width="1.5" stroke-opacity="0.7" />
-        <ellipse cx="300" cy="270" rx="50" ry="230" stroke="#38bdf8" stroke-width="1.3" stroke-opacity="0.8" />
-
-        <!-- Diagonal Orbit Rings -->
-        <ellipse cx="300" cy="270" rx="240" ry="170" transform="rotate(-20 300 270)" stroke="#3b82f6" stroke-width="1.4" stroke-opacity="0.65" />
-        <ellipse cx="300" cy="270" rx="240" ry="170" transform="rotate(20 300 270)" stroke="#6366f1" stroke-width="1.4" stroke-opacity="0.65" />
+      <!-- Center Brand Logo Display with Glowing Halo -->
+      <div class="relative flex items-center justify-center group">
+        <!-- Ambient Glowing Aura -->
+        <div class="absolute -inset-4 bg-gradient-to-r from-emerald-500/20 via-teal-500/20 to-emerald-600/20 rounded-full blur-2xl opacity-75 group-hover:opacity-100 transition duration-700"></div>
         
-        <!-- Center Pulsing Core Glow -->
-        <circle cx="300" cy="180" r="14" fill="#3b82f6" fill-opacity="0.3" filter="blur(4px)" />
-        <circle cx="300" cy="180" r="4" fill="#60a5fa" />
-      </svg>
+        <!-- Outer Decorative Rings -->
+        <div class="absolute -inset-6 sm:-inset-8 border border-emerald-500/20 rounded-full animate-pulse pointer-events-none"></div>
+        <div class="absolute -inset-12 sm:-inset-16 border border-emerald-500/10 rounded-full pointer-events-none"></div>
 
-      <!-- Floating Card Left: High Speed & Quality (Inspired by "Trading Pairs / Unparalleled Market Access 46%") -->
-      <div class="absolute -left-2 sm:left-4 top-16 sm:top-24 bg-[#0d1428]/85 backdrop-blur-md border border-white/10 rounded-2xl p-4 sm:p-5 w-48 sm:w-56 text-left shadow-2xl hover:border-blue-500/40 transition group">
-        <div class="flex items-center justify-between mb-2">
-          <span class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Print Speed</span>
-          <span class="w-6 h-6 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-[10px] text-blue-400 group-hover:bg-blue-600 group-hover:text-white transition">
-            <i class="fas fa-arrow-up-right text-[9px]"></i>
-          </span>
-        </div>
-        <h4 class="font-bold text-xs sm:text-sm text-white mb-2 leading-tight">Instant File Proofing & Queue</h4>
-        <div class="flex items-center justify-between text-[11px] text-slate-400 font-mono">
-          <span>Efficiency</span>
-          <span class="text-blue-400 font-bold">99.4%</span>
+        <!-- Logo Container -->
+        <div class="relative w-44 h-44 sm:w-56 sm:h-56 rounded-full bg-white p-2.5 shadow-2xl border-2 border-emerald-500/30 flex items-center justify-center overflow-hidden hover:scale-105 transition-all duration-300">
+          <img src="{{ url_for('static', filename='images/kcz_logo.jpg') }}" alt="KCZ Printing Shop Logo" class="w-full h-full object-cover rounded-full">
         </div>
       </div>
 
-      <!-- Floating Card Right: RFID Rewards & Accuracy (Inspired by "Trading Pairs 96% progress bar") -->
-      <div class="absolute -right-2 sm:right-6 bottom-8 sm:bottom-12 bg-[#0d1428]/85 backdrop-blur-md border border-white/10 rounded-2xl p-4 sm:p-5 w-48 sm:w-56 text-left shadow-2xl hover:border-blue-500/40 transition group">
+      <!-- Floating Card Left: High Speed & Quality -->
+      <div class="absolute -left-2 sm:left-4 top-16 sm:top-24 bg-white/95 backdrop-blur-md border border-slate-200/90 rounded-2xl p-4 sm:p-5 w-48 sm:w-56 text-left shadow-lg hover:border-emerald-500/40 transition group z-20">
         <div class="flex items-center justify-between mb-2">
-          <span class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">RFID Loyalty</span>
-          <span class="w-6 h-6 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-[10px] text-blue-400 group-hover:bg-blue-600 group-hover:text-white transition">
+          <span class="text-[10px] font-semibold text-slate-700 uppercase tracking-wider">Print Speed</span>
+          <span class="w-6 h-6 rounded-full bg-emerald-50 border border-emerald-100 flex items-center justify-center text-[10px] text-emerald-600 group-hover:bg-emerald-600 group-hover:text-white transition">
             <i class="fas fa-arrow-up-right text-[9px]"></i>
           </span>
         </div>
-        <div class="text-2xl font-black text-white font-mono mb-2">
+        <h4 class="font-bold text-xs sm:text-sm text-black mb-2 leading-tight">Instant File Proofing & Queue</h4>
+        <div class="flex items-center justify-between text-[11px] text-slate-700 font-mono">
+          <span>Efficiency</span>
+          <span class="text-emerald-600 font-bold">99.4%</span>
+        </div>
+      </div>
+
+      <!-- Floating Card Right: RFID Rewards & Accuracy -->
+      <div class="absolute -right-2 sm:right-6 bottom-8 sm:bottom-12 bg-white/95 backdrop-blur-md border border-slate-200/90 rounded-2xl p-4 sm:p-5 w-48 sm:w-56 text-left shadow-lg hover:border-emerald-500/40 transition group z-20">
+        <div class="flex items-center justify-between mb-2">
+          <span class="text-[10px] font-semibold text-slate-700 uppercase tracking-wider">RFID Loyalty</span>
+          <span class="w-6 h-6 rounded-full bg-emerald-50 border border-emerald-100 flex items-center justify-center text-[10px] text-emerald-600 group-hover:bg-emerald-600 group-hover:text-white transition">
+            <i class="fas fa-arrow-up-right text-[9px]"></i>
+          </span>
+        </div>
+        <div class="text-2xl font-black text-black font-mono mb-2">
           96%
         </div>
         <!-- Progress bar -->
-        <div class="w-full bg-slate-800 rounded-full h-1.5 overflow-hidden">
-          <div class="bg-gradient-to-r from-blue-500 via-indigo-500 to-rose-400 h-1.5 rounded-full w-[96%]"></div>
+        <div class="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
+          <div class="bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-400 h-1.5 rounded-full w-[96%]"></div>
         </div>
-        <p class="text-[10px] text-slate-400 mt-2">Customer Satisfaction</p>
+        <p class="text-[10px] text-slate-700 mt-2">Customer Satisfaction</p>
       </div>
 
     </div>
 
   </section>
 
-  <!-- ================= SERVICES SECTION (Dark Glassmorphic Cards) ================= -->
+  <!-- ================= SAMPLES & SERVICES SHOWCASE SECTION ================= -->
+  <section id="sampleShowcase" class="relative z-10 max-w-7xl mx-auto px-6 sm:px-8 py-16 scroll-mt-20 border-t border-slate-100 bg-slate-50/60">
+    <div class="mb-10 text-center max-w-3xl mx-auto">
+      <span class="text-[11px] font-extrabold uppercase tracking-widest text-emerald-700 bg-emerald-50 px-3.5 py-1 rounded-full border border-emerald-200 inline-flex items-center gap-1.5 mb-3">
+        <i class="fas fa-palette text-xs"></i>
+        <span>Sample Products & Print Catalog</span>
+      </span>
+      <h2 class="text-3xl sm:text-4xl font-extrabold text-black tracking-tight">
+        Sample Works & Service Outputs
+      </h2>
+      <p class="text-xs sm:text-sm text-slate-800 mt-2">
+        Silipin ang mga sample print projects, actual outputs, at standard specs para may gabay at pagbabasehan bago mag-place ng inyong order.
+      </p>
+
+      <!-- Category Filter Bar -->
+      <div class="flex items-center justify-center gap-2 mt-6 flex-wrap text-xs" id="sampleCategoryFilterBar">
+        <button onclick="filterSampleCards('all')" id="sampleFilterBtn-all" class="sample-pill px-4 py-2 rounded-full font-bold bg-emerald-600 text-white shadow-sm transition">Lahat ng Samples</button>
+        <button onclick="filterSampleCards('Standard Printing')" id="sampleFilterBtn-Standard Printing" class="sample-pill px-4 py-2 rounded-full font-bold bg-white text-black hover:bg-slate-50 border border-slate-200 shadow-2xs transition">Printing & Documents</button>
+        <button onclick="filterSampleCards('ID & Badges')" id="sampleFilterBtn-ID & Badges" class="sample-pill px-4 py-2 rounded-full font-bold bg-white text-black hover:bg-slate-50 border border-slate-200 shadow-2xs transition">PVC Cards & IDs</button>
+        <button onclick="filterSampleCards('Stickers & Labels')" id="sampleFilterBtn-Stickers & Labels" class="sample-pill px-4 py-2 rounded-full font-bold bg-white text-black hover:bg-slate-50 border border-slate-200 shadow-2xs transition">Stickers & Labels</button>
+        <button onclick="filterSampleCards('Large Format')" id="sampleFilterBtn-Large Format" class="sample-pill px-4 py-2 rounded-full font-bold bg-white text-black hover:bg-slate-50 border border-slate-200 shadow-2xs transition">Tarpaulins & Banners</button>
+        <button onclick="filterSampleCards('Corporate Branding')" id="sampleFilterBtn-Corporate Branding" class="sample-pill px-4 py-2 rounded-full font-bold bg-white text-black hover:bg-slate-50 border border-slate-200 shadow-2xs transition">Business Cards</button>
+        <button onclick="filterSampleCards('Apparel & Merch')" id="sampleFilterBtn-Apparel & Merch" class="sample-pill px-4 py-2 rounded-full font-bold bg-white text-black hover:bg-slate-50 border border-slate-200 shadow-2xs transition">Shirts & Merch</button>
+      </div>
+    </div>
+
+    <!-- Dynamic Samples Grid -->
+    <div id="sampleProductsGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div class="col-span-full text-center py-12 text-slate-700 text-xs">
+        <i class="fas fa-circle-notch fa-spin text-emerald-600 text-lg mb-2 block"></i>
+        Naglo-load ng mga sample products at print services...
+      </div>
+    </div>
+
+    <!-- Quick CTA under samples -->
+    <div class="mt-12 text-center">
+      <div class="inline-flex items-center gap-3 bg-white border border-slate-200 rounded-2xl p-4 shadow-sm max-w-xl mx-auto">
+        <div class="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 text-base">
+          <i class="fas fa-lightbulb"></i>
+        </div>
+        <div class="text-left text-xs">
+          <p class="font-bold text-black">May sariling custom design o specifications?</p>
+          <p class="text-slate-800 text-[11px]">Direktang i-upload ang iyong document file para masimulan agad ang pag-print.</p>
+        </div>
+        <a href="/customer" class="ml-auto bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-xs px-4 py-2.5 rounded-xl transition shadow-md shrink-0 whitespace-nowrap">
+          Order Now &rarr;
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- SAMPLE DETAIL PREVIEW MODAL -->
+  <div id="samplePreviewModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 hidden flex items-center justify-center p-4" onclick="if(event.target===this) closeSampleModal()">
+    <div class="bg-white border border-slate-200 rounded-3xl max-w-lg w-full overflow-hidden shadow-2xl relative">
+      <button onclick="closeSampleModal()" class="absolute top-5 right-5 w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-black hover:text-black flex items-center justify-center transition cursor-pointer">
+        ✕
+      </button>
+      <div class="h-60 overflow-hidden relative bg-slate-100">
+        <img id="modalSampleImg" src="" alt="Sample" class="w-full h-full object-cover">
+        <span id="modalSampleCategory" class="absolute bottom-4 left-4 text-[10px] font-bold px-3 py-1 rounded-full bg-slate-900/80 backdrop-blur-md text-white border border-white/10">Category</span>
+        <span id="modalSampleBadge" class="text-[10px] font-extrabold uppercase px-3 py-1 rounded-full bg-emerald-600/10 text-emerald-700 border border-emerald-500/20">Sample</span>
+      </div>
+      <div class="p-6 space-y-4">
+        <div>
+          <h3 id="modalSampleTitle" class="text-lg font-black text-black">Sample Name</h3>
+          <p id="modalSamplePrice" class="text-xs font-mono font-bold text-emerald-600 mt-1">Price</p>
+        </div>
+        <p id="modalSampleDesc" class="text-xs text-black leading-relaxed">Sample description details...</p>
+        <div class="pt-3 border-t border-white/5 flex gap-3">
+          <button onclick="closeSampleModal()" class="flex-1 bg-white/5 hover:bg-white/10 text-white font-bold text-xs py-2.5 rounded-xl transition">
+            Close
+          </button>
+          <a id="modalSampleOrderBtn" href="/customer" class="flex-1 bg-blue-600 hover:bg-blue-500 text-white font-extrabold text-xs py-2.5 rounded-xl transition shadow-lg text-center flex items-center justify-center gap-2">
+            <span>Order This Service</span>
+            <i class="fas fa-arrow-right text-xs"></i>
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let ALL_SHOWCASE_SAMPLES = [];
+    let currentSampleFilter = 'all';
+
+    document.addEventListener('DOMContentLoaded', () => {
+      fetchShowcaseSamples();
+    });
+
+    function fetchShowcaseSamples() {
+      fetch('/api/samples')
+        .then(res => res.json())
+        .then(data => {
+          ALL_SHOWCASE_SAMPLES = Array.isArray(data) ? data : [];
+          renderShowcaseSamples();
+        })
+        .catch(err => {
+          console.error('Failed to load sample products:', err);
+          const grid = document.getElementById('sampleProductsGrid');
+          if (grid) grid.innerHTML = '<div class="col-span-full text-center py-8 text-rose-400 text-xs">Hindi ma-load ang samples pansamantala.</div>';
+        });
+    }
+
+    function filterSampleCards(cat) {
+      currentSampleFilter = cat;
+      document.querySelectorAll('.sample-pill').forEach(btn => {
+        btn.className = 'sample-pill px-4 py-2 rounded-full font-bold bg-white/5 text-slate-300 hover:bg-white/10 border border-white/10 transition';
+      });
+      const activeBtn = document.getElementById('sampleFilterBtn-' + cat);
+      if (activeBtn) {
+        activeBtn.className = 'sample-pill px-4 py-2 rounded-full font-bold bg-blue-600 text-white shadow-lg transition';
+      }
+      renderShowcaseSamples();
+    }
+
+    function renderShowcaseSamples() {
+      const grid = document.getElementById('sampleProductsGrid');
+      if (!grid) return;
+
+      const filtered = ALL_SHOWCASE_SAMPLES.filter(s => {
+        if (currentSampleFilter === 'all') return true;
+        return (s.category || '').toLowerCase() === currentSampleFilter.toLowerCase();
+      });
+
+      if (filtered.length === 0) {
+        grid.innerHTML = '<div class="col-span-full text-center py-12 text-slate-700 text-xs">Walang sample item sa category na ito.</div>';
+        return;
+      }
+
+      grid.innerHTML = filtered.map(item => {
+        const badge = item.badge || 'Sample';
+        const img = item.imageUrl || 'https://images.unsplash.com/photo-1589829085413-56de8ae18c73?auto=format&fit=crop&w=600&q=80';
+        const serviceVal = item.serviceVal || 'standardA4';
+        const price = item.price || 'Inquire Price';
+
+        return `
+          <div class="bg-white rounded-3xl border border-slate-200 shadow-sm hover:border-emerald-4000/50 transition-all duration-300 hover:-translate-y-1 overflow-hidden flex flex-col justify-between group shadow-xl">
+            <div>
+              <div class="h-48 overflow-hidden relative bg-slate-900/60">
+                <img src="${escapeHtml(img)}" alt="${escapeHtml(item.title || '')}" class="w-full h-full object-cover group-hover:scale-105 transition-all duration-300">
+                <span class="absolute top-3 left-3 bg-blue-600 text-white text-[10px] font-black uppercase tracking-wider px-3 py-1 rounded-full shadow-lg">
+                  ${escapeHtml(badge)}
+                </span>
+                <span class="absolute top-3 right-3 bg-black/50 backdrop-blur-md text-white/90 text-[10px] font-bold px-2.5 py-1 rounded-full border border-white/10">
+                  ${escapeHtml(item.category || 'Printing')}
+                </span>
+              </div>
+              <div class="p-5 space-y-2">
+                <h4 class="font-extrabold text-white text-base group-hover:text-blue-400 transition-colors leading-snug">${escapeHtml(item.title || '')}</h4>
+                <p class="text-xs text-slate-700 leading-relaxed line-clamp-3">${escapeHtml(item.description || 'Quality print sample with fine finishing and accurate color balance.')}</p>
+              </div>
+            </div>
+
+            <div class="p-5 pt-0 border-t border-white/5 mt-3 space-y-3">
+              <div class="flex justify-between items-center pt-3">
+                <div>
+                  <span class="text-[10px] uppercase font-bold text-slate-700 block tracking-wider">Est. Pricing / Rate</span>
+                  <span class="text-xs font-mono font-black text-blue-400">${escapeHtml(price)}</span>
+                </div>
+                <button onclick="previewSampleModal('${escapeHtml(String(item.id))}')" class="text-xs text-slate-300 hover:text-white underline underline-offset-4 decoration-blue-500 font-semibold cursor-pointer">
+                  Quick View
+                </button>
+              </div>
+              <a href="/customer" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-extrabold text-xs py-2.5 rounded-xl transition shadow-md flex items-center justify-center gap-2">
+                <i class="fas fa-print text-xs"></i>
+                <span>Order This Service</span>
+              </a>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function previewSampleModal(id) {
+      const item = ALL_SHOWCASE_SAMPLES.find(s => String(s.id) === String(id));
+      if (!item) return;
+
+      document.getElementById('modalSampleImg').src = item.imageUrl || 'https://images.unsplash.com/photo-1589829085413-56de8ae18c73?auto=format&fit=crop&w=600&q=80';
+      document.getElementById('modalSampleTitle').textContent = item.title || 'Sample Item';
+      document.getElementById('modalSampleCategory').textContent = item.category || 'Printing';
+      document.getElementById('modalSampleBadge').textContent = item.badge || 'Sample';
+      document.getElementById('modalSamplePrice').textContent = item.price || 'Starts at ₱3.00';
+      document.getElementById('modalSampleDesc').textContent = item.description || 'High quality printing service specimen.';
+      document.getElementById('samplePreviewModal').classList.remove('hidden');
+    }
+
+    function closeSampleModal() {
+      document.getElementById('samplePreviewModal').classList.add('hidden');
+    }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+  </script>
+
+  $targetSection
   <section id="services" class="relative z-10 max-w-7xl mx-auto px-6 sm:px-8 py-20 scroll-mt-20 border-t border-white/5">
     <div class="mb-12 text-center max-w-2xl mx-auto">
       <span class="text-[11px] font-extrabold uppercase tracking-widest text-blue-400 bg-blue-500/10 px-3.5 py-1 rounded-full border border-blue-500/20 inline-block mb-3">
@@ -188,7 +389,7 @@
       <h2 class="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
         Services Crafted for Precision
       </h2>
-      <p class="text-xs sm:text-sm text-slate-400 mt-2">
+      <p class="text-xs sm:text-sm text-slate-700 mt-2">
         High-grade documents, identification cards, marketing materials, and store supplies.
       </p>
     </div>
@@ -196,62 +397,62 @@
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
       
       <!-- Card 1 -->
-      <div class="bg-[#0b1226]/80 backdrop-blur-md rounded-3xl p-6 border border-white/10 hover:border-blue-500/40 transition-all hover:-translate-y-1 group flex flex-col justify-between">
+      <div class="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm hover:border-emerald-400e-500/40 transition-all hover:-translate-y-1 group flex flex-col justify-between">
         <div>
           <div class="w-12 h-12 rounded-2xl bg-blue-500/10 border border-blue-500/20 text-blue-400 flex items-center justify-center text-xl font-bold mb-5 group-hover:bg-blue-600 group-hover:text-white transition">
             <i class="fa-solid fa-file-lines"></i>
           </div>
           <h3 class="font-bold text-white text-base mb-1">Standard Document Print</h3>
-          <p class="text-xs text-slate-400 leading-relaxed mb-4">Short, Long, and A4 paper in crisp B&W or high-density Full Color.</p>
+          <p class="text-xs text-slate-700 leading-relaxed mb-4">Short, Long, and A4 paper in crisp B&W or high-density Full Color.</p>
         </div>
         <div class="pt-4 border-t border-white/5 flex justify-between items-center">
           <span class="text-xs font-mono font-bold text-blue-400">Starts at ₱3.00</span>
-          <a href="/customer" class="text-slate-400 group-hover:text-white text-xs transition"><i class="fas fa-chevron-right text-[10px]"></i></a>
+          <a href="/order?service=standardA4" class="text-slate-700 group-hover:text-white text-xs transition"><i class="fas fa-chevron-right text-[10px]"></i></a>
         </div>
       </div>
 
       <!-- Card 2 -->
-      <div class="bg-[#0b1226]/80 backdrop-blur-md rounded-3xl p-6 border border-white/10 hover:border-indigo-500/40 transition-all hover:-translate-y-1 group flex flex-col justify-between">
+      <div class="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm hover:border-emerald-400 transition-all hover:-translate-y-1 group flex flex-col justify-between">
         <div>
           <div class="w-12 h-12 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 flex items-center justify-center text-xl font-bold mb-5 group-hover:bg-indigo-600 group-hover:text-white transition">
             <i class="fa-solid fa-id-card"></i>
           </div>
           <h3 class="font-bold text-white text-base mb-1">PVC ID & Badges</h3>
-          <p class="text-xs text-slate-400 leading-relaxed mb-4">Waterproof, durable high-grade PVC cards for school, club, or company IDs.</p>
+          <p class="text-xs text-slate-700 leading-relaxed mb-4">Waterproof, durable high-grade PVC cards for school, club, or company IDs.</p>
         </div>
         <div class="pt-4 border-t border-white/5 flex justify-between items-center">
           <span class="text-xs font-mono font-bold text-indigo-400">Starts at ₱50.00</span>
-          <a href="/customer" class="text-slate-400 group-hover:text-white text-xs transition"><i class="fas fa-chevron-right text-[10px]"></i></a>
+          <a href="/order?service=businessCards" class="text-slate-700 group-hover:text-white text-xs transition"><i class="fas fa-chevron-right text-[10px]"></i></a>
         </div>
       </div>
 
       <!-- Card 3 -->
-      <div class="bg-[#0b1226]/80 backdrop-blur-md rounded-3xl p-6 border border-white/10 hover:border-cyan-500/40 transition-all hover:-translate-y-1 group flex flex-col justify-between">
+      <div class="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm hover:border-emerald-400 transition-all hover:-translate-y-1 group flex flex-col justify-between">
         <div>
           <div class="w-12 h-12 rounded-2xl bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 flex items-center justify-center text-xl font-bold mb-5 group-hover:bg-cyan-600 group-hover:text-white transition">
             <i class="fa-solid fa-note-sticky"></i>
           </div>
           <h3 class="font-bold text-white text-base mb-1">Stickers & Labels</h3>
-          <p class="text-xs text-slate-400 leading-relaxed mb-4">Glossy, Matte, or Vinyl die-cut custom stickers for product packaging.</p>
+          <p class="text-xs text-slate-700 leading-relaxed mb-4">Glossy, Matte, or Vinyl die-cut custom stickers for product packaging.</p>
         </div>
         <div class="pt-4 border-t border-white/5 flex justify-between items-center">
           <span class="text-xs font-mono font-bold text-cyan-400">Starts at ₱45.00</span>
-          <a href="/customer" class="text-slate-400 group-hover:text-white text-xs transition"><i class="fas fa-chevron-right text-[10px]"></i></a>
+          <a href="/order?service=stickers" class="text-slate-700 group-hover:text-white text-xs transition"><i class="fas fa-chevron-right text-[10px]"></i></a>
         </div>
       </div>
 
       <!-- Card 4 -->
-      <div class="bg-[#0b1226]/80 backdrop-blur-md rounded-3xl p-6 border border-white/10 hover:border-blue-500/40 transition-all hover:-translate-y-1 group flex flex-col justify-between">
+      <div class="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm hover:border-emerald-400e-500/40 transition-all hover:-translate-y-1 group flex flex-col justify-between">
         <div>
           <div class="w-12 h-12 rounded-2xl bg-blue-500/10 border border-blue-500/20 text-blue-400 flex items-center justify-center text-xl font-bold mb-5 group-hover:bg-blue-600 group-hover:text-white transition">
             <i class="fa-solid fa-store"></i>
           </div>
           <h3 class="font-bold text-white text-base mb-1">Store Supplies</h3>
-          <p class="text-xs text-slate-400 leading-relaxed mb-4">Notebooks, ballpens, design stationery, and craft items ready for pickup.</p>
+          <p class="text-xs text-slate-700 leading-relaxed mb-4">Notebooks, ballpens, design stationery, and craft items ready for pickup.</p>
         </div>
         <div class="pt-4 border-t border-white/5 flex justify-between items-center">
           <span class="text-xs font-mono font-bold text-blue-400">Available in Catalog</span>
-          <a href="/store" class="text-slate-400 group-hover:text-white text-xs transition"><i class="fas fa-arrow-right text-[10px]"></i></a>
+          <a href="/store" class="text-slate-700 group-hover:text-white text-xs transition"><i class="fas fa-arrow-right text-[10px]"></i></a>
         </div>
       </div>
 
@@ -267,7 +468,7 @@
       <h2 class="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
         How It Works
       </h2>
-      <p class="text-xs sm:text-sm text-slate-400 mt-2">
+      <p class="text-xs sm:text-sm text-slate-700 mt-2">
         Three direct steps to complete your print and supply orders without waiting in line.
       </p>
     </div>
@@ -275,34 +476,34 @@
     <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
       
       <!-- Step 1 -->
-      <div class="bg-[#0b1226]/60 backdrop-blur-md rounded-3xl p-8 border border-white/10 text-center relative hover:border-blue-500/30 transition">
+      <div class="bg-white rounded-3xl p-8 border border-slate-200 shadow-sm text-center relative hover:border-blue-500/30 transition">
         <div class="w-12 h-12 rounded-2xl bg-blue-600 text-white font-black text-sm flex items-center justify-center mx-auto mb-6 shadow-lg shadow-blue-600/30">
           01
         </div>
         <h3 class="font-bold text-white text-base mb-2">Upload Your Document</h3>
-        <p class="text-xs text-slate-400 leading-relaxed">
+        <p class="text-xs text-slate-700 leading-relaxed">
           Select specifications (Paper Size, Color Mode, Quantity) and upload your file securely online.
         </p>
       </div>
 
       <!-- Step 2 -->
-      <div class="bg-[#0b1226]/60 backdrop-blur-md rounded-3xl p-8 border border-white/10 text-center relative hover:border-indigo-500/30 transition">
+      <div class="bg-white rounded-3xl p-8 border border-slate-200 shadow-sm text-center relative hover:border-indigo-500/30 transition">
         <div class="w-12 h-12 rounded-2xl bg-indigo-600 text-white font-black text-sm flex items-center justify-center mx-auto mb-6 shadow-lg shadow-indigo-600/30">
           02
         </div>
         <h3 class="font-bold text-white text-base mb-2">Real-Time Production Tracker</h3>
-        <p class="text-xs text-slate-400 leading-relaxed">
+        <p class="text-xs text-slate-700 leading-relaxed">
           Watch your order progress live from Pending Review, Printing, to Ready for Pickup.
         </p>
       </div>
 
       <!-- Step 3 -->
-      <div class="bg-[#0b1226]/60 backdrop-blur-md rounded-3xl p-8 border border-white/10 text-center relative hover:border-cyan-500/30 transition">
+      <div class="bg-white rounded-3xl p-8 border border-slate-200 shadow-sm text-center relative hover:border-cyan-500/30 transition">
         <div class="w-12 h-12 rounded-2xl bg-cyan-600 text-white font-black text-sm flex items-center justify-center mx-auto mb-6 shadow-lg shadow-cyan-600/30">
           03
         </div>
         <h3 class="font-bold text-white text-base mb-2">Counter Pickup & RFID Rewards</h3>
-        <p class="text-xs text-slate-400 leading-relaxed">
+        <p class="text-xs text-slate-700 leading-relaxed">
           Pick up your order seamlessly at our counter and tap your RFID card to gain loyalty reward points.
         </p>
       </div>
@@ -312,14 +513,14 @@
     <!-- Bottom Promo Banner -->
     <div class="mt-16 bg-gradient-to-r from-blue-900/40 via-indigo-900/30 to-blue-900/40 border border-blue-500/20 rounded-3xl p-8 sm:p-12 text-center max-w-4xl mx-auto backdrop-blur-md">
       <h3 class="text-2xl sm:text-3xl font-extrabold text-white mb-3">Ready to submit your first project?</h3>
-      <p class="text-xs sm:text-sm text-slate-400 max-w-md mx-auto mb-6">Experience fast turnarounds, reliable output, and automated loyalty tracking.</p>
+      <p class="text-xs sm:text-sm text-slate-700 max-w-md mx-auto mb-6">Experience fast turnarounds, reliable output, and automated loyalty tracking.</p>
       <div class="flex items-center justify-center gap-4 flex-wrap">
         {% if session.get('username') %}
-          <a href="/customer" class="bg-white text-slate-900 font-extrabold text-xs px-6 py-3 rounded-full hover:bg-slate-100 transition shadow-lg">
+          <a href="/customer" class="bg-white text-black font-extrabold text-xs px-6 py-3 rounded-full hover:bg-slate-100 transition shadow-lg">
             Go to Customer Portal &rarr;
           </a>
         {% else %}
-          <a href="/login" class="bg-white text-slate-900 font-extrabold text-xs px-6 py-3 rounded-full hover:bg-slate-100 transition shadow-lg">
+          <a href="/login" class="bg-white text-black font-extrabold text-xs px-6 py-3 rounded-full hover:bg-slate-100 transition shadow-lg">
             Create Free Account &rarr;
           </a>
         {% endif %}

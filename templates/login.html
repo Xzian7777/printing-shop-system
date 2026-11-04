@@ -1,359 +1,384 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="min-h-[85vh] flex items-center justify-center p-4 sm:p-6 lg:p-8">
-    <div class="bg-white border border-slate-200/90 rounded-3xl max-w-4xl w-full shadow-2xl overflow-hidden grid grid-cols-1 lg:grid-cols-12">
+<div class="min-h-[90vh] flex items-center justify-center p-3 sm:p-6 lg:p-8">
+    <div class="bg-white border border-slate-200/90 rounded-3xl max-w-5xl w-full shadow-2xl overflow-hidden grid grid-cols-1 lg:grid-cols-12 min-h-[640px]">
         
         <!-- ================= LEFT BRAND SIDEBAR ================= -->
-        <div class="lg:col-span-5 bg-gradient-to-br from-[#1e1b4b] via-[#4c0519] to-[#831843] p-8 lg:p-10 text-white flex flex-col justify-between relative overflow-hidden">
+        <div class="lg:col-span-5 bg-gradient-to-br from-emerald-50 via-teal-50/50 to-white p-6 sm:p-8 lg:p-10 text-black flex flex-col justify-between relative overflow-hidden border-r border-slate-100">
             <!-- Background decorative glow -->
-            <div class="absolute -top-24 -left-24 w-72 h-72 bg-rose-500/30 rounded-full blur-3xl pointer-events-none"></div>
-            <div class="absolute -bottom-24 -right-24 w-72 h-72 bg-amber-500/20 rounded-full blur-3xl pointer-events-none"></div>
+            <div class="absolute -top-24 -left-24 w-72 h-72 bg-emerald-200/40 rounded-full blur-3xl pointer-events-none"></div>
+            <div class="absolute -bottom-24 -right-24 w-72 h-72 bg-teal-200/30 rounded-full blur-3xl pointer-events-none"></div>
             
             <div class="relative z-10 space-y-6">
                 <!-- Brand Header -->
-                <div class="flex items-center gap-3">
-                    <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-[#f09433] via-[#dc2743] to-[#bc1888] flex items-center justify-center text-white font-black text-xl shadow-lg shadow-rose-500/30">
-                        KCZ
-                    </div>
+                <div class="flex items-center gap-3 select-none pointer-events-none">
+                    <img src="{{ url_for('static', filename='images/kcz_logo.jpg') }}" alt="KCZ Logo" class="w-12 h-12 rounded-2xl object-cover shadow-sm border border-emerald-500/30">
                     <div>
-                        <h2 class="font-extrabold text-lg text-white leading-tight">Kez C-Em Zek</h2>
-                        <span class="text-[11px] font-semibold text-rose-200 uppercase tracking-wider">Printing Shop System</span>
+                        <h2 class="font-extrabold text-lg text-black leading-tight">Kez C-Em Zek</h2>
+                        <span class="text-[11px] font-semibold text-emerald-700 uppercase tracking-wider">Printing Shop System</span>
                     </div>
                 </div>
 
                 <!-- Headline / Value Proposition -->
                 <div class="pt-2 space-y-2">
-                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md text-rose-200 text-[11px] font-bold border border-white/10">
-                        <i class="fas fa-sparkles text-amber-300"></i> Fast, Smart & Reliable
+                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-100/70 backdrop-blur-md text-emerald-800 text-[11px] font-bold border border-emerald-200">
+                        <i class="fas fa-sparkles text-emerald-600"></i> Fast, Smart & Reliable
                     </span>
-                    <h3 class="text-2xl font-black text-white leading-tight">
+                    <h3 class="text-2xl font-black text-black leading-tight">
                         Lahat ng Printing Needs Mo, Nasa Isang Pindot Lang.
                     </h3>
-                    <p class="text-xs text-rose-100/80 leading-relaxed">
+                    <p class="text-xs text-black leading-relaxed">
                         Subaybayan ang iyong mga documents, flyers, stickers, tarpaulin orders, at RFID tap-and-pay transactions nang real-time.
                     </p>
                 </div>
 
                 <!-- Feature highlights -->
                 <div class="space-y-3 pt-2">
-                    <div class="flex items-start gap-3 bg-white/5 backdrop-blur-sm p-3 rounded-2xl border border-white/10">
-                        <div class="w-8 h-8 rounded-xl bg-amber-400/20 text-amber-300 flex items-center justify-center shrink-0">
+                    <div class="flex items-start gap-3 bg-white p-3 rounded-2xl border border-slate-200 shadow-2xs">
+                        <div class="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
                             <i class="fas fa-bolt text-sm"></i>
                         </div>
                         <div>
-                            <h4 class="text-xs font-bold text-white">Instant Order Tracking</h4>
-                            <p class="text-[11px] text-rose-100/70">Mula printing hanggang ready for pick-up o delivery.</p>
+                            <h4 class="text-xs font-bold text-black">Instant Order Tracking</h4>
+                            <p class="text-[11px] text-slate-800">Mula printing hanggang ready for pick-up o delivery.</p>
                         </div>
                     </div>
 
-                    <div class="flex items-start gap-3 bg-white/5 backdrop-blur-sm p-3 rounded-2xl border border-white/10">
-                        <div class="w-8 h-8 rounded-xl bg-rose-400/20 text-rose-300 flex items-center justify-center shrink-0">
+                    <div class="flex items-start gap-3 bg-white p-3 rounded-2xl border border-slate-200 shadow-2xs">
+                        <div class="w-8 h-8 rounded-xl bg-teal-50 text-teal-600 flex items-center justify-center shrink-0">
                             <i class="fas fa-id-card text-sm"></i>
                         </div>
                         <div>
-                            <h4 class="text-xs font-bold text-white">RFID Tap & Pay Ready</h4>
-                            <p class="text-[11px] text-rose-100/70">Mag-tap ng card para sa mabilisang in-store payment.</p>
+                            <h4 class="text-xs font-bold text-black">RFID Tap & Pay Ready</h4>
+                            <p class="text-[11px] text-slate-800">Mag-tap ng card para sa mabilisang in-store payment.</p>
                         </div>
                     </div>
 
-                    <div class="flex items-start gap-3 bg-white/5 backdrop-blur-sm p-3 rounded-2xl border border-white/10">
-                        <div class="w-8 h-8 rounded-xl bg-fuchsia-400/20 text-fuchsia-300 flex items-center justify-center shrink-0">
+                    <div class="flex items-start gap-3 bg-white p-3 rounded-2xl border border-slate-200 shadow-2xs">
+                        <div class="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
                             <i class="fab fa-google text-sm"></i>
                         </div>
                         <div>
-                            <h4 class="text-xs font-bold text-white">One-Click Google Sign-In</h4>
-                            <p class="text-[11px] text-rose-100/70">Walang hassle, direktang konektado sa iyong Google account.</p>
+                            <h4 class="text-xs font-bold text-black">One-Click Google Sign-In</h4>
+                            <p class="text-[11px] text-slate-800">Walang hassle, direktang konektado sa iyong Google account.</p>
                         </div>
                     </div>
                 </div>
             </div>
 
             <!-- Sidebar Footer / Trust badge -->
-            <div class="relative z-10 pt-6 mt-6 border-t border-white/10 flex items-center justify-between text-[11px] text-rose-200/80">
-                <span class="flex items-center gap-1.5 font-medium">
-                    <i class="fas fa-shield-halved text-emerald-400"></i> Secure & Protected
+            <div class="relative z-10 pt-6 mt-6 border-t border-slate-200 flex items-center justify-between text-[11px] text-slate-800">
+                <span class="flex items-center gap-1.5 font-medium text-emerald-700">
+                    <i class="fas fa-shield-halved text-emerald-600"></i> Secure & Protected
                 </span>
-                <span class="font-bold text-white/90">v2.0 • Pro Edition</span>
+                <span class="font-bold text-black">v2.0 • Pro Edition</span>
             </div>
         </div>
 
-        <!-- ================= RIGHT FORM PANEL ================= -->
-        <div class="lg:col-span-7 p-8 lg:p-10 flex flex-col justify-center space-y-5">
-            <!-- Back to Home Link -->
-            <div>
-                <a href="/" class="text-xs font-bold text-slate-400 hover:text-slate-600 transition inline-flex items-center gap-1.5">
-                    <i class="fas fa-arrow-left text-[10px]"></i> Back to home
-                </a>
-            </div>
-
-            <!-- Header Titles -->
-            <div class="space-y-1">
-                <h1 class="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">Welcome back</h1>
-                <p class="text-xs font-medium text-slate-400">Sign in to track orders and reorder faster.</p>
-            </div>
-
-            <!-- Alert Notification Message Box -->
-            <div id="loginAlertBox" class="hidden p-3.5 rounded-2xl text-xs font-bold flex items-center gap-2"></div>
-
-            <!-- Single Clean Login Form -->
-            <form id="loginForm" onsubmit="handleSingleLoginSubmit(event)" class="space-y-4">
-                <!-- Email Input -->
-                <div class="space-y-1.5">
-                    <label for="loginEmail" class="block text-xs font-bold text-slate-700">Gmail Address (@gmail.com)</label>
-                    <input 
-                        type="email" 
-                        id="loginEmail" 
-                        required 
-                        placeholder="e.g. juan.delacruz@gmail.com" 
-                        class="w-full bg-slate-50/80 border border-slate-200 rounded-2xl px-4 py-3 text-xs font-medium text-slate-800 focus:outline-none focus:border-fuchsia-600 focus:bg-white transition"
-                    >
+        <!-- ================= RIGHT FORM PANEL (TABBED SIGN-IN / SIGN-UP) ================= -->
+        <div class="lg:col-span-7 p-6 sm:p-8 lg:p-10 flex flex-col justify-between space-y-4 max-h-[88vh] overflow-y-auto">
+            
+            <!-- Top Controls: Back & Tab Switcher -->
+            <div class="space-y-4">
+                <div class="flex items-center justify-between">
+                    <a href="/" class="text-xs font-bold text-slate-700 hover:text-black transition inline-flex items-center gap-1.5">
+                        <i class="fas fa-arrow-left text-[10px]"></i> Back to home
+                    </a>
+                    <span class="text-[11px] font-bold text-slate-600 uppercase tracking-wider">Account Portal</span>
                 </div>
 
-                <!-- Password Input (MAY EYE BUTTON NA) -->
-                <div class="space-y-1.5">
-                    <div class="flex items-center justify-between">
-                        <label for="loginPassword" class="block text-xs font-bold text-slate-700">Password</label>
-                        <button type="button" onclick="openForgotPasswordModal()" class="text-xs font-bold text-fuchsia-600 hover:text-fuchsia-700 cursor-pointer">Forgot password?</button>
-                    </div>
-                    <div class="relative">
+                <!-- Modern Dual Tabs -->
+                <div class="bg-slate-100 p-1 rounded-2xl grid grid-cols-2 gap-1 text-xs font-bold border border-slate-200">
+                    <button type="button" onclick="switchAuthView('signIn')" id="authTabBtn-signIn" class="py-2.5 px-4 rounded-xl bg-white text-black shadow-xs transition-all cursor-pointer flex items-center justify-center gap-2">
+                        <i class="fas fa-right-to-bracket text-emerald-600"></i>
+                        <span>Sign In</span>
+                    </button>
+                    <button type="button" onclick="switchAuthView('signUp')" id="authTabBtn-signUp" class="py-2.5 px-4 rounded-xl text-slate-600 hover:text-black transition-all cursor-pointer flex items-center justify-center gap-2">
+                        <i class="fas fa-user-plus text-emerald-600"></i>
+                        <span>Create Account</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- ================= VIEW 1: SIGN IN ================= -->
+            <div id="authView-signIn" class="space-y-4">
+                <!-- Header Titles -->
+                <div class="space-y-1">
+                    <h1 class="text-2xl sm:text-3xl font-black text-black tracking-tight">Welcome back</h1>
+                    <p class="text-xs font-medium text-slate-700">Sign in to track orders, earn points, and reorder faster.</p>
+                </div>
+
+                <!-- Alert Notification Message Box -->
+                <div id="loginAlertBox" class="hidden p-3.5 rounded-2xl text-xs font-bold flex items-center gap-2"></div>
+
+                <!-- Single Clean Login Form -->
+                <form id="loginForm" onsubmit="handleSingleLoginSubmit(event)" class="space-y-4">
+                    <!-- Email Input -->
+                    <div class="space-y-1.5">
+                        <label for="loginEmail" class="block text-xs font-bold text-black">Gmail Address (@gmail.com)</label>
                         <input 
-                            type="password" 
-                            id="loginPassword" 
+                            type="email" 
+                            id="loginEmail" 
                             required 
-                            placeholder="••••••••" 
-                            class="w-full bg-slate-50/80 border border-slate-200 rounded-2xl pl-4 pr-11 py-3 text-xs font-medium text-slate-800 focus:outline-none focus:border-fuchsia-600 focus:bg-white transition"
+                            placeholder="e.g. juan.delacruz@gmail.com" 
+                            class="w-full bg-slate-50/80 border border-slate-200 rounded-2xl px-4 py-3 text-xs font-medium text-black focus:outline-none focus:border-emerald-600 focus:bg-white transition"
                         >
-                        <button 
-                            type="button" 
-                            onclick="togglePasswordVisibility('loginPassword', 'loginPasswordEye')" 
-                            class="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-1 cursor-pointer focus:outline-none transition"
-                            title="Show/Hide Password"
-                        >
-                            <i id="loginPasswordEye" class="fas fa-eye text-xs"></i>
+                    </div>
+
+                    <!-- Password Input -->
+                    <div class="space-y-1.5">
+                        <div class="flex items-center justify-between">
+                            <label for="loginPassword" class="block text-xs font-bold text-black">Password</label>
+                            <button type="button" onclick="openForgotPasswordModal()" class="text-xs font-bold text-emerald-600 hover:text-emerald-700 cursor-pointer">Forgot password?</button>
+                        </div>
+                        <div class="relative">
+                            <input 
+                                type="password" 
+                                id="loginPassword" 
+                                required 
+                                placeholder="••••••••" 
+                                class="w-full bg-slate-50/80 border border-slate-200 rounded-2xl pl-4 pr-11 py-3 text-xs font-medium text-black focus:outline-none focus:border-emerald-600 focus:bg-white transition"
+                            >
+                            <button 
+                                type="button" 
+                                onclick="togglePasswordVisibility('loginPassword', 'loginPasswordEye')" 
+                                class="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-700 hover:text-black p-1 cursor-pointer focus:outline-none transition"
+                                title="Show/Hide Password"
+                            >
+                                <i id="loginPasswordEye" class="fas fa-eye text-xs"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- LOGIN TERMS & CONDITIONS CHECKBOX -->
+                    <div class="flex items-center gap-2 pt-1">
+                        <input type="checkbox" id="loginTerms" required class="w-4 h-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500 cursor-pointer">
+                        <label for="loginTerms" class="text-xs font-semibold text-black cursor-pointer select-none">
+                            Sumasang-ayon ako sa <button type="button" onclick="openTermsModal()" class="font-extrabold text-emerald-600 hover:underline cursor-pointer">Terms & Conditions</button>
+                        </label>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <button 
+                        type="submit" 
+                        id="loginSubmitBtn" 
+                        class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-sm py-3.5 rounded-2xl transition shadow-lg shadow-emerald-500/20 cursor-pointer mt-2"
+                    >
+                        Sign In
+                    </button>
+                </form>
+
+                <!-- Divider -->
+                <div class="relative flex items-center justify-center my-1">
+                    <div class="border-t border-slate-200 w-full"></div>
+                    <span class="bg-white px-3 text-[11px] font-bold text-slate-700 uppercase tracking-wider">o kaya</span>
+                    <div class="border-t border-slate-200 w-full"></div>
+                </div>
+
+                <!-- Google Sign In Button -->
+                <button 
+                    type="button" 
+                    onclick="handleGoogleSignIn()" 
+                    id="googleSignInBtn" 
+                    class="w-full flex items-center justify-center gap-3 bg-white hover:bg-slate-50 active:bg-slate-100 text-black font-bold text-xs sm:text-sm py-3.5 px-4 rounded-2xl border border-slate-200 hover:border-slate-300 shadow-xs hover:shadow-md transition cursor-pointer active:scale-[0.99]"
+                >
+                    <svg class="w-5 h-5 shrink-0" viewBox="0 0 24 24">
+                        <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                        <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                        <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
+                        <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+                    </svg>
+                    <span id="googleSignInBtnText">Sign in with Google</span>
+                </button>
+
+                <!-- Bottom Tab Switch Redirection Link -->
+                <div class="text-center pt-2">
+                    <p class="text-xs font-semibold text-slate-800">
+                        Wala pang account? 
+                        <button type="button" onclick="switchAuthView('signUp')" class="font-extrabold text-emerald-600 hover:underline cursor-pointer">Sign up dito</button>
+                    </p>
+                </div>
+            </div>
+
+            <!-- ================= VIEW 2: SIGN UP (FULL CARD INLINE & USER-FRIENDLY) ================= -->
+            <div id="authView-signUp" class="hidden space-y-4">
+                <!-- Header Titles -->
+                <div class="space-y-1">
+                    <h1 id="signUpMainTitle" class="text-2xl sm:text-3xl font-black text-black tracking-tight">Create Account</h1>
+                    <p class="text-xs font-medium text-slate-700">Register in under a minute to start printing.</p>
+                </div>
+
+                <div id="signUpAlert" class="hidden p-3 rounded-2xl text-xs font-bold"></div>
+
+                <!-- STEP 1: Enter Registration Details & Terms -->
+                <div id="signUpStep1" class="space-y-3.5 text-xs">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                            <label class="font-bold text-black block mb-1">Full Name</label>
+                            <input type="text" id="signUpName" oninput="checkPasswordStrength()" required placeholder="Juan A. Dela Cruz" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 focus:outline-none focus:border-emerald-600 text-xs font-medium">
+                        </div>
+                        <div>
+                            <label class="font-bold text-black block mb-1">Contact Number (SMS)</label>
+                            <input type="tel" id="signUpContact" required placeholder="09171234567" maxlength="11" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 focus:outline-none focus:border-emerald-600 text-xs font-medium">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="font-bold text-black block mb-1">Gmail Address (*.gmail.com)</label>
+                        <input type="email" id="signUpEmail" oninput="checkPasswordStrength()" required placeholder="juan.delacruz@gmail.com" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 focus:outline-none focus:border-emerald-600 text-xs font-medium">
+                    </div>
+
+                    <!-- PASSWORD & CONFIRM IN 2 COLUMNS FOR CLEAN SPACIOUS DESKTOP -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                            <label class="font-bold text-black block mb-1">Password <span class="text-rose-500">*</span></label>
+                            <div class="relative">
+                                <input type="password" id="signUpPassword" oninput="checkPasswordStrength()" required placeholder="Strong password" class="w-full bg-slate-50 border border-slate-200 rounded-xl pl-3.5 pr-10 py-2.5 focus:outline-none focus:border-emerald-600 text-xs font-medium">
+                                <button 
+                                    type="button" 
+                                    onclick="togglePasswordVisibility('signUpPassword', 'signUpPasswordEye')" 
+                                    class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-700 hover:text-black p-1 cursor-pointer focus:outline-none"
+                                >
+                                    <i id="signUpPasswordEye" class="fas fa-eye text-xs"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="font-bold text-black block mb-1">Confirm Password <span class="text-rose-500">*</span></label>
+                            <div class="relative">
+                                <input type="password" id="signUpConfirmPassword" required placeholder="Re-enter password" class="w-full bg-slate-50 border border-slate-200 rounded-xl pl-3.5 pr-10 py-2.5 focus:outline-none focus:border-emerald-600 text-xs font-medium">
+                                <button 
+                                    type="button" 
+                                    onclick="togglePasswordVisibility('signUpConfirmPassword', 'signUpConfirmPasswordEye')" 
+                                    class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-700 hover:text-black p-1 cursor-pointer focus:outline-none"
+                                >
+                                    <i id="signUpConfirmPasswordEye" class="fas fa-eye text-xs"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- STRENGTH METER BAR & TEXT -->
+                    <div class="space-y-1">
+                        <div class="flex items-center justify-between">
+                            <span id="passStrengthText" class="text-[11px] font-bold text-slate-700"></span>
+                        </div>
+                        <div class="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
+                            <div id="passStrengthMeter" class="h-full w-0 transition-all duration-300 rounded-full bg-slate-200"></div>
+                        </div>
+                    </div>
+
+                    <!-- REAL-TIME REQUIREMENTS CHECKLIST (COMPACT 2-COLUMN GRID) -->
+                    <div class="bg-slate-50 border border-slate-200/80 rounded-2xl p-3">
+                        <p class="text-[10px] font-bold text-slate-800 uppercase tracking-wider mb-1.5">Password Requirements:</p>
+                        <ul class="grid grid-cols-1 sm:grid-cols-2 gap-1 text-[11px] font-semibold text-slate-700">
+                            <li id="reqLength" class="flex items-center gap-1.5">
+                                <i class="fas fa-times-circle text-rose-400 text-xs"></i> At least 8 characters
+                            </li>
+                            <li id="reqUpperLower" class="flex items-center gap-1.5">
+                                <i class="fas fa-times-circle text-rose-400 text-xs"></i> Uppercase & Lowercase
+                            </li>
+                            <li id="reqNumSymbol" class="flex items-center gap-1.5">
+                                <i class="fas fa-times-circle text-rose-400 text-xs"></i> Number or Symbol
+                            </li>
+                            <li id="reqNoSpace" class="flex items-center gap-1.5">
+                                <i class="fas fa-times-circle text-rose-400 text-xs"></i> No spaces allowed
+                            </li>
+                            <li id="reqNoUserInfo" class="sm:col-span-2 flex items-center gap-1.5">
+                                <i class="fas fa-times-circle text-rose-400 text-xs"></i> No name or email prefix
+                            </li>
+                        </ul>
+                    </div>
+
+                    <!-- SIGN UP TERMS & CONDITIONS CHECKBOX -->
+                    <div class="flex items-start gap-2 pt-1">
+                        <input type="checkbox" id="signUpTerms" required class="w-4 h-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500 cursor-pointer mt-0.5">
+                        <label for="signUpTerms" class="text-[11px] font-semibold text-black cursor-pointer select-none leading-tight">
+                            Sumasang-ayon ako sa <button type="button" onclick="openTermsModal()" class="font-extrabold text-emerald-600 hover:underline cursor-pointer">Terms & Conditions</button> (Ang prints na hindi kukunin sa loob ng 30 araw ay ida-dispose).
+                        </label>
+                    </div>
+
+                    <div class="pt-1">
+                        <button type="button" onclick="requestSignUpOTP()" id="btnSendSignUpOTP" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold py-3.5 rounded-2xl transition shadow-lg shadow-emerald-500/20 cursor-pointer text-xs sm:text-sm">
+                            Send Verification Code
+                        </button>
+                    </div>
+
+                    <!-- Divider & Google Sign-up Option -->
+                    <div class="relative flex items-center justify-center pt-1">
+                        <div class="border-t border-slate-200 w-full"></div>
+                        <span class="bg-white px-2 text-[10px] font-bold text-slate-700 uppercase tracking-wider">o kaya</span>
+                        <div class="border-t border-slate-200 w-full"></div>
+                    </div>
+
+                    <button 
+                        type="button" 
+                        onclick="handleGoogleSignIn()" 
+                        class="w-full flex items-center justify-center gap-2.5 bg-slate-50 hover:bg-slate-100 active:bg-slate-200 text-black font-bold text-xs py-3 px-3 rounded-2xl border border-slate-200 hover:border-slate-300 transition cursor-pointer"
+                    >
+                        <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24">
+                            <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                            <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                            <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
+                            <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+                        </svg>
+                        <span>Mag-sign up gamit ang Google</span>
+                    </button>
+
+                    <div class="text-center pt-1">
+                        <p class="text-xs font-semibold text-slate-800">
+                            May existing account ka na? 
+                            <button type="button" onclick="switchAuthView('signIn')" class="font-extrabold text-emerald-600 hover:underline cursor-pointer">Sign in dito</button>
+                        </p>
+                    </div>
+                </div>
+
+                <!-- STEP 2: Input OTP Verification Code -->
+                <div id="signUpStep2" class="hidden space-y-4 text-xs py-4">
+                    <div class="bg-emerald-50 border border-emerald-200 rounded-2xl p-4 text-emerald-950">
+                        <p class="font-semibold leading-relaxed">
+                            A 6-digit verification code was sent to your email: <br>
+                            <b id="signUpRecipientEmail" class="text-black font-extrabold text-sm"></b>
+                        </p>
+                    </div>
+
+                    <div>
+                        <label class="font-bold text-black block mb-1.5 text-center">Enter 6-Digit OTP Code</label>
+                        <input type="text" id="signUpOTP" placeholder="000000" maxlength="6" class="w-full bg-slate-50 border-2 border-slate-200 rounded-2xl px-3 py-3.5 text-center font-mono font-black text-2xl tracking-[0.3em] text-black focus:outline-none focus:border-emerald-600">
+                    </div>
+
+                    <div class="flex items-center justify-between text-xs pt-1 px-1">
+                        <span id="signUpTimerText" class="text-slate-800 font-medium">Resend code in 60s</span>
+                        <button type="button" id="btnSignUpResend" onclick="resendSignUpOTP()" disabled class="font-bold text-slate-700 cursor-not-allowed">
+                            Resend OTP
+                        </button>
+                    </div>
+
+                    <div class="flex gap-2.5 pt-2">
+                        <button type="button" onclick="verifyAndCompleteSignUp()" id="btnCompleteSignUp" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold py-3.5 rounded-2xl transition cursor-pointer text-xs sm:text-sm shadow-md">
+                            Verify OTP & Complete Sign Up
+                        </button>
+                        <button type="button" onclick="backToSignUpStep1()" class="bg-slate-100 hover:bg-slate-200 text-black font-bold px-4 py-3.5 rounded-2xl transition cursor-pointer">
+                            ← Back
                         </button>
                     </div>
                 </div>
-
-                <!-- LOGIN TERMS & CONDITIONS CHECKBOX -->
-                <div class="flex items-center gap-2 pt-1">
-                    <input type="checkbox" id="loginTerms" required class="w-4 h-4 rounded border-slate-300 text-rose-600 focus:ring-rose-500 cursor-pointer">
-                    <label for="loginTerms" class="text-xs font-semibold text-slate-600 cursor-pointer select-none">
-                        Sumasang-ayon ako sa <button type="button" onclick="openTermsModal()" class="font-extrabold text-rose-600 hover:underline cursor-pointer">Terms & Conditions</button>
-                    </label>
-                </div>
-
-                <!-- Submit Button -->
-                <button 
-                    type="submit" 
-                    id="loginSubmitBtn" 
-                    class="w-full bg-gradient-to-r from-amber-500 via-rose-500 to-fuchsia-600 hover:opacity-95 text-white font-extrabold text-sm py-3.5 rounded-2xl transition shadow-lg shadow-rose-500/20 cursor-pointer mt-2"
-                >
-                    Sign In
-                </button>
-            </form>
-
-            <!-- Divider -->
-            <div class="relative flex items-center justify-center my-1">
-                <div class="border-t border-slate-200 w-full"></div>
-                <span class="bg-white px-3 text-[11px] font-bold text-slate-400 uppercase tracking-wider">o kaya</span>
-                <div class="border-t border-slate-200 w-full"></div>
-            </div>
-
-            <!-- Google Sign In Button -->
-            <button 
-                type="button" 
-                onclick="handleGoogleSignIn()" 
-                id="googleSignInBtn" 
-                class="w-full flex items-center justify-center gap-3 bg-white hover:bg-slate-50 active:bg-slate-100 text-slate-700 font-bold text-xs sm:text-sm py-3.5 px-4 rounded-2xl border border-slate-200 hover:border-slate-300 shadow-xs hover:shadow-md transition cursor-pointer active:scale-[0.99]"
-            >
-                <svg class="w-5 h-5 shrink-0" viewBox="0 0 24 24">
-                    <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-                    <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-                    <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
-                    <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
-                </svg>
-                <span id="googleSignInBtnText">Sign in with Google</span>
-            </button>
-
-            <!-- Bottom Sign Up Redirection Link -->
-            <div class="text-center pt-2">
-                <p class="text-xs font-semibold text-slate-500">
-                    Wala pang account? 
-                    <button type="button" onclick="openSignUpModal()" class="font-extrabold text-rose-600 hover:underline cursor-pointer">Sign up</button>
-                </p>
             </div>
 
         </div>
     </div>
 </div>
 
-<!-- MODAL 1: CREATE ACCOUNT / SIGN UP MODAL -->
-<div id="signUpModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 hidden flex items-center justify-center p-4 overflow-y-auto">
-    <div class="bg-white rounded-3xl max-w-md w-full p-6 space-y-4 shadow-2xl border border-slate-200 my-8">
-        <div class="flex items-center justify-between border-b border-slate-100 pb-3">
-            <h3 id="signUpModalTitle" class="font-extrabold text-slate-900 text-sm">Create New Account</h3>
-            <button type="button" onclick="closeSignUpModal()" class="text-slate-400 hover:text-slate-600 p-1 cursor-pointer">
-                <i class="fas fa-times text-sm"></i>
-            </button>
-        </div>
 
-        <div id="signUpAlert" class="hidden p-3 rounded-xl text-xs font-bold"></div>
-
-        <!-- STEP 1: Enter Registration Details & Terms -->
-        <div id="signUpStep1" class="space-y-3 text-xs">
-            <div>
-                <label class="font-bold text-slate-700 block mb-0.5">Full Name</label>
-                <input type="text" id="signUpName" oninput="checkPasswordStrength()" required placeholder="e.g. Juan A. Dela Cruz" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 focus:outline-none focus:border-fuchsia-600">
-            </div>
-            <div>
-                <label class="font-bold text-slate-700 block mb-0.5">Contact Number (For SMS Alerts)</label>
-                <input type="tel" id="signUpContact" required placeholder="09171234567" maxlength="11" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 focus:outline-none focus:border-fuchsia-600">
-                <span class="text-[10px] text-slate-400">Format: 11-digit PH mobile number starting with 09</span>
-            </div>
-            <div>
-                <label class="font-bold text-slate-700 block mb-0.5">Gmail Address (*.gmail.com)</label>
-                <input type="email" id="signUpEmail" oninput="checkPasswordStrength()" required placeholder="juan.delacruz@gmail.com" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 focus:outline-none focus:border-fuchsia-600">
-            </div>
-
-            <!-- PASSWORD FIELD WITH LIVE STRENGTH UI -->
-            <div>
-                <label class="font-bold text-slate-700 block mb-0.5">Password <span class="text-rose-500">*</span></label>
-                <div class="relative">
-                    <input type="password" id="signUpPassword" oninput="checkPasswordStrength()" required placeholder="Enter strong password" class="w-full bg-slate-50 border border-slate-200 rounded-xl pl-3 pr-10 py-2.5 focus:outline-none focus:border-fuchsia-600">
-                    <button 
-                        type="button" 
-                        onclick="togglePasswordVisibility('signUpPassword', 'signUpPasswordEye')" 
-                        class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-1 cursor-pointer focus:outline-none"
-                    >
-                        <i id="signUpPasswordEye" class="fas fa-eye text-xs"></i>
-                    </button>
-                </div>
-
-                <!-- STRENGTH METER BAR & TEXT -->
-                <div class="mt-2 space-y-1">
-                    <div class="flex items-center justify-between">
-                        <span id="passStrengthText" class="text-[11px] font-bold text-slate-400"></span>
-                    </div>
-                    <div class="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
-                        <div id="passStrengthMeter" class="h-full w-0 transition-all duration-300 rounded-full bg-slate-200"></div>
-                    </div>
-                </div>
-
-                <!-- REAL-TIME REQUIREMENTS CHECKLIST -->
-                <div class="bg-slate-50 border border-slate-100 rounded-xl p-3 mt-2 space-y-1.5">
-                    <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Password Requirements:</p>
-                    <ul class="space-y-1">
-                        <li id="reqLength" class="text-[11px] font-semibold text-slate-400 flex items-center gap-1.5">
-                            <i class="fas fa-times-circle text-rose-400 text-xs"></i> Must be at least 8 characters
-                        </li>
-                        <li id="reqUpperLower" class="text-[11px] font-semibold text-slate-400 flex items-center gap-1.5">
-                            <i class="fas fa-times-circle text-rose-400 text-xs"></i> Must have Uppercase (A-Z) and Lowercase (a-z)
-                        </li>
-                        <li id="reqNumSymbol" class="text-[11px] font-semibold text-slate-400 flex items-center gap-1.5">
-                            <i class="fas fa-times-circle text-rose-400 text-xs"></i> Must have at least one symbol or number
-                        </li>
-                        <li id="reqNoSpace" class="text-[11px] font-semibold text-slate-400 flex items-center gap-1.5">
-                            <i class="fas fa-times-circle text-rose-400 text-xs"></i> Can't contain spaces
-                        </li>
-                        <li id="reqNoUserInfo" class="text-[11px] font-semibold text-slate-400 flex items-center gap-1.5">
-                            <i class="fas fa-times-circle text-rose-400 text-xs"></i> Can't include your name or email prefix
-                        </li>
-                    </ul>
-                </div>
-            </div>
-
-            <!-- CONFIRM PASSWORD FIELD -->
-            <div>
-                <label class="font-bold text-slate-700 block mb-0.5">Confirm Password <span class="text-rose-500">*</span></label>
-                <div class="relative">
-                    <input type="password" id="signUpConfirmPassword" required placeholder="Re-enter password" class="w-full bg-slate-50 border border-slate-200 rounded-xl pl-3 pr-10 py-2.5 focus:outline-none focus:border-fuchsia-600">
-                    <button 
-                        type="button" 
-                        onclick="togglePasswordVisibility('signUpConfirmPassword', 'signUpConfirmPasswordEye')" 
-                        class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-1 cursor-pointer focus:outline-none"
-                    >
-                        <i id="signUpConfirmPasswordEye" class="fas fa-eye text-xs"></i>
-                    </button>
-                </div>
-            </div>
-
-            <!-- SIGN UP TERMS & CONDITIONS CHECKBOX -->
-            <div class="flex items-start gap-2 pt-1">
-                <input type="checkbox" id="signUpTerms" required class="w-4 h-4 rounded border-slate-300 text-rose-600 focus:ring-rose-500 cursor-pointer mt-0.5">
-                <label for="signUpTerms" class="text-[11px] font-semibold text-slate-600 cursor-pointer select-none leading-tight">
-                    Sumasang-ayon ako sa <button type="button" onclick="openTermsModal()" class="font-extrabold text-rose-600 hover:underline cursor-pointer">Terms & Conditions</button> (Ang prints na hindi kukunin sa loob ng 30 araw ay ida-dispose).
-                </label>
-            </div>
-
-            <div class="flex gap-2 pt-2">
-                <button type="button" onclick="requestSignUpOTP()" id="btnSendSignUpOTP" class="flex-1 bg-fuchsia-600 hover:bg-fuchsia-700 text-white font-bold py-2.5 rounded-xl transition cursor-pointer">
-                    Send Verification Code
-                </button>
-                <button type="button" onclick="closeSignUpModal()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-4 py-2.5 rounded-xl transition cursor-pointer">
-                    Cancel
-                </button>
-            </div>
-
-            <!-- Divider & Google Sign-up Option -->
-            <div class="relative flex items-center justify-center pt-2">
-                <div class="border-t border-slate-200 w-full"></div>
-                <span class="bg-white px-2 text-[10px] font-bold text-slate-400 uppercase tracking-wider">o kaya</span>
-                <div class="border-t border-slate-200 w-full"></div>
-            </div>
-
-            <button 
-                type="button" 
-                onclick="handleGoogleSignIn()" 
-                class="w-full flex items-center justify-center gap-2.5 bg-slate-50 hover:bg-slate-100 active:bg-slate-200 text-slate-700 font-bold text-xs py-2.5 px-3 rounded-xl border border-slate-200 hover:border-slate-300 transition cursor-pointer"
-            >
-                <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24">
-                    <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-                    <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-                    <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
-                    <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
-                </svg>
-                <span>Mag-sign up gamit ang Google</span>
-            </button>
-        </div>
-
-        <!-- STEP 2: Input OTP Verification Code -->
-        <div id="signUpStep2" class="hidden space-y-3 text-xs">
-            <p class="text-slate-500 leading-relaxed">
-                A 6-digit verification code was sent to your email: <br>
-                <b id="signUpRecipientEmail" class="text-slate-800"></b>
-            </p>
-            <div>
-                <label class="font-bold text-slate-700 block mb-1">Enter 6-Digit OTP Code</label>
-                <input type="text" id="signUpOTP" placeholder="000000" maxlength="6" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-3 text-center font-mono font-black text-xl tracking-[0.3em] text-slate-900 focus:outline-none focus:border-fuchsia-600">
-            </div>
-
-            <div class="flex items-center justify-between text-[11px] pt-1">
-                <span id="signUpTimerText" class="text-slate-500">Resend code in 60s</span>
-                <button type="button" id="btnSignUpResend" onclick="resendSignUpOTP()" disabled class="font-bold text-slate-400 cursor-not-allowed">
-                    Resend OTP
-                </button>
-            </div>
-
-            <div class="flex gap-2 pt-2">
-                <button type="button" onclick="verifyAndCompleteSignUp()" id="btnCompleteSignUp" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 rounded-xl transition cursor-pointer">
-                    Verify OTP & Complete Sign Up
-                </button>
-                <button type="button" onclick="backToSignUpStep1()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-3 py-2.5 rounded-xl transition cursor-pointer">
-                    ← Back
-                </button>
-            </div>
-        </div>
-
-    </div>
-</div>
 
 <!-- MODAL 2: FORGOT PASSWORD (OTP SMTP 3-STEP FLOW) MODAL -->
 <div id="forgotModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 hidden flex items-center justify-center p-4 overflow-y-auto">
     <div class="bg-white rounded-3xl max-w-sm w-full p-6 space-y-4 shadow-2xl border border-slate-200 my-8">
         <div class="flex items-center justify-between border-b border-slate-100 pb-3">
-            <h3 id="forgotModalTitle" class="font-extrabold text-slate-900 text-sm">Forgot Password</h3>
-            <button type="button" onclick="closeForgotPasswordModal()" class="text-slate-400 hover:text-slate-600 p-1 cursor-pointer">
+            <h3 id="forgotModalTitle" class="font-extrabold text-black text-sm">Forgot Password</h3>
+            <button type="button" onclick="closeForgotPasswordModal()" class="text-slate-700 hover:text-black p-1 cursor-pointer">
                 <i class="fas fa-times text-sm"></i>
             </button>
         </div>
@@ -362,9 +387,9 @@
 
         <!-- STEP 1: Enter Email to Request OTP -->
         <div id="forgotStep1" class="space-y-3 text-xs">
-            <p class="text-slate-500">Enter your registered Gmail address to receive a 6-digit OTP code.</p>
+            <p class="text-slate-800">Enter your registered Gmail address to receive a 6-digit OTP code.</p>
             <div>
-                <label class="font-bold text-slate-700 block mb-1">Registered Gmail Address</label>
+                <label class="font-bold text-black block mb-1">Registered Gmail Address</label>
                 <input type="email" id="forgotEmail" placeholder="juan.delacruz@gmail.com" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 focus:outline-none focus:border-rose-600">
             </div>
             <button type="button" onclick="requestResetOTP()" id="btnSendOTP" class="w-full bg-rose-600 hover:bg-rose-700 text-white font-bold py-2.5 rounded-xl transition cursor-pointer">
@@ -374,18 +399,18 @@
 
         <!-- STEP 2: Enter OTP Code -->
         <div id="forgotStep2" class="hidden space-y-3 text-xs">
-            <p class="text-slate-500 leading-relaxed">
+            <p class="text-slate-800 leading-relaxed">
                 Code sent to: <br>
-                <b id="forgotRecipientEmail" class="text-slate-800"></b>
+                <b id="forgotRecipientEmail" class="text-black"></b>
             </p>
             <div>
-                <label class="font-bold text-slate-700 block mb-1">Enter 6-Digit OTP</label>
-                <input type="text" id="forgotOTP" placeholder="000000" maxlength="6" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-3 text-center font-mono font-black text-xl tracking-[0.3em] text-slate-900 focus:outline-none focus:border-rose-600">
+                <label class="font-bold text-black block mb-1">Enter 6-Digit OTP</label>
+                <input type="text" id="forgotOTP" placeholder="000000" maxlength="6" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-3 text-center font-mono font-black text-xl tracking-[0.3em] text-black focus:outline-none focus:border-rose-600">
             </div>
 
             <div class="flex items-center justify-between text-[11px] pt-1">
-                <span id="forgotTimerText" class="text-slate-500">Resend in 60s</span>
-                <button type="button" id="btnForgotResend" onclick="resendResetOTP()" disabled class="font-bold text-slate-400 cursor-not-allowed">
+                <span id="forgotTimerText" class="text-slate-800">Resend in 60s</span>
+                <button type="button" id="btnForgotResend" onclick="resendResetOTP()" disabled class="font-bold text-slate-700 cursor-not-allowed">
                     Resend OTP
                 </button>
             </div>
@@ -394,7 +419,7 @@
                 <button type="button" onclick="verifyResetOTP()" id="btnVerifyResetOTP" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 rounded-xl transition cursor-pointer">
                     Verify Code
                 </button>
-                <button type="button" onclick="backToForgotStep1()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-3 py-2.5 rounded-xl transition cursor-pointer">
+                <button type="button" onclick="backToForgotStep1()" class="bg-slate-100 hover:bg-slate-200 text-black font-bold px-3 py-2.5 rounded-xl transition cursor-pointer">
                     ← Back
                 </button>
             </div>
@@ -402,15 +427,15 @@
 
         <!-- STEP 3: Enter New Password & Confirm Password -->
         <div id="forgotStep3" class="hidden space-y-3 text-xs">
-            <p class="text-slate-500">Create a new secure password for your account.</p>
+            <p class="text-slate-800">Create a new secure password for your account.</p>
             <div>
-                <label class="font-bold text-slate-700 block mb-1">New Password</label>
+                <label class="font-bold text-black block mb-1">New Password</label>
                 <div class="relative">
                     <input type="password" id="forgotNewPass" oninput="checkForgotPassStrength()" placeholder="Enter new strong password" class="w-full bg-slate-50 border border-slate-200 rounded-xl pl-3 pr-10 py-2.5 focus:outline-none focus:border-rose-600">
                     <button 
                         type="button" 
                         onclick="togglePasswordVisibility('forgotNewPass', 'forgotNewPassEye')" 
-                        class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-1 cursor-pointer focus:outline-none"
+                        class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-700 hover:text-black p-1 cursor-pointer focus:outline-none"
                     >
                         <i id="forgotNewPassEye" class="fas fa-eye text-xs"></i>
                     </button>
@@ -418,13 +443,13 @@
             </div>
 
             <div>
-                <label class="font-bold text-slate-700 block mb-1">Confirm New Password</label>
+                <label class="font-bold text-black block mb-1">Confirm New Password</label>
                 <div class="relative">
                     <input type="password" id="forgotConfirmNewPass" placeholder="Re-enter new password" class="w-full bg-slate-50 border border-slate-200 rounded-xl pl-3 pr-10 py-2.5 focus:outline-none focus:border-rose-600">
                     <button 
                         type="button" 
                         onclick="togglePasswordVisibility('forgotConfirmNewPass', 'forgotConfirmNewPassEye')" 
-                        class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-1 cursor-pointer focus:outline-none"
+                        class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-700 hover:text-black p-1 cursor-pointer focus:outline-none"
                     >
                         <i id="forgotConfirmNewPassEye" class="fas fa-eye text-xs"></i>
                     </button>
@@ -508,7 +533,7 @@ function checkPasswordStrength() {
         meter.style.width = '0%';
         meter.className = 'h-full w-0 transition-all duration-300 rounded-full bg-slate-200';
         text.textContent = '';
-        text.className = 'text-[11px] font-bold text-slate-400';
+        text.className = 'text-[11px] font-bold text-slate-700';
     } else if (score <= 2) {
         meter.style.width = '33%';
         meter.className = 'h-full transition-all duration-300 rounded-full bg-rose-500';
@@ -535,7 +560,7 @@ function updateChecklistItem(elementId, isValid) {
         el.className = "text-[11px] font-semibold text-emerald-600 flex items-center gap-1.5 transition-colors";
         icon.className = "fas fa-check-circle text-emerald-500 text-xs";
     } else {
-        el.className = "text-[11px] font-semibold text-slate-400 flex items-center gap-1.5 transition-colors";
+        el.className = "text-[11px] font-semibold text-slate-700 flex items-center gap-1.5 transition-colors";
         icon.className = "fas fa-times-circle text-rose-400 text-xs";
     }
 }
@@ -621,22 +646,47 @@ let signUpSecondsRemaining = 60;
 let signUpCanResend = false;
 let signUpRecipientEmail = '';
 
+function switchAuthView(viewName) {
+    const signInView = document.getElementById('authView-signIn');
+    const signUpView = document.getElementById('authView-signUp');
+    const signInTabBtn = document.getElementById('authTabBtn-signIn');
+    const signUpTabBtn = document.getElementById('authTabBtn-signUp');
+
+    if (viewName === 'signUp') {
+        if (signInView) signInView.classList.add('hidden');
+        if (signUpView) signUpView.classList.remove('hidden');
+        
+        if (signUpTabBtn) {
+            signUpTabBtn.className = "py-2.5 px-4 rounded-xl bg-white text-black shadow-xs transition-all cursor-pointer flex items-center justify-center gap-2";
+        }
+        if (signInTabBtn) {
+            signInTabBtn.className = "py-2.5 px-4 rounded-xl text-slate-600 hover:text-black transition-all cursor-pointer flex items-center justify-center gap-2";
+        }
+    } else {
+        if (signUpView) signUpView.classList.add('hidden');
+        if (signInView) signInView.classList.remove('hidden');
+        
+        if (signInTabBtn) {
+            signInTabBtn.className = "py-2.5 px-4 rounded-xl bg-white text-black shadow-xs transition-all cursor-pointer flex items-center justify-center gap-2";
+        }
+        if (signUpTabBtn) {
+            signUpTabBtn.className = "py-2.5 px-4 rounded-xl text-slate-600 hover:text-black transition-all cursor-pointer flex items-center justify-center gap-2";
+        }
+    }
+}
+
 function openSignUpModal() {
-    document.getElementById('signUpModalTitle').textContent = "Create New Account";
-    document.getElementById('signUpStep1').classList.remove('hidden');
-    document.getElementById('signUpStep2').classList.add('hidden');
-    document.getElementById('signUpAlert').classList.add('hidden');
-    document.getElementById('signUpModal').classList.remove('hidden');
+    switchAuthView('signUp');
 }
 
 function closeSignUpModal() {
-    if (signUpTimer) clearInterval(signUpTimer);
-    document.getElementById('signUpModal').classList.add('hidden');
+    switchAuthView('signIn');
 }
 
 function backToSignUpStep1() {
     if (signUpTimer) clearInterval(signUpTimer);
-    document.getElementById('signUpModalTitle').textContent = "Create New Account";
+    const mainTitle = document.getElementById('signUpMainTitle');
+    if (mainTitle) mainTitle.textContent = "Create Account";
     document.getElementById('signUpStep2').classList.add('hidden');
     document.getElementById('signUpStep1').classList.remove('hidden');
     document.getElementById('signUpAlert').classList.add('hidden');
@@ -650,7 +700,7 @@ function startSignUpCountdown() {
     
     if (resendBtn) {
         resendBtn.disabled = true;
-        resendBtn.className = "font-bold text-slate-400 cursor-not-allowed";
+        resendBtn.className = "font-bold text-slate-700 cursor-not-allowed";
     }
     if (timerText) timerText.textContent = `Resend code in ${signUpSecondsRemaining}s`;
 
@@ -775,7 +825,8 @@ function requestSignUpOTP() {
         if (data.success) {
             signUpRecipientEmail = email;
             document.getElementById('signUpRecipientEmail').textContent = email;
-            document.getElementById('signUpModalTitle').textContent = "Verify Email OTP";
+            const mainTitle = document.getElementById('signUpMainTitle');
+            if (mainTitle) mainTitle.textContent = "Verify Email OTP";
 
             alertBox.className = "p-3 rounded-xl text-xs font-bold bg-blue-50 text-blue-700 border border-blue-200";
             alertBox.textContent = data.message || "A 6-digit verification code was sent to your email.";
@@ -907,7 +958,7 @@ function startForgotCountdown() {
 
     if (resendBtn) {
         resendBtn.disabled = true;
-        resendBtn.className = "font-bold text-slate-400 cursor-not-allowed";
+        resendBtn.className = "font-bold text-slate-700 cursor-not-allowed";
     }
     if (timerText) timerText.textContent = `Resend in ${forgotSecondsRemaining}s`;
 
@@ -1189,8 +1240,8 @@ async function handleGoogleSignIn() {
         if (googleBtn) {
             googleBtn.disabled = true;
             googleBtn.innerHTML = `
-                <i class="fas fa-spinner fa-spin text-sm text-slate-500"></i>
-                <span class="text-xs font-semibold text-slate-600">Nagko-connect sa Google...</span>
+                <i class="fas fa-spinner fa-spin text-sm text-slate-800"></i>
+                <span class="text-xs font-semibold text-black">Nagko-connect sa Google...</span>
             `;
         }
 
@@ -1203,8 +1254,8 @@ async function handleGoogleSignIn() {
 
         if (googleBtn) {
             googleBtn.innerHTML = `
-                <i class="fas fa-spinner fa-spin text-sm text-slate-500"></i>
-                <span class="text-xs font-semibold text-slate-600">Nagve-verify sa system...</span>
+                <i class="fas fa-spinner fa-spin text-sm text-slate-800"></i>
+                <span class="text-xs font-semibold text-black">Nagve-verify sa system...</span>
             `;
         }
 

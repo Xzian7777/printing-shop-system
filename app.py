@@ -6,6 +6,10 @@ from firebase_config import (
     create_firebase_customer, delete_firebase_customer,
     update_firebase_password, get_firebase_user_by_email,
     get_store_products, save_store_products, get_inventory,
+    get_sample_products, save_sample_product, delete_sample_product,
+    get_services, save_service, delete_service,
+    get_gcash_settings, save_gcash_settings,
+    archive_item, get_archived_items, restore_archived_item, permanently_delete_archived_item,
     log_rfid_tap, get_notifications, create_notification, mark_all_notifications_read,
     delete_notification, delete_all_notifications,
     get_safe_conversation_id, get_or_create_conversation, get_all_conversations,
@@ -415,6 +419,13 @@ def customer_dashboard():
     if 'username' not in session:
         return redirect(url_for('login'))
     return render_template('customer.html')
+
+@app.route('/order')
+@app.route('/place-order')
+def place_order_page():
+    if 'username' not in session:
+        return redirect(url_for('login'))
+    return render_template('order.html')
 
 @app.route('/store')
 def store_page():
@@ -1126,36 +1137,46 @@ def handle_single_user(user_id):
             return jsonify({"success": False, "message": str(e)}), 500
 
     elif request.method == 'DELETE':
-        # DELETE USER (ADMIN CRUD)
+        # ARCHIVE USER (soft-delete - moves to System Archive, not permanent)
         try:
-            deleted = False
-            
-            # 1. Subukang burahin gamit ang Firebase Realtime Database reference kung naka-configure
-            try:
-                user_ref = db.reference(f'customers/{user_id}')
-                if user_ref.get():
-                    user_ref.delete()
-                    deleted = True
-            except Exception:
-                pass
+            user_data = {}
 
-            # 2. Subukang burahin kung Firestore ang ginagamit
+            # 1. Fetch user data before archiving
+            try:
+                if db:
+                    doc_ref = db.collection('customers').document(user_id)
+                    doc = doc_ref.get()
+                    if doc.exists:
+                        user_data = doc.to_dict()
+                    else:
+                        customers_ref = db.collection('customers')
+                        docs = customers_ref.where('id', '==', user_id).stream()
+                        for d in docs:
+                            user_data = d.to_dict()
+                            break
+            except Exception as fetch_err:
+                print(f"Could not fetch user data before archiving: {fetch_err}")
+
+            user_data['id'] = user_id
+
+            # 2. Archive the user to System Archives
+            archive_item('user', user_id, user_data, 'admin_users')
+
+            # 3. Remove from Firestore after archiving
             try:
                 if db:
                     doc_ref = db.collection('customers').document(user_id)
                     if doc_ref.get().exists:
                         doc_ref.delete()
-                        deleted = True
                     else:
                         customers_ref = db.collection('customers')
                         docs = customers_ref.where('id', '==', user_id).stream()
-                        for doc in docs:
-                            doc.reference.delete()
-                            deleted = True
+                        for d in docs:
+                            d.reference.delete()
             except Exception as db_err:
-                print(f"⚠ Database User Delete Error: {db_err}")
+                print(f"DB Archive-Delete Error: {db_err}")
 
-            return jsonify({"success": True, "status": "success", "message": f"User {user_id} successfully deleted from database."}), 200
+            return jsonify({"success": True, "status": "success", "message": f"User {user_id} has been moved to the System Archive."}), 200
         except Exception as e:
             return jsonify({"success": False, "error": str(e)}), 500
 
@@ -1185,6 +1206,187 @@ def handle_store_products():
         except Exception as e:
             return jsonify({"success": False, "error": str(e)}), 500
 
+
+# ---------------------------------------------------------------------------
+# SAMPLES & SERVICES SHOWCASE ENDPOINTS
+# ---------------------------------------------------------------------------
+
+@app.route('/api/samples', methods=['GET', 'POST'])
+def handle_samples():
+    if request.method == 'GET':
+        try:
+            samples = get_sample_products() or []
+            return jsonify(samples), 200
+        except Exception as e:
+            return jsonify({'success': False, 'error': str(e)}), 500
+
+    elif request.method == 'POST':
+        if session.get('role') != 'admin':
+            return jsonify({'success': False, 'message': 'Unauthorized! Admin lamang ang pwedeng magdagdag ng sample showcase.'}), 403
+        try:
+            data = request.json or {}
+            saved = save_sample_product(data)
+            if saved:
+                return jsonify({'success': True, 'message': 'Sample product/service naidagdag nang matagumpay!', 'item': saved}), 200
+            return jsonify({'success': False, 'message': 'Failed to save sample product.'}), 500
+        except Exception as e:
+            return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/samples/<sample_id>', methods=['DELETE', 'PUT'])
+def handle_single_sample(sample_id):
+    if session.get('role') != 'admin':
+        return jsonify({'success': False, 'message': 'Unauthorized! Admin lamang ang pwedeng mag-manage ng samples.'}), 403
+    try:
+        if request.method == 'DELETE':
+            # Retrieve sample data for archive
+            sample_data = None
+            try:
+                samples = get_sample_products() or []
+                for s in samples:
+                    if str(s.get('id')) == str(sample_id):
+                        sample_data = s
+                        break
+            except Exception:
+                pass
+            if not sample_data:
+                sample_data = {'id': sample_id, 'title': sample_id}
+
+            archive_item('sample_product', sample_id, sample_data, 'admin_samples')
+            delete_sample_product(sample_id)
+            return jsonify({'success': True, 'message': 'Sample moved to Archive successfully.'}), 200
+        elif request.method == 'PUT':
+            data = request.json or {}
+            data['id'] = sample_id
+            saved = save_sample_product(data)
+            return jsonify({'success': bool(saved), 'item': saved}), 200
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+# ---------------------------------------------------------------------------
+# SERVICES ENDPOINTS (Printing Services for customer order form)
+# ---------------------------------------------------------------------------
+
+@app.route('/api/services', methods=['GET', 'POST'])
+def handle_services():
+    if request.method == 'GET':
+        try:
+            services = get_services() or []
+            return jsonify(services), 200
+        except Exception as e:
+            return jsonify({'success': False, 'error': str(e)}), 500
+
+    elif request.method == 'POST':
+        if session.get('role') != 'admin':
+            return jsonify({'success': False, 'message': 'Unauthorized! Admin lamang ang pwedeng magdagdag ng service.'}), 403
+        try:
+            data = request.json or {}
+            saved = save_service(data)
+            if saved:
+                return jsonify({'success': True, 'message': 'Service naidagdag nang matagumpay!', 'item': saved}), 200
+            return jsonify({'success': False, 'message': 'Failed to save service.'}), 500
+        except Exception as e:
+            return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/services/<service_id>', methods=['DELETE', 'PUT'])
+def handle_single_service(service_id):
+    if session.get('role') != 'admin':
+        return jsonify({'success': False, 'message': 'Unauthorized! Admin lamang ang pwedeng mag-manage ng services.'}), 403
+    try:
+        if request.method == 'DELETE':
+            service_data = None
+            try:
+                services = get_services() or []
+                for s in services:
+                    if str(s.get('id')) == str(service_id):
+                        service_data = s
+                        break
+            except Exception:
+                pass
+            if not service_data:
+                service_data = {'id': service_id, 'name': service_id}
+
+            archive_item('service', service_id, service_data, 'admin_services')
+            delete_service(service_id)
+            return jsonify({'success': True, 'message': 'Printing service moved to Archive successfully.'}), 200
+        elif request.method == 'PUT':
+            data = request.json or {}
+            data['id'] = service_id
+            saved = save_service(data)
+            return jsonify({'success': bool(saved), 'item': saved}), 200
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+# ---------------------------------------------------------------------------
+# GCASH PAYMENT SETTINGS ENDPOINTS
+# ---------------------------------------------------------------------------
+
+@app.route('/api/settings/gcash', methods=['GET', 'POST'])
+def handle_gcash_settings():
+    if request.method == 'GET':
+        try:
+            settings = get_gcash_settings()
+            return jsonify({'success': True, 'settings': settings}), 200
+        except Exception as e:
+            return jsonify({'success': False, 'error': str(e)}), 500
+
+    elif request.method == 'POST':
+        if session.get('role') != 'admin':
+            return jsonify({'success': False, 'message': 'Unauthorized! Admin access required.'}), 403
+        try:
+            data = request.json or {}
+            acc_name = str(data.get('accountName') or '').strip()
+            acc_number = str(data.get('accountNumber') or '').strip()
+            qr_url = str(data.get('qrUrl') or '/static/images/gcash_qr.png').strip()
+
+            if not acc_name or not acc_number:
+                return jsonify({'success': False, 'message': 'Kailangan ilagay ang Account Name at GCash Number.'}), 400
+
+            # Clean number: strip dashes/spaces
+            clean_num = re.sub(r'\D', '', acc_number)
+            if not is_valid_ph_contact(clean_num):
+                return jsonify({'success': False, 'message': 'Dapat ay 11-digit PH mobile number starting with 09.'}), 400
+
+            updated_data = {
+                "accountName": acc_name,
+                "accountNumber": clean_num,
+                "qrUrl": qr_url,
+                "isActive": bool(data.get('isActive', True))
+            }
+            saved = save_gcash_settings(updated_data)
+            return jsonify({'success': True, 'message': 'GCash payment details updated successfully!', 'settings': saved}), 200
+        except Exception as e:
+            return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/settings/gcash/upload-qr', methods=['POST'])
+def upload_gcash_qr_endpoint():
+    if session.get('role') != 'admin':
+        return jsonify({'success': False, 'message': 'Unauthorized! Admin access required.'}), 403
+    try:
+        if 'qrFile' not in request.files:
+            return jsonify({'success': False, 'message': 'No file uploaded.'}), 400
+        file = request.files['qrFile']
+        if file.filename == '':
+            return jsonify({'success': False, 'message': 'No file selected.'}), 400
+
+        # Save locally to static/images/gcash_qr.png or timestamped
+        ext = file.filename.rsplit('.', 1)[-1].lower() if '.' in file.filename else 'png'
+        if ext not in ['png', 'jpg', 'jpeg', 'webp']:
+            return jsonify({'success': False, 'message': 'Image formats only (PNG, JPG, WEBP).'}), 400
+
+        save_name = f"gcash_qr.{ext}"
+        save_path = os.path.join(os.path.dirname(__file__), 'static', 'images', save_name)
+        file.save(save_path)
+
+        web_url = f"/static/images/{save_name}?v={int(datetime.datetime.now().timestamp())}"
+        
+        # Auto update settings
+        current = get_gcash_settings()
+        current['qrUrl'] = web_url
+        save_gcash_settings(current)
+
+        return jsonify({'success': True, 'qrUrl': web_url, 'message': 'GCash QR Code updated successfully!'}), 200
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
 
 # ---------------------------------------------------------------------------
 # FILE UPLOAD ENDPOINT  (Step 1 of two-step order submission)
@@ -1303,8 +1505,12 @@ def handle_orders():
 
                 if qty_val <= 0 or pages_val <= 0:
                     return jsonify({"success": False, "message": "Ang quantity at pages ay dapat mas mataas sa zero (0)."}), 400
-                if total_amount <= 0:
-                    return jsonify({"success": False, "message": "Invalid calculated order total."}), 400
+                if qty_val > 100000:
+                    return jsonify({"success": False, "message": "Ang pinakamataas na quantity ay 100,000 pcs lang."}), 400
+                if pages_val > 5000:
+                    return jsonify({"success": False, "message": "Ang pinakamataas na pages ay 5,000 lang."}), 400
+                if total_amount <= 0 or total_amount > 5000000:
+                    return jsonify({"success": False, "message": "Maling order total amount (maximum limit ₱5,000,000)."}), 400
             except (ValueError, TypeError):
                 return jsonify({"success": False, "message": "May maling numeric values sa quantity, pages, o total."}), 400
 
@@ -1318,6 +1524,20 @@ def handle_orders():
             if len(customer_note) > 500:
                 return jsonify({"success": False, "message": "Ang order note / special instructions ay hindi pwedeng lumagpas sa 500 characters."}), 400
 
+            # GCash Payment Fields Validation (if GCash Online is selected)
+            payment_method = str(data.get('payment') or 'GCash Online').strip()
+            gcash_ref = str(data.get('gcashRef') or data.get('referenceNumber') or '').strip()
+            gcash_receipt_url = str(data.get('gcashReceiptUrl') or '').strip()
+
+            if 'gcash' in payment_method.lower():
+                clean_ref = re.sub(r'\D', '', gcash_ref)
+                if len(clean_ref) < 8 or len(clean_ref) > 16:
+                    return jsonify({
+                        "success": False,
+                        "message": "Pakilagay ang wastong GCash Reference Number (karaniwang 13 digits, hal. 1029384756123)."
+                    }), 400
+                gcash_ref = clean_ref
+
             new_order = {
                 "id": order_id,
                 "customerId": data.get('customerId', 'CUST-101'),
@@ -1330,7 +1550,9 @@ def handle_orders():
                 "paperSize": data.get('paperSize') or 'Short Letter (8.5" x 11")',
                 "colorMode": data.get('colorMode', 'Full Color'),
                 "customerNote": customer_note,
-                "payment": data.get('payment') or 'GCash Online Payment',
+                "payment": payment_method,
+                "gcashRef": gcash_ref,
+                "gcashReceiptUrl": gcash_receipt_url,
                 "total": total_amount,
                 "status": "Order Submitted",
                 "file": file_name,
@@ -1631,6 +1853,46 @@ def handle_rfid_tap():
         return jsonify({"success": False, "error": str(e)}), 500
 
 
+
+# ---------------------------------------------------------------------------
+# IN-APP NOTIFICATIONS API
+# ---------------------------------------------------------------------------
+
+@app.route('/api/notifications', methods=['GET'])
+@login_required
+def get_user_notifications():
+    try:
+        user_id = session.get('uid') or session.get('email')
+        role = session.get('role', 'customer')
+        notifs = get_notifications(user_id if role != 'admin' else 'ADMIN') or []
+        # Sort newest first
+        notifs.sort(key=lambda x: str(x.get('timestamp') or x.get('createdAt') or ''), reverse=True)
+        return jsonify({'success': True, 'notifications': notifs}), 200
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/notifications/read', methods=['POST'])
+@login_required
+def read_all_notifications():
+    try:
+        user_id = session.get('uid') or session.get('email')
+        role = session.get('role', 'customer')
+        mark_all_notifications_read(user_id if role != 'admin' else 'ADMIN')
+        return jsonify({'success': True}), 200
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/notifications/clear', methods=['POST'])
+@login_required
+def clear_all_notifications():
+    try:
+        user_id = session.get('uid') or session.get('email')
+        role = session.get('role', 'customer')
+        delete_all_notifications(user_id if role != 'admin' else 'ADMIN')
+        return jsonify({'success': True}), 200
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
 # ---------------------------------------------------------------------------
 # PUSH NOTIFICATION & SERVICE WORKER API ENDPOINTS
 # ---------------------------------------------------------------------------
@@ -1734,6 +1996,67 @@ def test_push_endpoint():
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
 
+
+# ---------------------------------------------------------------------------
+# ARCHIVE MANAGEMENT ENDPOINTS
+# ---------------------------------------------------------------------------
+
+@app.route('/api/archive', methods=['GET'])
+def get_archives():
+    is_admin = session.get('role') == 'admin' or session.get('username') == 'Admin'
+    if not is_admin:
+        return jsonify({'success': False, 'message': 'Unauthorized! Admin access required.'}), 403
+    try:
+        item_type = request.args.get('type', 'all')
+        archives = get_archived_items(item_type)
+        return jsonify({'success': True, 'archives': archives or []}), 200
+    except Exception as e:
+        print(f"Error in get_archives: {e}")
+        return jsonify({'success': True, 'archives': []}), 200
+
+@app.route('/api/archive/<archive_id>/restore', methods=['POST'])
+def restore_archive(archive_id):
+    is_admin = session.get('role') == 'admin' or session.get('username') == 'Admin'
+    if not is_admin:
+        return jsonify({'success': False, 'message': 'Unauthorized! Admin access required.'}), 403
+    try:
+        success, message = restore_archived_item(archive_id)
+        return jsonify({'success': success, 'message': message}), 200 if success else 400
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/archive/<archive_id>', methods=['DELETE'])
+def delete_archive_permanent(archive_id):
+    is_admin = session.get('role') == 'admin' or session.get('username') == 'Admin'
+    if not is_admin:
+        return jsonify({'success': False, 'message': 'Unauthorized! Admin access required.'}), 403
+    try:
+        success = permanently_delete_archived_item(archive_id)
+        return jsonify({'success': success, 'message': 'Item permanently deleted from archive.'}), 200 if success else 400
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/store/products/<product_id>', methods=['DELETE'])
+def delete_store_product_endpoint(product_id):
+    is_admin = session.get('role') == 'admin' or session.get('username') == 'Admin'
+    if not is_admin:
+        return jsonify({'success': False, 'message': 'Unauthorized! Admin access required.'}), 403
+    try:
+        current_products = get_store_products()
+        target_prod = None
+        new_list = []
+        for p in current_products:
+            if str(p.get('id')) == str(product_id):
+                target_prod = p
+            else:
+                new_list.append(p)
+        
+        if target_prod:
+            archive_item('store_product', product_id, target_prod, 'admin_store')
+        save_store_products(new_list)
+        return jsonify({'success': True, 'message': 'In-store product moved to Archive successfully.'}), 200
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
 
 if __name__ == '__main__':
     print("=" * 60)

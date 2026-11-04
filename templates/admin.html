@@ -1,4 +1,4 @@
-﻿{% extends "base.html" %}
+{% extends "base.html" %}
 
 {% block content %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -20,7 +20,7 @@
             <p id="errorToastMessage" class="text-xs font-medium text-slate-200 mt-0.5">An unexpected error occurred.</p>
         </div>
     </div>
-    <button onclick="hideErrorToast()" class="text-slate-400 hover:text-white p-1 rounded-lg cursor-pointer transition">
+    <button onclick="hideErrorToast()" class="text-slate-700 hover:text-white p-1 rounded-lg cursor-pointer transition">
         <i class="fas fa-times text-xs"></i>
     </button>
 </div>
@@ -36,27 +36,27 @@
     <!-- ADMIN CONSOLE TOP BRAND & STATS HEADER -->
     <div class="bg-white/95 backdrop-blur-md border border-slate-200/90 rounded-3xl p-4 sm:p-5 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div class="flex items-center gap-3.5 min-w-0">
-            <div class="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-gradient-to-tr from-rose-500 via-rose-600 to-amber-500 flex items-center justify-center text-white font-black text-xl shadow-lg shadow-rose-500/20 shrink-0">
-                <i class="fas fa-bolt text-base sm:text-lg"></i>
+            <div class="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl overflow-hidden border border-emerald-500/30 shadow-md shadow-emerald-500/10 shrink-0 select-none pointer-events-none">
+                <img src="{{ url_for('static', filename='images/kcz_logo.jpg') }}" alt="KCZ Logo" class="w-full h-full object-cover">
             </div>
             <div class="min-w-0">
                 <div class="flex items-center gap-2 flex-wrap">
-                    <h1 class="text-lg sm:text-xl font-black text-slate-900 tracking-tight truncate">Admin Console</h1>
+                    <h1 class="text-lg sm:text-xl font-black text-black tracking-tight truncate">Admin Console</h1>
                     <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 text-[10px] font-extrabold border border-emerald-200 shrink-0">
                         <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
                         Live System
                     </span>
                 </div>
-                <p class="text-[11px] sm:text-xs text-slate-500 font-medium mt-0.5 truncate">Shop Order Fulfillment, Real-Time Messaging & Store Intelligence</p>
+                <p class="text-[11px] sm:text-xs text-slate-800 font-medium mt-0.5 truncate">Shop Order Fulfillment, Real-Time Messaging & Store Intelligence</p>
             </div>
         </div>
 
         <div class="flex items-center gap-2.5 shrink-0">
-            <div class="bg-slate-50 border border-slate-200/80 px-3 py-1.5 rounded-2xl text-[11px] font-bold text-slate-600 flex items-center gap-1.5">
-                <span class="text-slate-400 font-semibold">Logged:</span>
-                <span class="text-slate-900 font-extrabold">{{ session.get('username', 'Admin') }}</span>
+            <div class="bg-slate-50 border border-slate-200/80 px-3 py-1.5 rounded-2xl text-[11px] font-bold text-black flex items-center gap-1.5">
+                <span class="text-slate-700 font-semibold">Logged:</span>
+                <span class="text-black font-extrabold">{{ session.get('username', 'Admin') }}</span>
             </div>
-            <a href="/" class="bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold px-3 py-2 rounded-2xl transition flex items-center gap-1.5 cursor-pointer" title="View Public Shop Front">
+            <a href="/" class="bg-slate-100 hover:bg-slate-200 text-black text-xs font-bold px-3 py-2 rounded-2xl transition flex items-center gap-1.5 cursor-pointer" title="View Public Shop Front">
                 <i class="fas fa-external-link-alt text-[10px]"></i>
                 <span class="hidden sm:inline">Shopfront</span>
             </a>
@@ -64,26 +64,38 @@
     </div>
 
     <!-- TOP NAVIGATION TABS (Fluid Horizontal Scrolling) -->
-    <div class="bg-white/90 backdrop-blur-md border border-slate-200 rounded-2xl p-1.5 flex items-center gap-1.5 text-xs font-bold shadow-xs sticky top-20 z-40 overflow-x-auto no-scrollbar">
-        <button onclick="switchAdminTab('manageOrders')" id="adminTabBtn-manageOrders" class="admin-tab-btn px-4 py-2.5 rounded-xl bg-slate-900 text-white shadow-xs transition-all flex items-center gap-2 cursor-pointer whitespace-nowrap shrink-0">
-            <i class="fas fa-tasks text-sm"></i>
+    <div class="bg-white/90 backdrop-blur-md border border-slate-200 rounded-xl p-1 flex items-center gap-0.5 text-[11px] font-bold shadow-xs sticky top-20 z-40 overflow-x-auto no-scrollbar">
+        <button onclick="switchAdminTab('manageOrders')" id="adminTabBtn-manageOrders" class="admin-tab-btn px-2.5 py-1.5 rounded-lg bg-emerald-600 text-white shadow-xs transition-all flex items-center gap-1.5 cursor-pointer whitespace-nowrap shrink-0">
+            <i class="fas fa-tasks text-[11px]"></i>
             <span>Manage Orders</span>
         </button>
-        <button onclick="switchAdminTab('liveChat')" id="adminTabBtn-liveChat" class="admin-tab-btn px-4 py-2.5 rounded-xl text-slate-600 hover:bg-slate-100 transition-all flex items-center gap-2 cursor-pointer whitespace-nowrap shrink-0">
-            <i class="fas fa-comments text-sm"></i>
-            <span>Live Customer Chat</span>
+        <button onclick="switchAdminTab('liveChat')" id="adminTabBtn-liveChat" class="admin-tab-btn px-2.5 py-1.5 rounded-lg text-black hover:bg-slate-100 transition-all flex items-center gap-1.5 cursor-pointer whitespace-nowrap shrink-0">
+            <i class="fas fa-comments text-[11px]"></i>
+            <span>Live Chat</span>
         </button>
-        <button onclick="switchAdminTab('analytics')" id="adminTabBtn-analytics" class="admin-tab-btn px-4 py-2.5 rounded-xl text-slate-600 hover:bg-slate-100 transition-all flex items-center gap-2 cursor-pointer whitespace-nowrap shrink-0">
-            <i class="fas fa-chart-pie text-sm"></i>
-            <span>Analytics & Intelligence</span>
+        <button onclick="switchAdminTab('analytics')" id="adminTabBtn-analytics" class="admin-tab-btn px-2.5 py-1.5 rounded-lg text-black hover:bg-slate-100 transition-all flex items-center gap-1.5 cursor-pointer whitespace-nowrap shrink-0">
+            <i class="fas fa-chart-pie text-[11px]"></i>
+            <span>Analytics</span>
         </button>
-        <button onclick="switchAdminTab('rfidLoyalty')" id="adminTabBtn-rfidLoyalty" class="admin-tab-btn px-4 py-2.5 rounded-xl text-slate-600 hover:bg-slate-100 transition-all flex items-center gap-2 cursor-pointer whitespace-nowrap shrink-0">
-            <i class="fas fa-id-card text-sm"></i>
-            <span>RFID Loyalty Cards</span>
+        <button onclick="switchAdminTab('rfidLoyalty')" id="adminTabBtn-rfidLoyalty" class="admin-tab-btn px-2.5 py-1.5 rounded-lg text-black hover:bg-slate-100 transition-all flex items-center gap-1.5 cursor-pointer whitespace-nowrap shrink-0">
+            <i class="fas fa-id-card text-[11px]"></i>
+            <span>RFID Cards</span>
         </button>
-        <button onclick="switchAdminTab('registeredUsers')" id="adminTabBtn-registeredUsers" class="admin-tab-btn px-4 py-2.5 rounded-xl text-slate-600 hover:bg-slate-100 transition-all flex items-center gap-2 cursor-pointer whitespace-nowrap shrink-0">
-            <i class="fas fa-users-cog text-sm"></i>
-            <span>Registered Users</span>
+        <button onclick="switchAdminTab('samplesManager')" id="adminTabBtn-samplesManager" class="admin-tab-btn px-2.5 py-1.5 rounded-lg text-black hover:bg-slate-100 transition-all flex items-center gap-1.5 cursor-pointer whitespace-nowrap shrink-0">
+            <i class="fas fa-palette text-[11px]"></i>
+            <span>Samples & Services</span>
+        </button>
+        <button onclick="switchAdminTab('servicesManager')" id="adminTabBtn-servicesManager" class="admin-tab-btn px-2.5 py-1.5 rounded-lg text-black hover:bg-slate-100 transition-all flex items-center gap-1.5 cursor-pointer whitespace-nowrap shrink-0">
+            <i class="fas fa-concierge-bell text-[11px]"></i>
+            <span>Place Order</span>
+        </button>
+        <button onclick="switchAdminTab('registeredUsers')" id="adminTabBtn-registeredUsers" class="admin-tab-btn px-2.5 py-1.5 rounded-lg text-black hover:bg-slate-100 transition-all flex items-center gap-1.5 cursor-pointer whitespace-nowrap shrink-0">
+            <i class="fas fa-users-cog text-[11px]"></i>
+            <span>Users</span>
+        </button>
+        <button onclick="switchAdminTab('archive')" id="adminTabBtn-archive" class="admin-tab-btn px-2.5 py-1.5 rounded-lg text-black hover:bg-slate-100 transition-all flex items-center gap-1.5 cursor-pointer whitespace-nowrap shrink-0">
+            <i class="fas fa-box-archive text-[11px] text-emerald-600"></i>
+            <span>Archive</span>
         </button>
     </div>
 
@@ -97,10 +109,10 @@
                 </div>
                 <div class="space-y-0.5 min-w-0">
                     <div class="flex items-center gap-2 flex-wrap">
-                        <h2 class="text-lg sm:text-xl font-extrabold text-slate-900 tracking-tight">Print Production Queue</h2>
+                        <h2 class="text-lg sm:text-xl font-extrabold text-black tracking-tight">Print Production Queue</h2>
                         <span id="headerTotalBadge" class="bg-blue-50 text-blue-700 font-bold text-[11px] px-2.5 py-0.5 rounded-full border border-blue-200 font-mono">0 Active Orders</span>
                     </div>
-                    <p class="text-[11px] sm:text-xs text-slate-500">Organized print job management • Sortable timeline</p>
+                    <p class="text-[11px] sm:text-xs text-slate-800">Organized print job management • Sortable timeline</p>
                 </div>
             </div>
 
@@ -123,18 +135,18 @@
         <div class="bg-white border border-slate-200 rounded-3xl p-4 sm:p-5 shadow-xs space-y-3.5">
             <div class="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3">
                 <div class="relative w-full lg:w-72 shrink-0">
-                    <i class="fas fa-search absolute left-3.5 top-3 text-slate-400 text-xs"></i>
-                    <input type="text" id="adminSearchInput" oninput="filterAdminOrders()" placeholder="Search Order #, Client..." class="w-full bg-slate-50 border border-slate-200 pl-9 pr-3.5 py-2 rounded-xl text-xs text-slate-800 focus:outline-none focus:border-blue-600 font-medium">
+                    <i class="fas fa-search absolute left-3.5 top-3 text-slate-700 text-xs"></i>
+                    <input type="text" id="adminSearchInput" oninput="filterAdminOrders()" placeholder="Search Order #, Client..." class="w-full bg-slate-50 border border-slate-200 pl-9 pr-3.5 py-2 rounded-xl text-xs text-black focus:outline-none focus:border-blue-600 font-medium">
                 </div>
 
                 <div class="flex flex-wrap items-center gap-2 w-full lg:w-auto">
                     <!-- TIMELINE SORT DROPDOWN -->
-                    <select id="adminSortDropdown" onchange="filterAdminOrders()" class="flex-1 sm:flex-initial bg-slate-50 border border-slate-200 px-3 py-2 rounded-xl text-xs font-bold text-slate-700 focus:outline-none focus:border-blue-600 cursor-pointer shadow-2xs">
+                    <select id="adminSortDropdown" onchange="filterAdminOrders()" class="flex-1 sm:flex-initial bg-slate-50 border border-slate-200 px-3 py-2 rounded-xl text-xs font-bold text-black focus:outline-none focus:border-blue-600 cursor-pointer shadow-2xs">
                         <option value="latest">Latest to Previous</option>
                         <option value="previous">Previous to Latest</option>
                     </select>
 
-                    <select id="adminServiceDropdown" onchange="filterAdminOrders()" class="flex-1 sm:flex-initial bg-slate-50 border border-slate-200 px-3 py-2 rounded-xl text-xs font-bold text-slate-700 focus:outline-none focus:border-blue-600 cursor-pointer shadow-2xs">
+                    <select id="adminServiceDropdown" onchange="filterAdminOrders()" class="flex-1 sm:flex-initial bg-slate-50 border border-slate-200 px-3 py-2 rounded-xl text-xs font-bold text-black focus:outline-none focus:border-blue-600 cursor-pointer shadow-2xs">
                         <option value="all">All Services</option>
                         <option value="Standard A4 Print">Standard A4 Print</option>
                         <option value="Business Cards">Business Cards</option>
@@ -150,10 +162,10 @@
                     </select>
 
                     <div class="bg-slate-100 p-1 rounded-xl flex items-center gap-1 text-xs font-bold shrink-0">
-                        <button onclick="toggleAdminViewMode('list')" id="viewBtn-list" class="px-2.5 py-1.5 rounded-lg bg-white text-slate-900 shadow-2xs cursor-pointer">
+                        <button onclick="toggleAdminViewMode('list')" id="viewBtn-list" class="px-2.5 py-1.5 rounded-lg bg-white text-black shadow-2xs cursor-pointer">
                             <i class="fas fa-list text-xs mr-1"></i> List
                         </button>
-                        <button onclick="toggleAdminViewMode('cards')" id="viewBtn-cards" class="px-2.5 py-1.5 rounded-lg text-slate-600 hover:text-slate-900 cursor-pointer">
+                        <button onclick="toggleAdminViewMode('cards')" id="viewBtn-cards" class="px-2.5 py-1.5 rounded-lg text-black hover:text-black cursor-pointer">
                             <i class="fas fa-th-large text-xs mr-1"></i> Cards
                         </button>
                     </div>
@@ -161,115 +173,115 @@
             </div>
 
             <div class="flex items-center gap-1.5 overflow-x-auto pt-2 border-t border-slate-100 text-xs font-bold no-scrollbar pb-1">
-                <span class="text-slate-400 text-[10px] uppercase tracking-wider whitespace-nowrap shrink-0">Status:</span>
-                <button onclick="setAdminStatusFilter('all')" id="statusPill-all" class="admin-status-pill px-3 py-1.5 rounded-xl bg-slate-900 text-white transition cursor-pointer whitespace-nowrap shrink-0">All Active (<span id="pillCountAll">0</span>)</button>
-                <button onclick="setAdminStatusFilter('approval')" id="statusPill-approval" class="admin-status-pill px-3 py-1.5 rounded-xl bg-slate-100 text-slate-600 hover:bg-slate-200 transition cursor-pointer whitespace-nowrap shrink-0">For Approval (<span id="pillCountApproval">0</span>)</button>
-                <button onclick="setAdminStatusFilter('printing')" id="statusPill-printing" class="admin-status-pill px-3 py-1.5 rounded-xl bg-slate-100 text-slate-600 hover:bg-slate-200 transition cursor-pointer whitespace-nowrap shrink-0">Printing (<span id="pillCountPrinting">0</span>)</button>
-                <button onclick="setAdminStatusFilter('pickup')" id="statusPill-pickup" class="admin-status-pill px-3 py-1.5 rounded-xl bg-slate-100 text-slate-600 hover:bg-slate-200 transition cursor-pointer whitespace-nowrap shrink-0">Ready (<span id="pillCountPickup">0</span>)</button>
-                <button onclick="setAdminStatusFilter('completed')" id="statusPill-completed" class="admin-status-pill px-3 py-1.5 rounded-xl bg-slate-100 text-slate-600 hover:bg-slate-200 transition cursor-pointer whitespace-nowrap shrink-0">Completed (<span id="pillCountCompleted">0</span>)</button>
-                <button onclick="setAdminStatusFilter('rejected')" id="statusPill-rejected" class="admin-status-pill px-3 py-1.5 rounded-xl bg-slate-100 text-slate-600 hover:bg-slate-200 transition cursor-pointer whitespace-nowrap shrink-0">Rejected (<span id="pillCountRejected">0</span>)</button>
+                <span class="text-slate-700 text-[10px] uppercase tracking-wider whitespace-nowrap shrink-0">Status:</span>
+                <button onclick="setAdminStatusFilter('all')" id="statusPill-all" class="admin-status-pill px-3 py-1.5 rounded-xl bg-emerald-600 text-white shadow-xs font-bold transition cursor-pointer whitespace-nowrap shrink-0">All Active (<span id="pillCountAll">0</span>)</button>
+                <button onclick="setAdminStatusFilter('approval')" id="statusPill-approval" class="admin-status-pill px-3 py-1.5 rounded-xl bg-slate-100 text-black hover:bg-slate-200 transition cursor-pointer whitespace-nowrap shrink-0">For Approval (<span id="pillCountApproval">0</span>)</button>
+                <button onclick="setAdminStatusFilter('printing')" id="statusPill-printing" class="admin-status-pill px-3 py-1.5 rounded-xl bg-slate-100 text-black hover:bg-slate-200 transition cursor-pointer whitespace-nowrap shrink-0">Printing (<span id="pillCountPrinting">0</span>)</button>
+                <button onclick="setAdminStatusFilter('pickup')" id="statusPill-pickup" class="admin-status-pill px-3 py-1.5 rounded-xl bg-slate-100 text-black hover:bg-slate-200 transition cursor-pointer whitespace-nowrap shrink-0">Ready (<span id="pillCountPickup">0</span>)</button>
+                <button onclick="setAdminStatusFilter('completed')" id="statusPill-completed" class="admin-status-pill px-3 py-1.5 rounded-xl bg-slate-100 text-black hover:bg-slate-200 transition cursor-pointer whitespace-nowrap shrink-0">Completed (<span id="pillCountCompleted">0</span>)</button>
+                <button onclick="setAdminStatusFilter('rejected')" id="statusPill-rejected" class="admin-status-pill px-3 py-1.5 rounded-xl bg-slate-100 text-black hover:bg-slate-200 transition cursor-pointer whitespace-nowrap shrink-0">Rejected (<span id="pillCountRejected">0</span>)</button>
             </div>
         </div>
 
         <div id="adminOrdersContainer" class="bg-white border border-slate-200 rounded-3xl min-h-[400px] shadow-xs relative overflow-hidden w-full max-w-full">
-            <div class="p-8 text-center text-slate-400 text-xs">Loading production queue...</div>
+            <div class="p-8 text-center text-slate-700 text-xs">Loading production queue...</div>
         </div>
     </div>
 
-    <!-- 2. LIVE CHAT SUPPORT TAB CONTENT (MESSENGER-STYLE INBOX) -->
-    <div id="adminTabSection-liveChat" class="admin-tab-content hidden bg-[#0b1226] rounded-3xl border border-slate-800/80 shadow-xl overflow-hidden h-[660px] flex flex-col">
+    <!-- 2. LIVE CHAT SUPPORT TAB CONTENT (CLEAN WHITE) -->
+    <div id="adminTabSection-liveChat" class="admin-tab-content hidden bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden h-[660px] flex flex-col">
         <!-- Main Messenger Two-Column Body -->
         <div class="flex-1 flex overflow-hidden relative">
             <!-- Left Column: Conversation Sidebar / Inbox -->
-            <div id="adminChatSidebar" class="w-full md:w-80 lg:w-96 border-r border-slate-800/80 flex flex-col bg-[#0b1226] flex-shrink-0 transition-all duration-200 z-10">
+            <div id="adminChatSidebar" class="w-full md:w-80 lg:w-96 border-r border-slate-200 flex flex-col bg-white flex-shrink-0 transition-all duration-200 z-10">
                 <!-- Sidebar Header -->
-                <div class="p-4 border-b border-slate-800/80 bg-[#0b1226]">
+                <div class="p-4 border-b border-slate-100 bg-white">
                     <div class="flex items-center justify-between mb-3">
                         <div class="flex items-center gap-2">
-                            <i class="fab fa-facebook-messenger text-blue-500 text-lg"></i>
-                            <h3 class="font-extrabold text-sm text-white">Messages</h3>
+                            <i class="fab fa-facebook-messenger text-emerald-600 text-lg"></i>
+                            <h3 class="font-extrabold text-sm text-black">Messages</h3>
                         </div>
-                        <span id="adminTotalUnreadBadge" class="hidden text-[10px] font-black bg-blue-600 text-white px-2.5 py-0.5 rounded-full shadow-2xs">
+                        <span id="adminTotalUnreadBadge" class="hidden text-[10px] font-black bg-emerald-600 text-white px-2.5 py-0.5 rounded-full shadow-2xs">
                             0 unread
                         </span>
                     </div>
                     <!-- Search Bar -->
                     <div class="relative">
-                        <i class="fas fa-search absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 text-xs"></i>
+                        <i class="fas fa-search absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-700 text-xs"></i>
                         <input type="text" id="adminConvSearchInput" oninput="filterAdminConversations()"
                                placeholder="Search customer by name..."
-                               class="w-full bg-[#0f172a] border border-slate-700/80 focus:border-blue-500 focus:bg-[#0f172a] text-xs pl-9 pr-8 py-2 rounded-xl focus:outline-none transition font-medium text-slate-200 placeholder-slate-500">
-                        <button id="adminConvSearchClear" onclick="clearAdminConvSearch()" class="hidden absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white text-xs">✕</button>
+                               class="w-full bg-slate-50 border border-slate-200 focus:border-emerald-500 focus:bg-white text-xs pl-9 pr-8 py-2 rounded-xl focus:outline-none transition font-medium text-black placeholder-slate-400">
+                        <button id="adminConvSearchClear" onclick="clearAdminConvSearch()" class="hidden absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-700 hover:text-black text-xs">✕</button>
                     </div>
                 </div>
 
                 <!-- Conversation List Container (Automatically ordered by latest message activity) -->
-                <div id="adminConversationsList" class="flex-1 overflow-y-auto divide-y divide-slate-800/60 bg-[#0b1226]">
-                    <div class="p-8 text-center text-slate-400 text-xs flex flex-col items-center gap-2">
-                        <i class="fas fa-spinner fa-spin text-blue-500 text-lg"></i>
+                <div id="adminConversationsList" class="flex-1 overflow-y-auto divide-y divide-slate-100 bg-white">
+                    <div class="p-8 text-center text-slate-700 text-xs flex flex-col items-center gap-2">
+                        <i class="fas fa-spinner fa-spin text-emerald-600 text-lg"></i>
                         <span>Loading conversation inbox...</span>
                     </div>
                 </div>
             </div>
 
             <!-- Right Column: Active Conversation Thread -->
-            <div id="adminChatMainPane" class="flex-1 hidden md:flex flex-col bg-[#070b19] overflow-hidden w-full">
+            <div id="adminChatMainPane" class="flex-1 hidden md:flex flex-col bg-slate-50/70 overflow-hidden w-full">
                 <!-- Chat Pane Header -->
-                <div id="adminChatHeader" class="px-5 py-3.5 border-b border-slate-800/80 bg-[#0b1226] flex items-center justify-between">
+                <div id="adminChatHeader" class="px-5 py-3.5 border-b border-slate-200 bg-white flex items-center justify-between">
                     <div class="flex items-center gap-3 min-w-0">
                         <!-- Mobile Back to Inbox Button -->
-                        <button onclick="toggleAdminChatMobileView(false)" class="md:hidden text-slate-400 hover:text-white text-sm p-1.5 rounded-lg hover:bg-slate-800 transition">
+                        <button onclick="toggleAdminChatMobileView(false)" class="md:hidden text-slate-700 hover:text-black text-sm p-1.5 rounded-lg hover:bg-slate-100 transition">
                             <i class="fas fa-arrow-left"></i>
                         </button>
-                        <div id="adminActiveUserAvatar" class="w-10 h-10 rounded-full bg-blue-500/20 text-blue-400 font-black flex items-center justify-center text-sm flex-shrink-0 shadow-2xs border border-blue-500/30">
+                        <div id="adminActiveUserAvatar" class="w-10 h-10 rounded-2xl bg-emerald-50 text-emerald-600 font-black flex items-center justify-center text-sm flex-shrink-0 shadow-2xs border border-emerald-100">
                             💬
                         </div>
                         <div class="min-w-0">
                             <div class="flex items-center gap-2">
-                                <span id="adminActiveUserName" class="font-extrabold text-xs text-white truncate">Select a conversation</span>
-                                <span id="adminActiveUserBadge" class="hidden text-[9px] font-bold px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-300 border border-blue-500/30">Customer</span>
+                                <span id="adminActiveUserName" class="font-extrabold text-xs text-black truncate">Select a conversation</span>
+                                <span id="adminActiveUserBadge" class="hidden text-[9px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">Customer</span>
                             </div>
-                            <div id="adminActiveUserEmail" class="text-[11px] text-slate-400 truncate">Choose a customer from the left to view messages</div>
+                            <div id="adminActiveUserEmail" class="text-[11px] text-slate-700 truncate">Choose a customer from the left to view messages</div>
                         </div>
                     </div>
                     <!-- Live indicator + Push Notification Toggle -->
                     <div class="flex items-center gap-2">
-                        <button type="button" class="push-notif-toggle-btn px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700/80 text-xs font-bold transition flex items-center gap-1.5 cursor-pointer" title="Enable browser push notifications for new customer messages">
-                            <i class="far fa-bell text-slate-400"></i>
+                        <button type="button" class="push-notif-toggle-btn px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-black border border-slate-200 text-xs font-bold transition flex items-center gap-1.5 cursor-pointer" title="Enable browser push notifications for new customer messages">
+                            <i class="far fa-bell text-slate-700"></i>
                             <span>Enable Alerts</span>
                         </button>
-                        <span class="text-[10px] bg-emerald-500/15 text-emerald-400 font-bold px-2.5 py-1 rounded-full border border-emerald-500/30 flex items-center gap-1.5">
-                            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                        <span class="text-[10px] bg-emerald-50 text-emerald-700 font-bold px-2.5 py-1 rounded-full border border-emerald-200 flex items-center gap-1.5">
+                            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
                             <span>Live Support Active</span>
                         </span>
                     </div>
                 </div>
 
                 <!-- Chat Message Thread Box -->
-                <div id="adminChatThread" class="flex-1 overflow-y-auto p-4 space-y-3 bg-[#070b19] text-xs">
-                    <div class="text-center text-slate-400 py-20 flex flex-col items-center gap-3">
-                        <div class="w-14 h-14 rounded-2xl bg-blue-500/10 text-blue-400 flex items-center justify-center text-2xl shadow-xs border border-blue-500/20">
+                <div id="adminChatThread" class="flex-1 overflow-y-auto p-4 space-y-3 bg-slate-50/70 text-xs">
+                    <div class="text-center text-slate-700 py-20 flex flex-col items-center gap-3">
+                        <div class="w-14 h-14 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-2xl shadow-xs border border-emerald-100">
                             <i class="fab fa-facebook-messenger"></i>
                         </div>
-                        <div class="font-bold text-white text-sm">Select a Conversation</div>
-                        <div class="text-slate-400 text-xs max-w-xs leading-relaxed">Piliin ang isang customer mula sa listahan sa kaliwa upang mag-reply at makipag-chat in real time.</div>
+                        <div class="font-bold text-black text-sm">Select a Conversation</div>
+                        <div class="text-slate-800 text-xs max-w-xs leading-relaxed">Piliin ang isang customer mula sa listahan sa kaliwa upang mag-reply at makipag-chat in real time.</div>
                     </div>
                 </div>
 
                 <!-- Chat Input Footer -->
-                <div id="adminChatInputFooter" class="p-3.5 border-t border-slate-800/80 bg-[#0b1226]">
+                <div id="adminChatInputFooter" class="p-3.5 border-t border-slate-200 bg-white">
                     <div class="flex items-end gap-2">
                         <textarea id="adminChatInput" rows="1"
                                   placeholder="Write a message to customer... (Press Enter to send, Shift+Enter for new line)"
                                   onkeydown="handleAdminChatKeydown(event)"
-                                  class="flex-1 bg-[#0f172a] border border-slate-700/80 text-xs px-4 py-3 rounded-2xl focus:outline-none focus:border-blue-500 focus:bg-[#0f172a] resize-none font-medium text-white placeholder-slate-500 transition max-h-32 min-h-[44px]"></textarea>
+                                  class="flex-1 bg-slate-50 border border-slate-200 text-xs px-4 py-3 rounded-2xl focus:outline-none focus:border-emerald-500 focus:bg-white resize-none font-medium text-black placeholder-slate-400 transition max-h-32 min-h-[44px]"></textarea>
                         <button id="adminChatSendBtn" onclick="sendAdminChatMessage()"
-                                class="bg-blue-600 hover:bg-blue-500 active:scale-95 text-white text-xs font-bold px-5 py-3 rounded-2xl transition shadow-xs cursor-pointer flex items-center gap-2 flex-shrink-0">
+                                class="bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white text-xs font-bold px-5 py-3 rounded-2xl transition shadow-xs cursor-pointer flex items-center gap-2 flex-shrink-0">
                             <span>Send</span>
                             <i class="fas fa-paper-plane text-xs"></i>
                         </button>
                     </div>
-                    <div class="flex justify-between items-center text-[10px] text-slate-400 mt-1.5 px-1">
+                    <div class="flex justify-between items-center text-[10px] text-slate-700 mt-1.5 px-1">
                         <span>Press <kbd class="px-1 py-0.5 bg-slate-800 rounded text-slate-300 font-mono">Enter</kbd> to send • <kbd class="px-1 py-0.5 bg-slate-800 rounded text-slate-300 font-mono">Shift + Enter</kbd> for newline</span>
                         <span id="adminChatSendStatus" class="font-medium text-blue-400"></span>
                     </div>
@@ -284,56 +296,56 @@
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
             <div class="bg-white border border-slate-200 rounded-3xl p-4 shadow-xs space-y-1.5">
                 <div class="flex items-center justify-between">
-                    <span class="text-slate-400 text-[10px] font-bold uppercase tracking-wider">Total Revenue</span>
+                    <span class="text-slate-700 text-[10px] font-bold uppercase tracking-wider">Total Revenue</span>
                     <span class="w-7 h-7 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center text-xs font-bold">💰</span>
                 </div>
                 <div class="text-xl sm:text-2xl font-black font-mono text-emerald-600 truncate" id="statTotalSales">₱0.00</div>
-                <div class="text-[10px] text-slate-400">Print + Store Sales</div>
+                <div class="text-[10px] text-slate-700">Print + Store Sales</div>
             </div>
 
             <div class="bg-white border border-slate-200 rounded-3xl p-4 shadow-xs space-y-1.5">
                 <div class="flex items-center justify-between">
-                    <span class="text-slate-400 text-[10px] font-bold uppercase tracking-wider">Total Orders</span>
+                    <span class="text-slate-700 text-[10px] font-bold uppercase tracking-wider">Total Orders</span>
                     <span class="w-7 h-7 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center text-xs font-bold">📦</span>
                 </div>
                 <div class="text-xl sm:text-2xl font-black font-mono text-blue-600 truncate" id="statTotalOrders">0</div>
-                <div class="text-[10px] text-slate-400">Submitted print jobs</div>
+                <div class="text-[10px] text-slate-700">Submitted print jobs</div>
             </div>
 
             <div class="bg-white border border-slate-200 rounded-3xl p-4 shadow-xs space-y-1.5">
                 <div class="flex items-center justify-between">
-                    <span class="text-slate-400 text-[10px] font-bold uppercase tracking-wider">Pages Printed</span>
+                    <span class="text-slate-700 text-[10px] font-bold uppercase tracking-wider">Pages Printed</span>
                     <span class="w-7 h-7 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center text-xs font-bold">📄</span>
                 </div>
                 <div class="text-xl sm:text-2xl font-black font-mono text-indigo-600 truncate" id="statTotalPages">0</div>
-                <div class="text-[10px] text-slate-400">Total paper consumption</div>
+                <div class="text-[10px] text-slate-700">Total paper consumption</div>
             </div>
 
             <div class="bg-white border border-slate-200 rounded-3xl p-4 shadow-xs space-y-1.5">
                 <div class="flex items-center justify-between">
-                    <span class="text-slate-400 text-[10px] font-bold uppercase tracking-wider">Total Customers</span>
+                    <span class="text-slate-700 text-[10px] font-bold uppercase tracking-wider">Total Customers</span>
                     <span class="w-7 h-7 rounded-lg bg-purple-50 text-purple-600 flex items-center justify-center text-xs font-bold">👥</span>
                 </div>
                 <div class="text-xl sm:text-2xl font-black font-mono text-purple-600 truncate" id="statActiveCust">0</div>
-                <div class="text-[10px] text-slate-400">Registered accounts</div>
+                <div class="text-[10px] text-slate-700">Registered accounts</div>
             </div>
 
             <div class="bg-white border border-slate-200 rounded-3xl p-4 shadow-xs space-y-1.5">
                 <div class="flex items-center justify-between">
-                    <span class="text-slate-400 text-[10px] font-bold uppercase tracking-wider">Avg Order Value</span>
+                    <span class="text-slate-700 text-[10px] font-bold uppercase tracking-wider">Avg Order Value</span>
                     <span class="w-7 h-7 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center text-xs font-bold">📊</span>
                 </div>
                 <div class="text-xl sm:text-2xl font-black font-mono text-amber-500 truncate" id="statAvgOrder">₱0.00</div>
-                <div class="text-[10px] text-slate-400">Average spent per ticket</div>
+                <div class="text-[10px] text-slate-700">Average spent per ticket</div>
             </div>
 
             <div class="bg-white border border-slate-200 rounded-3xl p-4 shadow-xs space-y-1.5">
                 <div class="flex items-center justify-between">
-                    <span class="text-slate-400 text-[10px] font-bold uppercase tracking-wider">Store Revenue</span>
+                    <span class="text-slate-700 text-[10px] font-bold uppercase tracking-wider">Store Revenue</span>
                     <span class="w-7 h-7 rounded-lg bg-orange-50 text-orange-600 flex items-center justify-center text-xs font-bold">🛒</span>
                 </div>
                 <div class="text-xl sm:text-2xl font-black font-mono text-orange-600 truncate" id="statStoreRevenue">₱0.00</div>
-                <div class="text-[10px] text-slate-400">School supplies sales</div>
+                <div class="text-[10px] text-slate-700">School supplies sales</div>
             </div>
         </div>
 
@@ -341,8 +353,8 @@
             <div class="bg-white border border-slate-200 rounded-3xl p-5 shadow-xs space-y-3">
                 <div class="flex items-center justify-between border-b border-slate-100 pb-3">
                     <div>
-                        <h3 class="font-extrabold text-xs text-slate-900 uppercase tracking-wider">Order Status Distribution</h3>
-                        <p class="text-[10px] text-slate-500">Live active job status breakdown</p>
+                        <h3 class="font-extrabold text-xs text-black uppercase tracking-wider">Order Status Distribution</h3>
+                        <p class="text-[10px] text-slate-800">Live active job status breakdown</p>
                     </div>
                     <span class="text-[10px] bg-blue-50 text-blue-700 font-bold px-2.5 py-1 rounded-full border border-blue-100">Real-Time</span>
                 </div>
@@ -354,8 +366,8 @@
             <div class="bg-white border border-slate-200 rounded-3xl p-5 shadow-xs space-y-3">
                 <div class="flex items-center justify-between border-b border-slate-100 pb-3">
                     <div>
-                        <h3 class="font-extrabold text-xs text-slate-900 uppercase tracking-wider">Orders by Service Type</h3>
-                        <p class="text-[10px] text-slate-500">Popular print products volume</p>
+                        <h3 class="font-extrabold text-xs text-black uppercase tracking-wider">Orders by Service Type</h3>
+                        <p class="text-[10px] text-slate-800">Popular print products volume</p>
                     </div>
                     <span class="text-[10px] bg-indigo-50 text-indigo-700 font-bold px-2.5 py-1 rounded-full border border-indigo-100">Live Data</span>
                 </div>
@@ -367,8 +379,8 @@
             <div class="bg-white border border-slate-200 rounded-3xl p-5 shadow-xs space-y-3">
                 <div class="flex items-center justify-between border-b border-slate-100 pb-3">
                     <div>
-                        <h3 class="font-extrabold text-xs text-slate-900 uppercase tracking-wider">Revenue Share</h3>
-                        <p class="text-[10px] text-slate-500">Print jobs vs Store supply sales</p>
+                        <h3 class="font-extrabold text-xs text-black uppercase tracking-wider">Revenue Share</h3>
+                        <p class="text-[10px] text-slate-800">Print jobs vs Store supply sales</p>
                     </div>
                     <span class="text-[10px] bg-emerald-50 text-emerald-700 font-bold px-2.5 py-1 rounded-full border border-emerald-100">Financials</span>
                 </div>
@@ -388,12 +400,12 @@
                 </div>
                 <div class="space-y-1">
                     <div class="flex items-center gap-2">
-                        <h2 class="text-xl font-extrabold text-slate-900 tracking-tight">RFID Loyalty & Tap-to-Pay Manager</h2>
+                        <h2 class="text-xl font-extrabold text-black tracking-tight">RFID Loyalty & Tap-to-Pay Manager</h2>
                         <span class="bg-emerald-50 text-emerald-700 font-bold text-[11px] px-3 py-0.5 rounded-full border border-emerald-200">
                             <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block mr-1"></span> Reader Active
                         </span>
                     </div>
-                    <p class="text-xs text-slate-500">Manage customer RFID card points, simulate card taps, and reward discounts</p>
+                    <p class="text-xs text-slate-800">Manage customer RFID card points, simulate card taps, and reward discounts</p>
                 </div>
             </div>
 
@@ -407,25 +419,25 @@
         <!-- RFID Loyalty Overview Cards -->
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div class="bg-white border border-slate-200 rounded-3xl p-5 space-y-2 shadow-xs">
-                <div class="flex justify-between items-center text-xs font-bold text-slate-400 uppercase tracking-wider">
+                <div class="flex justify-between items-center text-xs font-bold text-slate-700 uppercase tracking-wider">
                     <span>Active RFID Cards</span>
                     <span class="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center text-xs font-bold">💳</span>
                 </div>
-                <div class="text-2xl font-black font-mono text-slate-900" id="adminRfidTotalCards">0</div>
-                <p class="text-[11px] text-slate-500">Registered member cards</p>
+                <div class="text-2xl font-black font-mono text-black" id="adminRfidTotalCards">0</div>
+                <p class="text-[11px] text-slate-800">Registered member cards</p>
             </div>
 
             <div class="bg-white border border-slate-200 rounded-3xl p-5 space-y-2 shadow-xs">
-                <div class="flex justify-between items-center text-xs font-bold text-slate-400 uppercase tracking-wider">
+                <div class="flex justify-between items-center text-xs font-bold text-slate-700 uppercase tracking-wider">
                     <span>Total Points Issued</span>
                     <span class="w-8 h-8 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center text-xs font-bold">⭐</span>
                 </div>
                 <div class="text-2xl font-black font-mono text-amber-500" id="adminRfidTotalPoints">0 PTS</div>
-                <p class="text-[11px] text-slate-500">Accumulated store rewards</p>
+                <p class="text-[11px] text-slate-800">Accumulated store rewards</p>
             </div>
 
             <div class="bg-white border border-slate-200 rounded-3xl p-5 space-y-2 shadow-xs">
-                <div class="flex justify-between items-center text-xs font-bold text-slate-400 uppercase tracking-wider">
+                <div class="flex justify-between items-center text-xs font-bold text-slate-700 uppercase tracking-wider">
                     <span>Counter Tap Status</span>
                     <span class="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-xs font-bold">📡</span>
                 </div>
@@ -433,7 +445,7 @@
                     <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
                     <span>Ready for Scan</span>
                 </div>
-                <p class="text-[11px] text-slate-500">RC522 / NFC Counter Scanner</p>
+                <p class="text-[11px] text-slate-800">RC522 / NFC Counter Scanner</p>
             </div>
         </div>
 
@@ -441,21 +453,140 @@
         <div class="bg-white border border-slate-200 rounded-3xl overflow-hidden shadow-xs">
             <div class="p-5 border-b border-slate-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
                 <div>
-                    <h3 class="font-extrabold text-xs text-slate-900 uppercase tracking-wider">Customer Card Registry</h3>
-                    <p class="text-[11px] text-slate-500">Card UIDs linked to customer profiles</p>
+                    <h3 class="font-extrabold text-xs text-black uppercase tracking-wider">Customer Card Registry</h3>
+                    <p class="text-[11px] text-slate-800">Card UIDs linked to customer profiles</p>
                 </div>
                 <div class="relative w-full sm:w-64">
-                    <i class="fas fa-search absolute left-3.5 top-3 text-slate-400 text-xs"></i>
-                    <input type="text" id="adminRfidSearchInput" oninput="renderAdminRfidTable()" placeholder="Search Card UID or Customer..." class="w-full bg-slate-50 border border-slate-200 pl-9 pr-4 py-2 rounded-xl text-xs text-slate-800 focus:outline-none focus:border-indigo-600 font-medium">
+                    <i class="fas fa-search absolute left-3.5 top-3 text-slate-700 text-xs"></i>
+                    <input type="text" id="adminRfidSearchInput" oninput="renderAdminRfidTable()" placeholder="Search Card UID or Customer..." class="w-full bg-slate-50 border border-slate-200 pl-9 pr-4 py-2 rounded-xl text-xs text-black focus:outline-none focus:border-indigo-600 font-medium">
                 </div>
             </div>
             <div id="adminRfidTableContainer" class="overflow-x-auto min-w-full">
-                <div class="p-12 text-center text-slate-400 text-xs">Loading RFID card data...</div>
+                <div class="p-12 text-center text-slate-700 text-xs">Loading RFID card data...</div>
             </div>
         </div>
     </div>
 
     <!-- 5. REGISTERED USERS TAB CONTENT -->
+    <!-- SERVICES MANAGER TAB SECTION -->
+    <div id="adminTabSection-servicesManager" class="admin-tab-content hidden space-y-6">
+        
+        <!-- GCASH PAYMENT SETTINGS CARD (CHANGE GCASH NUMBER / ACC NAME / QR) -->
+        <div class="bg-gradient-to-br from-blue-50/70 via-white to-blue-50/30 border border-blue-200 rounded-3xl p-5 sm:p-6 shadow-xs space-y-4">
+            <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-blue-100 pb-4">
+                <div class="flex items-center gap-3.5">
+                    <div class="w-11 h-11 rounded-2xl bg-blue-600 text-white flex items-center justify-center text-lg font-black shadow-xs shrink-0">
+                        G
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <h3 class="text-base sm:text-lg font-extrabold text-black tracking-tight">GCash Merchant Payment Settings</h3>
+                            <span class="bg-blue-100 text-blue-800 text-[10px] font-bold px-2.5 py-0.5 rounded-full">Customer Checkout</span>
+                        </div>
+                        <p class="text-xs text-slate-700">Palitan o i-update ang GCash Account Name, Mobile Number, at QR Code na nakikita ng customer sa Place Order checkout.</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span id="gcashSettingsStatusBadge" class="hidden text-[11px] font-bold px-3 py-1 rounded-full"></span>
+                </div>
+            </div>
+
+            <form id="adminGcashSettingsForm" onsubmit="saveAdminGcashSettings(event)" class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+                <!-- QR Code Preview & Replace -->
+                <div class="lg:col-span-4 bg-white p-4 rounded-2xl border border-blue-200/80 shadow-2xs flex flex-col items-center justify-center space-y-3">
+                    <span class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Active QR Code</span>
+                    <div class="relative group cursor-pointer" onclick="document.getElementById('adminGcashQrFileInput').click()" title="Click to upload new QR">
+                        <img id="adminGcashQrPreview" src="{{ url_for('static', filename='images/gcash_qr.png') }}" alt="Admin GCash QR" class="w-36 h-auto rounded-xl object-contain shadow-xs border border-slate-100 group-hover:opacity-80 transition">
+                        <span class="absolute inset-0 bg-black/40 text-white opacity-0 group-hover:opacity-100 rounded-xl flex items-center justify-center text-[10px] font-bold transition-opacity">
+                            <i class="fas fa-camera mr-1.5"></i> Change QR
+                        </span>
+                    </div>
+                    <input type="file" id="adminGcashQrFileInput" accept="image/*" onchange="uploadAdminGcashQr(event)" class="hidden">
+                    <button type="button" onclick="document.getElementById('adminGcashQrFileInput').click()" class="text-xs font-bold text-blue-600 hover:text-blue-800 bg-blue-50 hover:bg-blue-100 px-3 py-1.5 rounded-xl transition cursor-pointer flex items-center gap-1.5">
+                        <i class="fas fa-upload text-[11px]"></i>
+                        <span>Upload New QR Image</span>
+                    </button>
+                    <span id="adminQrUploadMsg" class="text-[10px] font-semibold text-slate-600 text-center">PNG, JPG, or WEBP</span>
+                </div>
+
+                <!-- Account Inputs & Save Button -->
+                <div class="lg:col-span-8 space-y-3.5 bg-white p-5 rounded-2xl border border-slate-200 shadow-2xs">
+                    <div>
+                        <label class="block font-bold text-black text-xs mb-1">
+                            GCash Account Name <span class="text-rose-500">*</span>
+                        </label>
+                        <input type="text" id="adminGcashAccountName" required placeholder="Hal. XIAN JOHN DAVID DAWINAN" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs font-bold text-black focus:outline-none focus:border-blue-600 focus:bg-white transition uppercase">
+                        <span class="text-[10px] text-slate-600">Pangalan na lalabas sa InstaPay o GCash send money verification.</span>
+                    </div>
+
+                    <div>
+                        <label class="block font-bold text-black text-xs mb-1">
+                            GCash Mobile Number (11-digit) <span class="text-rose-500">*</span>
+                        </label>
+                        <div class="relative">
+                            <input type="tel" id="adminGcashAccountNumber" required maxlength="11" placeholder="09311508184" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs font-mono font-bold text-black focus:outline-none focus:border-blue-600 focus:bg-white transition">
+                        </div>
+                        <span class="text-[10px] text-slate-600">Format: 09XXXXXXXXX (Ito ang kokopyahin ng customer kapag nag-transfer).</span>
+                    </div>
+
+                    <div class="flex items-center justify-between pt-2 border-t border-slate-100">
+                        <div class="text-[11px] text-slate-600">
+                            <i class="fas fa-info-circle text-blue-600 mr-1"></i> Awtomatikong magre-reflect sa customer place order screen.
+                        </div>
+                        <button type="submit" id="btnSaveGcashSettings" class="bg-blue-600 hover:bg-blue-700 text-white font-extrabold text-xs px-5 py-2.5 rounded-xl shadow-xs hover:shadow-md transition flex items-center gap-2 cursor-pointer">
+                            <i class="fas fa-save text-xs"></i>
+                            <span>Save GCash Details</span>
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <div class="bg-white border border-slate-200 rounded-3xl p-6 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div class="flex items-center gap-4">
+                <div class="w-12 h-12 rounded-2xl bg-orange-50 text-orange-500 flex items-center justify-center text-xl font-bold border border-orange-100">
+                    🛎️
+                </div>
+                <div class="space-y-1">
+                    <div class="flex items-center gap-2">
+                        <h2 class="text-xl font-extrabold text-black tracking-tight">Place Order — Printing Services Manager</h2>
+                        <span id="headerTotalServicesBadge" class="bg-orange-50 text-orange-600 font-bold text-[11px] px-3 py-0.5 rounded-full border border-orange-200 font-mono">0 Services</span>
+                    </div>
+                    <p class="text-xs text-slate-800">Manage, add, and edit printing services available in the customer order form dropdown.</p>
+                </div>
+            </div>
+            <div class="flex flex-wrap items-center gap-3">
+                <div class="relative w-full sm:w-64">
+                    <i class="fas fa-search absolute left-3.5 top-3 text-slate-700 text-xs"></i>
+                    <input type="text" id="adminServiceSearchInput" oninput="filterAdminServices()" placeholder="Search service name..." class="w-full bg-slate-50 border border-slate-200 pl-9 pr-4 py-2 rounded-xl text-xs text-black focus:outline-none focus:border-orange-500 font-medium">
+                </div>
+                <button onclick="openAddServiceModal()" class="bg-orange-500 hover:bg-orange-600 text-white font-bold text-xs px-4 py-2.5 rounded-xl transition shadow-xs flex items-center gap-2 cursor-pointer whitespace-nowrap">
+                    <i class="fas fa-plus text-xs"></i>
+                    <span>+ Add New Service</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- SERVICES TABLE -->
+        <div class="bg-white border border-slate-200 rounded-3xl shadow-xs overflow-hidden">
+            <table class="w-full text-xs">
+                <thead>
+                    <tr class="bg-slate-50 border-b border-slate-100">
+                        <th class="text-left px-5 py-3 font-bold text-slate-800 uppercase tracking-wider">Service</th>
+                        <th class="text-left px-5 py-3 font-bold text-slate-800 uppercase tracking-wider">Value Key (ID)</th>
+                        <th class="text-left px-5 py-3 font-bold text-slate-800 uppercase tracking-wider">Base Price</th>
+                        <th class="text-left px-5 py-3 font-bold text-slate-800 uppercase tracking-wider">Unit Label</th>
+                        <th class="text-left px-5 py-3 font-bold text-slate-800 uppercase tracking-wider">Order</th>
+                        <th class="text-right px-5 py-3 font-bold text-slate-800 uppercase tracking-wider">Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="adminServicesTableBody">
+                    <tr><td colspan="6" class="text-center py-12 text-slate-700">Loading services...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
     <div id="adminTabSection-registeredUsers" class="admin-tab-content hidden space-y-6">
         <div class="bg-white border border-slate-200 rounded-3xl p-6 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div class="flex items-center gap-4">
@@ -464,17 +595,17 @@
                 </div>
                 <div class="space-y-1">
                     <div class="flex items-center gap-2">
-                        <h2 class="text-xl font-extrabold text-slate-900 tracking-tight">Registered System Users</h2>
+                        <h2 class="text-xl font-extrabold text-black tracking-tight">Registered System Users</h2>
                         <span id="headerTotalUsersBadge" class="bg-purple-50 text-purple-700 font-bold text-[11px] px-3 py-0.5 rounded-full border border-purple-200 font-mono">0 Accounts</span>
                     </div>
-                    <p class="text-xs text-slate-500">Manage user accounts, add new members, edit details, or remove profiles</p>
+                    <p class="text-xs text-slate-800">Manage user accounts, add new members, edit details, or remove profiles</p>
                 </div>
             </div>
 
             <div class="flex flex-wrap items-center gap-3">
                 <div class="relative w-full sm:w-64">
-                    <i class="fas fa-search absolute left-3.5 top-3 text-slate-400 text-xs"></i>
-                    <input type="text" id="adminUserSearchInput" oninput="filterRegisteredUsers()" placeholder="Search Name or Email..." class="w-full bg-slate-50 border border-slate-200 pl-9 pr-4 py-2 rounded-xl text-xs text-slate-800 focus:outline-none focus:border-purple-600 font-medium">
+                    <i class="fas fa-search absolute left-3.5 top-3 text-slate-700 text-xs"></i>
+                    <input type="text" id="adminUserSearchInput" oninput="filterRegisteredUsers()" placeholder="Search Name or Email..." class="w-full bg-slate-50 border border-slate-200 pl-9 pr-4 py-2 rounded-xl text-xs text-black focus:outline-none focus:border-purple-600 font-medium">
                 </div>
                 <button onclick="openCreateUserModal()" class="bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs px-4 py-2.5 rounded-xl transition shadow-xs flex items-center gap-2 cursor-pointer whitespace-nowrap">
                     <i class="fas fa-user-plus text-xs"></i>
@@ -485,19 +616,285 @@
 
         <div class="bg-white border border-slate-200 rounded-3xl min-h-[350px] shadow-xs overflow-hidden">
             <div id="adminUsersContainer" class="overflow-x-auto min-w-full">
-                <div class="p-12 text-center text-slate-400 text-xs">Loading registered users...</div>
+                <div class="p-12 text-center text-slate-700 text-xs">Loading registered users...</div>
             </div>
         </div>
     </div>
 
 </div>
 
+    <!-- 6. SAMPLE PRODUCTS & SERVICES SHOWCASE MANAGER -->
+    <div id="adminTabSection-samplesManager" class="admin-tab-content hidden space-y-6">
+        <div class="bg-white border border-slate-200 rounded-3xl p-6 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div class="flex items-center gap-4">
+                <div class="w-12 h-12 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center text-xl font-bold border border-blue-100">
+                    🎨
+                </div>
+                <div class="space-y-1">
+                    <div class="flex items-center gap-2">
+                        <h2 class="text-xl font-extrabold text-black tracking-tight">Sample Products & Services Showcase</h2>
+                        <span id="headerTotalSamplesBadge" class="bg-blue-50 text-blue-700 font-bold text-[11px] px-3 py-0.5 rounded-full border border-blue-200 font-mono">0 Samples</span>
+                    </div>
+                    <p class="text-xs text-slate-800">Dito makakapagdagdag o makakapag-manage ng sample prints na makikita ng customers sa kanilang homepage at portal</p>
+                </div>
+            </div>
+
+            <div class="flex flex-wrap items-center gap-3">
+                <div class="relative w-full sm:w-64">
+                    <i class="fas fa-search absolute left-3.5 top-3 text-slate-700 text-xs"></i>
+                    <input type="text" id="adminSampleSearchInput" oninput="filterAdminSamples()" placeholder="Search Sample Name or Category..." class="w-full bg-slate-50 border border-slate-200 pl-9 pr-4 py-2 rounded-xl text-xs text-black focus:outline-none focus:border-blue-600 font-medium">
+                </div>
+                <button onclick="openAddSampleModal()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs px-4 py-2.5 rounded-xl transition shadow-xs flex items-center gap-2 cursor-pointer whitespace-nowrap">
+                    <i class="fas fa-plus text-xs"></i>
+                    <span>+ Add New Sample Item</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- SAMPLES GRID IN ADMIN -->
+        <div id="adminSamplesGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div class="col-span-full text-center py-12 text-slate-700 text-xs">Loading sample showcase items...</div>
+        </div>
+    </div>
+
+<!-- MODAL: ADD / EDIT SAMPLE SHOWCASE -->
+<div id="addEditSampleModal" class="fixed inset-0 bg-slate-950/70 backdrop-blur-xs z-50 hidden flex items-center justify-center p-4" onclick="if(event.target===this) closeAddEditSampleModal()">
+    <div class="bg-white rounded-3xl max-w-lg w-full p-6 space-y-4 shadow-2xl border border-slate-200 max-h-[90vh] overflow-y-auto">
+        <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+            <div class="flex items-center gap-2.5">
+                <div class="w-9 h-9 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-base">
+                    🎨
+                </div>
+                <div>
+                    <h3 class="font-black text-black text-sm" id="addEditSampleModalTitle">Add New Sample Product / Service</h3>
+                    <p class="text-[11px] text-slate-800">Lalabas ito sa customer homescreen bilang gabay at sample output</p>
+                </div>
+            </div>
+            <button onclick="closeAddEditSampleModal()" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-800 flex items-center justify-center transition cursor-pointer">
+                ✕
+            </button>
+        </div>
+
+        <form onsubmit="submitAdminSampleForm(event)" class="space-y-3.5 text-xs">
+            <input type="hidden" id="adminSampleId">
+
+            <div class="space-y-1">
+                <label class="block font-bold text-black">Sample Title / Service Name <span class="text-rose-500">*</span></label>
+                <input type="text" id="adminSampleTitle" required placeholder="Hal. Glossy Die-Cut Vinyl Stickers" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs text-black focus:outline-none focus:border-blue-600 font-medium">
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div class="space-y-1">
+                    <label class="block font-bold text-black">Category <span class="text-rose-500">*</span></label>
+                    <select id="adminSampleCategory" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs text-black focus:outline-none focus:border-blue-600 font-medium">
+                        <option value="Standard Printing">Standard Printing (Documents)</option>
+                        <option value="ID & Badges">ID & Badges (PVC)</option>
+                        <option value="Stickers & Labels">Stickers & Labels</option>
+                        <option value="Large Format">Large Format (Tarpaulins)</option>
+                        <option value="Corporate Branding">Corporate Branding (Business Cards)</option>
+                        <option value="Apparel & Merch">Apparel & Merch (Shirts / Mugs)</option>
+                    </select>
+                </div>
+                <div class="space-y-1">
+                    <label class="block font-bold text-black">Linked Service Option <span class="text-rose-500">*</span></label>
+                    <select id="adminSampleServiceVal" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs text-black focus:outline-none focus:border-blue-600 font-medium">
+                        <option value="standardA4">Standard A4 Print</option>
+                        <option value="businessCards">Business Cards</option>
+                        <option value="tarpaulins">Tarpaulins</option>
+                        <option value="flyers">Flyers & Leaflets</option>
+                        <option value="stickers">Stickers & Labels</option>
+                        <option value="invitations">Invitations</option>
+                        <option value="shirt">Shirt Printing (DTF)</option>
+                        <option value="photoCanvas">Photo & Canvas Prints / PVC</option>
+                        <option value="booklets">Booklets & Menus</option>
+                        <option value="mug">Mug Printing</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div class="space-y-1">
+                    <label class="block font-bold text-black">Reference Pricing Label <span class="text-rose-500">*</span></label>
+                    <input type="text" id="adminSamplePrice" required placeholder="Hal. Starts at ₱5.00 / pc" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs text-black focus:outline-none focus:border-blue-600 font-medium">
+                </div>
+                <div class="space-y-1">
+                    <label class="block font-bold text-black">Badge / Tag</label>
+                    <input type="text" id="adminSampleBadge" placeholder="Hal. Popular, Best Value, High Demand" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs text-black focus:outline-none focus:border-blue-600 font-medium">
+                </div>
+            </div>
+
+            <div class="space-y-1">
+                <label class="block font-bold text-black">Sample Image (URL or Upload Image)</label>
+                <div class="flex gap-2">
+                    <input type="text" id="adminSampleImageUrl" placeholder="https://images.unsplash.com/... o i-upload sa tabi" class="flex-1 bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs text-black focus:outline-none focus:border-blue-600 font-medium">
+                    <input type="file" id="adminSampleFileInput" accept="image/*" onchange="handleAdminSampleFileUpload(event)" class="hidden">
+                    <label for="adminSampleFileInput" class="bg-blue-50 hover:bg-blue-100 text-blue-700 font-bold px-3.5 py-3 rounded-xl border border-blue-200 cursor-pointer flex items-center justify-center gap-1.5 shrink-0" title="Upload photo from computer">
+                        <i class="fas fa-upload"></i>
+                        <span>Upload</span>
+                    </label>
+                </div>
+                <p class="text-[10px] text-slate-700">Maaaring maglagay ng Image Link o mag-upload direkta mula sa inyong PC.</p>
+            </div>
+
+            <div class="space-y-1">
+                <label class="block font-bold text-black">Short Description / Sample Specs</label>
+                <textarea id="adminSampleDescription" rows="3" placeholder="Detalye tungkol sa sample material, finish, at gamit..." class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs text-black focus:outline-none focus:border-blue-600 font-medium resize-none"></textarea>
+            </div>
+
+            <div class="pt-3 border-t border-slate-100 flex items-center justify-end gap-3">
+                <button type="button" onclick="closeAddEditSampleModal()" class="bg-slate-100 hover:bg-slate-200 text-black font-bold px-4 py-2.5 rounded-xl transition cursor-pointer">Cancel</button>
+                <button type="submit" id="adminSampleSubmitBtn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-5 py-2.5 rounded-xl transition shadow-xs flex items-center gap-2 cursor-pointer">
+                    <i class="fas fa-save text-xs"></i>
+                    <span>Save Sample Product</span>
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+
+<!-- MODAL: ADD / EDIT PRINTING SERVICE -->
+<div id="addEditServiceModal" class="fixed inset-0 bg-slate-950/70 backdrop-blur-xs z-50 hidden flex items-center justify-center p-4 overflow-y-auto" onclick="if(event.target===this) closeAddEditServiceModal()">
+    <div class="bg-white rounded-3xl max-w-xl w-full p-6 space-y-4 shadow-2xl border border-slate-200 my-8 max-h-[90vh] flex flex-col">
+        <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+            <div class="flex items-center gap-2.5">
+                <div class="w-9 h-9 rounded-xl bg-orange-50 text-orange-500 flex items-center justify-center font-bold text-base">
+                    🛎️
+                </div>
+                <div>
+                    <h3 class="font-black text-black text-sm" id="addEditServiceModalTitle">Add New Printing Service</h3>
+                    <p class="text-[11px] text-slate-800">This service will appear in the customer order form dropdown</p>
+                </div>
+            </div>
+            <button onclick="closeAddEditServiceModal()" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-800 flex items-center justify-center transition cursor-pointer">
+                ✕
+            </button>
+        </div>
+
+        <form onsubmit="submitAdminServiceForm(event)" class="space-y-3.5 text-xs overflow-y-auto pr-1 flex-1">
+            <input type="hidden" id="adminServiceIsEdit" value="0">
+
+            <div class="grid grid-cols-3 gap-2">
+                <div class="col-span-1 space-y-1">
+                    <label class="block font-bold text-black">Emoji Icon <span class="text-rose-500">*</span></label>
+                    <input type="text" id="adminServiceEmoji" required placeholder="e.g. 🖨️" maxlength="4" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-center text-base text-black focus:outline-none focus:border-orange-500 font-medium">
+                </div>
+                <div class="col-span-2 space-y-1">
+                    <label class="block font-bold text-black">Service Name <span class="text-rose-500">*</span></label>
+                    <input type="text" id="adminServiceName" required placeholder="e.g. Standard A4 Print" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-xs text-black focus:outline-none focus:border-orange-500 font-medium">
+                </div>
+            </div>
+
+            <div class="space-y-1">
+                <label class="block font-bold text-black">Value Key (ID) <span class="text-rose-500">*</span></label>
+                <input type="text" id="adminServiceId" required placeholder="e.g. standardA4 or vinylStickers (no spaces)" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-xs text-black focus:outline-none focus:border-orange-500 font-mono">
+                <p class="text-[10px] text-slate-700">Unique identifier used by the system for form values.</p>
+            </div>
+
+            <div class="grid grid-cols-2 gap-2">
+                <div class="space-y-1">
+                    <label class="block font-bold text-black">Base Price (₱) <span class="text-rose-500">*</span></label>
+                    <input type="number" step="0.01" min="0" id="adminServiceBasePrice" required placeholder="3.00" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-xs text-black focus:outline-none focus:border-orange-500 font-medium">
+                </div>
+                <div class="space-y-1">
+                    <label class="block font-bold text-black">Unit / Rate Label <span class="text-rose-500">*</span></label>
+                    <input type="text" id="adminServiceUnit" required placeholder="e.g. ₱3.00/pg or from ₱250" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-xs text-black focus:outline-none focus:border-orange-500 font-medium">
+                </div>
+            </div>
+
+                        <!-- CUSTOM REQUIREMENTS / FORM FIELDS BUILDER (OPTION B) -->
+            <div class="pt-3 border-t border-slate-100 space-y-2">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <label class="block font-bold text-black text-xs flex items-center gap-1.5">
+                            <span>📋</span> Custom Service Requirements (Customer Form Fields)
+                        </label>
+                        <p class="text-[10px] text-slate-700">Add specific requirements, choices, or questions for the customer to answer.</p>
+                    </div>
+                    <button type="button" onclick="addServiceRequirementRow()" class="bg-orange-50 hover:bg-orange-100 text-orange-600 border border-orange-200 font-bold px-2.5 py-1.5 rounded-lg text-[11px] transition flex items-center gap-1 cursor-pointer">
+                        <i class="fas fa-plus text-[10px]"></i> Add Requirement
+                    </button>
+                </div>
+
+                <div id="serviceRequirementsList" class="space-y-2.5 max-h-56 overflow-y-auto pr-1">
+                    <!-- Dynamic requirement items rendered here -->
+                </div>
+            </div>
+
+            <div class="space-y-1">
+                <label class="block font-bold text-black">Sort Order Position</label>
+                <input type="number" id="adminServiceSortOrder" value="1" min="1" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-xs text-black focus:outline-none focus:border-orange-500 font-medium">
+                <p class="text-[10px] text-slate-700">Display order in the dropdown (1, 2, 3...)</p>
+            </div>
+
+            <div class="pt-3 border-t border-slate-100 flex items-center justify-end gap-2">
+                <button type="button" onclick="closeAddEditServiceModal()" class="bg-slate-100 hover:bg-slate-200 text-black font-bold px-4 py-2 rounded-xl transition cursor-pointer">Cancel</button>
+                <button type="submit" id="adminServiceSubmitBtn" class="bg-orange-500 hover:bg-orange-600 text-white font-bold px-5 py-2 rounded-xl transition shadow-xs flex items-center gap-1.5 cursor-pointer">
+                    <i class="fas fa-save text-xs"></i>
+                    <span>Save Service</span>
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+    <!-- 7. SYSTEM ARCHIVES TAB CONTENT -->
+    <div id="adminTabSection-archive" class="admin-tab-content hidden space-y-6">
+        <div class="bg-white border border-slate-200 rounded-3xl p-6 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div class="flex items-center gap-4">
+                <div class="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-xl font-bold border border-emerald-100 shrink-0">
+                    <i class="fas fa-box-archive text-emerald-600 text-xl"></i>
+                </div>
+                <div>
+                    <div class="flex items-center gap-2">
+                        <h2 class="text-xl font-extrabold text-black tracking-tight">System Archives</h2>
+                        <span id="archiveTotalBadge" class="bg-emerald-50 text-emerald-800 text-[11px] font-extrabold px-2.5 py-0.5 rounded-full border border-emerald-200">
+                            0 Archived Items
+                        </span>
+                    </div>
+                    <p class="text-xs text-slate-800 mt-0.5">Recycle bin for soft-deleted users, printing services, in-store supplies, and sample works. You can restore or permanently delete items anytime.</p>
+                </div>
+            </div>
+
+            <!-- Archive Controls / Filter Buttons -->
+            <div class="flex items-center gap-2 flex-wrap">
+                <button onclick="refreshArchiveTable()" class="bg-slate-100 hover:bg-slate-200 text-black font-bold px-3 py-2 rounded-xl text-xs transition flex items-center gap-1.5 cursor-pointer" title="Refresh Archives">
+                    <i class="fas fa-sync-alt text-xs"></i>
+                    <span>Refresh</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Filter category pills & Search Bar -->
+        <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-xs flex flex-col sm:flex-row justify-between items-center gap-3">
+            <div class="flex items-center gap-2 overflow-x-auto w-full sm:w-auto text-xs font-bold no-scrollbar">
+                <button onclick="setArchiveCategoryFilter('all')" id="archiveCatBtn-all" class="archive-cat-btn px-3.5 py-1.5 rounded-xl bg-emerald-600 text-white shadow-xs transition cursor-pointer whitespace-nowrap">All Items (<span id="archiveCount-all">0</span>)</button>
+                <button onclick="setArchiveCategoryFilter('user')" id="archiveCatBtn-user" class="archive-cat-btn px-3.5 py-1.5 rounded-xl bg-slate-100 text-black hover:bg-slate-200 transition cursor-pointer whitespace-nowrap">Users (<span id="archiveCount-user">0</span>)</button>
+                <button onclick="setArchiveCategoryFilter('service')" id="archiveCatBtn-service" class="archive-cat-btn px-3.5 py-1.5 rounded-xl bg-slate-100 text-black hover:bg-slate-200 transition cursor-pointer whitespace-nowrap">Printing Services (<span id="archiveCount-service">0</span>)</button>
+                <button onclick="setArchiveCategoryFilter('store_product')" id="archiveCatBtn-store_product" class="archive-cat-btn px-3.5 py-1.5 rounded-xl bg-slate-100 text-black hover:bg-slate-200 transition cursor-pointer whitespace-nowrap">In-Store Supplies (<span id="archiveCount-store_product">0</span>)</button>
+                <button onclick="setArchiveCategoryFilter('sample_product')" id="archiveCatBtn-sample_product" class="archive-cat-btn px-3.5 py-1.5 rounded-xl bg-slate-100 text-black hover:bg-slate-200 transition cursor-pointer whitespace-nowrap">Sample Works (<span id="archiveCount-sample_product">0</span>)</button>
+            </div>
+
+            <div class="relative w-full sm:w-64 shrink-0">
+                <i class="fas fa-search absolute left-3.5 top-2.5 text-slate-400 text-xs"></i>
+                <input type="text" id="archiveSearchInput" oninput="filterArchiveTable()" placeholder="Search archived items..." class="w-full bg-slate-50 border border-slate-200 pl-9 pr-3.5 py-2 rounded-xl text-xs text-black focus:outline-none focus:border-emerald-600 font-medium">
+            </div>
+        </div>
+
+        <!-- Archive Items Table Container -->
+        <div class="bg-white border border-slate-200 rounded-3xl min-h-[350px] shadow-xs overflow-hidden">
+            <div id="adminArchiveTableContainer" class="overflow-x-auto min-w-full">
+                <div class="p-12 text-center text-slate-700 text-xs">Loading archives...</div>
+            </div>
+        </div>
+    </div>
+
 <!-- MODAL 1: REVIEW SPECS MODAL -->
 <div id="reviewSpecsModal" class="fixed inset-0 bg-slate-950/70 backdrop-blur-xs z-50 hidden flex items-center justify-center p-4" onclick="if(event.target===this) closeSpecsModal()">
-    <div class="bg-[#0b1226] rounded-3xl max-w-md w-full p-6 space-y-5 shadow-2xl border border-slate-800">
+    <div class="bg-white text-black rounded-3xl max-w-md w-full p-6 space-y-5 shadow-2xl border border-slate-800">
         <div class="flex items-center justify-between border-b border-slate-800/80 pb-3">
             <h3 class="font-bold text-white text-sm">Order Specifications</h3>
-            <button onclick="closeSpecsModal()" class="text-slate-400 hover:text-white p-1 rounded-lg">
+            <button onclick="closeSpecsModal()" class="text-slate-700 hover:text-white p-1 rounded-lg">
                 <i class="fas fa-times text-sm"></i>
             </button>
         </div>
@@ -510,14 +907,14 @@
 
 <!-- MODAL 2: PRINT JOB SLIP MODAL -->
 <div id="printSlipModal" class="fixed inset-0 bg-slate-950/70 backdrop-blur-xs z-50 hidden flex items-center justify-center p-4" onclick="if(event.target===this) closePrintSlipModal()">
-    <div class="bg-[#0b1226] rounded-3xl max-w-md w-full p-6 space-y-5 shadow-2xl border border-slate-800">
+    <div class="bg-white text-black rounded-3xl max-w-md w-full p-6 space-y-5 shadow-2xl border border-slate-800">
         <div class="flex items-center justify-between border-b border-slate-800/80 pb-3">
             <h3 class="font-bold text-white text-sm">Job Slip Ticket</h3>
-            <button onclick="closePrintSlipModal()" class="text-slate-400 hover:text-white p-1 rounded-lg">
+            <button onclick="closePrintSlipModal()" class="text-slate-700 hover:text-white p-1 rounded-lg">
                 <i class="fas fa-times text-sm"></i>
             </button>
         </div>
-        <div id="printSlipBody" class="p-4 bg-[#070b19] border border-slate-800 rounded-2xl font-mono text-xs space-y-2 text-slate-200"></div>
+        <div id="printSlipBody" class="p-4 bg-slate-50 text-black border border-slate-800 rounded-2xl font-mono text-xs space-y-2 text-slate-200"></div>
         <div class="flex gap-2">
             <button onclick="window.print()" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold py-2.5 rounded-xl transition shadow-xs cursor-pointer">
                 🖨️ Print Ticket
@@ -531,10 +928,10 @@
 
 <!-- MODAL 3: REJECT ORDER REASON MODAL -->
 <div id="rejectReasonModal" class="fixed inset-0 bg-slate-950/70 backdrop-blur-xs z-50 hidden flex items-center justify-center p-4" onclick="if(event.target===this) closeRejectModal()">
-    <div class="bg-[#0b1226] rounded-3xl max-w-sm w-full p-6 space-y-4 shadow-2xl border border-slate-800">
+    <div class="bg-white text-black rounded-3xl max-w-sm w-full p-6 space-y-4 shadow-2xl border border-slate-800">
         <h3 class="font-bold text-white text-sm">Reject Order Reason</h3>
         <input type="hidden" id="rejectOrderId">
-        <textarea id="rejectReasonInput" rows="3" placeholder="Reason (e.g. Low file resolution, unreadable text)..." class="w-full bg-[#070b19] border border-slate-700/80 rounded-xl p-3 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-rose-500 font-medium"></textarea>
+        <textarea id="rejectReasonInput" rows="3" placeholder="Reason (e.g. Low file resolution, unreadable text)..." class="w-full bg-slate-50 text-black border border-slate-700/80 rounded-xl p-3 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-rose-500 font-medium"></textarea>
         <div class="flex gap-2">
             <button onclick="confirmRejectOrderAction()" class="flex-1 bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold py-2.5 rounded-xl transition shadow-xs cursor-pointer">
                 Confirm Reject
@@ -546,22 +943,25 @@
     </div>
 </div>
 
-<!-- MODAL 4: DELETE REGISTERED USER CONFIRMATION -->
-<div id="deleteUserModal" class="fixed inset-0 bg-slate-950/70 backdrop-blur-xs z-[100] hidden flex items-center justify-center p-4" onclick="if(event.target===this) closeDeleteUserModal()">
-    <div class="bg-[#0b1226] rounded-3xl max-w-sm w-full p-6 space-y-4 shadow-2xl border border-slate-800">
-        <div class="w-12 h-12 rounded-2xl bg-rose-500/15 text-rose-400 flex items-center justify-center text-xl font-bold mx-auto border border-rose-500/30">
-            <i class="fas fa-user-slash"></i>
+<!-- MODAL 4: ARCHIVE REGISTERED USER CONFIRMATION -->
+<div id="deleteUserModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-[100] hidden flex items-center justify-center p-4" onclick="if(event.target===this) closeDeleteUserModal()">
+    <div class="bg-white text-black rounded-3xl max-w-sm w-full p-6 space-y-4 shadow-2xl border border-slate-200">
+        <div class="w-12 h-12 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center text-xl font-bold mx-auto border border-amber-200">
+            <i class="fas fa-box-archive"></i>
         </div>
         <div class="text-center space-y-1">
-            <h3 class="font-extrabold text-white text-sm">Delete User Account?</h3>
-            <p class="text-xs text-slate-400">Are you sure you want to delete <strong id="deleteUserNameTarget" class="text-white">this user</strong>? This action will permanently remove the record from the database.</p>
+            <h3 class="font-extrabold text-black text-sm">Archive User Account?</h3>
+            <p class="text-xs text-slate-600 leading-relaxed">
+                The account for <strong id="deleteUserNameTarget" class="text-black font-bold"></strong> will be moved to the <strong class="text-emerald-700 font-bold">System Archive</strong>. It will not be permanently deleted and can be restored anytime from the Archive tab.
+            </p>
         </div>
         <input type="hidden" id="deleteTargetUserId">
         <div class="flex gap-2 pt-2">
-            <button onclick="executeDeleteUser()" class="flex-1 bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold py-2.5 rounded-xl transition shadow-xs cursor-pointer">
-                Yes, Delete
+            <button onclick="executeDeleteUser()" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold py-2.5 rounded-xl transition shadow-xs cursor-pointer flex items-center justify-center gap-1.5">
+                <i class="fas fa-box-archive text-xs"></i>
+                <span>Yes, Archive User</span>
             </button>
-            <button onclick="closeDeleteUserModal()" class="flex-1 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold py-2.5 rounded-xl transition cursor-pointer border border-slate-700/60">
+            <button onclick="closeDeleteUserModal()" class="flex-1 bg-slate-100 hover:bg-slate-200 text-black text-xs font-bold py-2.5 rounded-xl transition cursor-pointer border border-slate-200">
                 Cancel
             </button>
         </div>
@@ -570,7 +970,7 @@
 
 <!-- MODAL 5: CREATE NEW USER MODAL (CRUD: CREATE) -->
 <div id="createUserModal" class="fixed inset-0 bg-slate-950/70 backdrop-blur-xs z-[100] hidden flex items-center justify-center p-4" onclick="if(event.target===this) closeCreateUserModal()">
-    <div class="bg-[#0b1226] rounded-3xl max-w-md w-full p-6 space-y-4 shadow-2xl border border-slate-800">
+    <div class="bg-white text-black rounded-3xl max-w-md w-full p-6 space-y-4 shadow-2xl border border-slate-800">
         <div class="flex items-center justify-between border-b border-slate-800/80 pb-3">
             <div class="flex items-center gap-2">
                 <div class="w-8 h-8 rounded-xl bg-purple-500/15 text-purple-400 border border-purple-500/30 flex items-center justify-center font-bold text-sm">
@@ -578,7 +978,7 @@
                 </div>
                 <h3 class="font-bold text-white text-sm">Create New Customer Account</h3>
             </div>
-            <button onclick="closeCreateUserModal()" class="text-slate-400 hover:text-white p-1 rounded-lg">
+            <button onclick="closeCreateUserModal()" class="text-slate-700 hover:text-white p-1 rounded-lg">
                 <i class="fas fa-times text-sm"></i>
             </button>
         </div>
@@ -586,23 +986,23 @@
         <form onsubmit="submitCreateUserForm(event)" class="space-y-3 text-xs">
             <div>
                 <label class="font-bold text-slate-300 block mb-1">Full Name <span class="text-rose-500">*</span></label>
-                <input type="text" id="createUserName" required placeholder="e.g. Maria Clara Santos" class="w-full bg-[#070b19] border border-slate-700/80 text-white placeholder-slate-500 rounded-xl px-3.5 py-2.5 text-xs focus:outline-none focus:border-purple-500 font-medium">
+                <input type="text" id="createUserName" required placeholder="e.g. Maria Clara Santos" class="w-full bg-slate-50 text-black border border-slate-700/80 text-white placeholder-slate-500 rounded-xl px-3.5 py-2.5 text-xs focus:outline-none focus:border-purple-500 font-medium">
             </div>
 
             <div>
                 <label class="font-bold text-slate-300 block mb-1">Gmail Address <span class="text-rose-500">*</span></label>
-                <input type="email" id="createUserEmail" required placeholder="maria.clara@gmail.com" class="w-full bg-[#070b19] border border-slate-700/80 text-white placeholder-slate-500 rounded-xl px-3.5 py-2.5 text-xs focus:outline-none focus:border-purple-500 font-medium">
-                <span class="text-[10px] text-slate-400">Must be a valid @gmail.com address</span>
+                <input type="email" id="createUserEmail" required placeholder="maria.clara@gmail.com" class="w-full bg-slate-50 text-black border border-slate-700/80 text-white placeholder-slate-500 rounded-xl px-3.5 py-2.5 text-xs focus:outline-none focus:border-purple-500 font-medium">
+                <span class="text-[10px] text-slate-700">Must be a valid @gmail.com address</span>
             </div>
 
             <div>
                 <label class="font-bold text-slate-300 block mb-1">Phone Number (11-digit)</label>
-                <input type="tel" id="createUserPhone" placeholder="09171234567" maxlength="11" class="w-full bg-[#070b19] border border-slate-700/80 text-white placeholder-slate-500 rounded-xl px-3.5 py-2.5 text-xs focus:outline-none focus:border-purple-500 font-medium">
+                <input type="tel" id="createUserPhone" placeholder="09171234567" maxlength="11" class="w-full bg-slate-50 text-black border border-slate-700/80 text-white placeholder-slate-500 rounded-xl px-3.5 py-2.5 text-xs focus:outline-none focus:border-purple-500 font-medium">
             </div>
 
             <div>
                 <label class="font-bold text-slate-300 block mb-1">Default Password <span class="text-rose-500">*</span></label>
-                <input type="text" id="createUserPassword" value="KczUser2026!" required class="w-full bg-[#070b19] border border-slate-700/80 text-white rounded-xl px-3.5 py-2.5 text-xs focus:outline-none focus:border-purple-500 font-mono">
+                <input type="text" id="createUserPassword" value="KczUser2026!" required class="w-full bg-slate-50 text-black border border-slate-700/80 text-white rounded-xl px-3.5 py-2.5 text-xs focus:outline-none focus:border-purple-500 font-mono">
             </div>
 
             <div class="flex gap-2 pt-3">
@@ -619,7 +1019,7 @@
 
 <!-- MODAL 6: EDIT USER MODAL (CRUD: UPDATE) -->
 <div id="editUserModal" class="fixed inset-0 bg-slate-950/70 backdrop-blur-xs z-[100] hidden flex items-center justify-center p-4" onclick="if(event.target===this) closeEditUserModal()">
-    <div class="bg-[#0b1226] rounded-3xl max-w-md w-full p-6 space-y-4 shadow-2xl border border-slate-800">
+    <div class="bg-white text-black rounded-3xl max-w-md w-full p-6 space-y-4 shadow-2xl border border-slate-800">
         <div class="flex items-center justify-between border-b border-slate-800/80 pb-3">
             <div class="flex items-center gap-2">
                 <div class="w-8 h-8 rounded-xl bg-blue-500/15 text-blue-400 border border-blue-500/30 flex items-center justify-center font-bold text-sm">
@@ -627,7 +1027,7 @@
                 </div>
                 <h3 class="font-bold text-white text-sm">Edit Customer Profile</h3>
             </div>
-            <button onclick="closeEditUserModal()" class="text-slate-400 hover:text-white p-1 rounded-lg">
+            <button onclick="closeEditUserModal()" class="text-slate-700 hover:text-white p-1 rounded-lg">
                 <i class="fas fa-times text-sm"></i>
             </button>
         </div>
@@ -637,27 +1037,27 @@
 
             <div>
                 <label class="font-bold text-slate-300 block mb-1">User ID</label>
-                <input type="text" id="editUserIdDisplay" disabled class="w-full bg-[#070b19] border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs font-mono text-slate-400 font-bold">
+                <input type="text" id="editUserIdDisplay" disabled class="w-full bg-slate-50 text-black border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs font-mono text-slate-700 font-bold">
             </div>
 
             <div>
                 <label class="font-bold text-slate-300 block mb-1">Full Name <span class="text-rose-500">*</span></label>
-                <input type="text" id="editUserName" required class="w-full bg-[#070b19] border border-slate-700/80 text-white placeholder-slate-500 rounded-xl px-3.5 py-2.5 text-xs focus:outline-none focus:border-blue-500 font-medium">
+                <input type="text" id="editUserName" required class="w-full bg-slate-50 text-black border border-slate-700/80 text-white placeholder-slate-500 rounded-xl px-3.5 py-2.5 text-xs focus:outline-none focus:border-blue-500 font-medium">
             </div>
 
             <div>
                 <label class="font-bold text-slate-300 block mb-1">Gmail Address <span class="text-rose-500">*</span></label>
-                <input type="email" id="editUserEmail" required class="w-full bg-[#070b19] border border-slate-700/80 text-white placeholder-slate-500 rounded-xl px-3.5 py-2.5 text-xs focus:outline-none focus:border-blue-500 font-medium">
+                <input type="email" id="editUserEmail" required class="w-full bg-slate-50 text-black border border-slate-700/80 text-white placeholder-slate-500 rounded-xl px-3.5 py-2.5 text-xs focus:outline-none focus:border-blue-500 font-medium">
             </div>
 
             <div>
                 <label class="font-bold text-slate-300 block mb-1">Phone Number</label>
-                <input type="tel" id="editUserPhone" placeholder="09171234567" maxlength="11" class="w-full bg-[#070b19] border border-slate-700/80 text-white placeholder-slate-500 rounded-xl px-3.5 py-2.5 text-xs focus:outline-none focus:border-blue-500 font-medium">
+                <input type="tel" id="editUserPhone" placeholder="09171234567" maxlength="11" class="w-full bg-slate-50 text-black border border-slate-700/80 text-white placeholder-slate-500 rounded-xl px-3.5 py-2.5 text-xs focus:outline-none focus:border-blue-500 font-medium">
             </div>
 
             <div>
                 <label class="font-bold text-slate-300 block mb-1">Change Password (Leave blank to keep current)</label>
-                <input type="text" id="editUserPassword" placeholder="Enter new password (optional)" class="w-full bg-[#070b19] border border-slate-700/80 text-white placeholder-slate-500 rounded-xl px-3.5 py-2.5 text-xs focus:outline-none focus:border-blue-500 font-mono">
+                <input type="text" id="editUserPassword" placeholder="Enter new password (optional)" class="w-full bg-slate-50 text-black border border-slate-700/80 text-white placeholder-slate-500 rounded-xl px-3.5 py-2.5 text-xs focus:outline-none focus:border-blue-500 font-mono">
             </div>
 
             <div class="flex gap-2 pt-3">
@@ -713,7 +1113,14 @@ document.addEventListener('DOMContentLoaded', () => {
     if (typeof kczInitPushNotifications === 'function') kczInitPushNotifications();
 
     fetchAdminOrders();
-    setInterval(fetchAdminOrders, 10000);
+    setInterval(fetchAdminOrders, 30000);
+
+    // Support ?tab= URL parameter (e.g. /admin?tab=archive)
+    const urlParams = new URLSearchParams(window.location.search);
+    const initialTab = urlParams.get('tab');
+    if (initialTab && document.getElementById(`adminTabSection-${initialTab}`)) {
+        switchAdminTab(initialTab);
+    }
 
     document.addEventListener('click', (e) => {
         if (!e.target.closest('.status-dropdown-container') && !e.target.closest('.action-menu-container')) {
@@ -726,7 +1133,7 @@ document.addEventListener('DOMContentLoaded', () => {
 function switchAdminTab(tabId) {
     document.querySelectorAll('.admin-tab-content').forEach(el => el.classList.add('hidden'));
     document.querySelectorAll('.admin-tab-btn').forEach(btn => {
-        btn.className = "admin-tab-btn px-5 py-3 rounded-xl text-slate-600 hover:bg-slate-100 transition-all flex items-center gap-2 cursor-pointer";
+        btn.className = "admin-tab-btn px-2.5 py-1.5 rounded-lg text-black hover:bg-slate-100 font-bold transition-all flex items-center gap-1.5 cursor-pointer whitespace-nowrap shrink-0";
     });
 
     const activeSection = document.getElementById(`adminTabSection-${tabId}`);
@@ -734,7 +1141,7 @@ function switchAdminTab(tabId) {
 
     if (activeSection) activeSection.classList.remove('hidden');
     if (activeBtn) {
-        activeBtn.className = "admin-tab-btn px-5 py-3 rounded-xl bg-slate-900 text-white shadow-xs transition-all flex items-center gap-2 cursor-pointer";
+        activeBtn.className = "admin-tab-btn px-2.5 py-1.5 rounded-lg bg-emerald-600 text-white shadow-md font-bold transition-all flex items-center gap-1.5 cursor-pointer whitespace-nowrap shrink-0";
     }
 
     if (tabId === 'analytics') {
@@ -750,6 +1157,15 @@ function switchAdminTab(tabId) {
     }
     if (tabId === 'registeredUsers') {
         fetchRegisteredUsers();
+    }
+    if (tabId === 'samplesManager') {
+        fetchAdminSamples();
+    }
+    if (tabId === 'servicesManager') {
+        fetchAdminServices();
+    }
+    if (tabId === 'archive') {
+        fetchAdminArchives();
     }
 }
 
@@ -799,13 +1215,13 @@ function renderAdminRfidTable() {
     }
 
     if (filtered.length === 0) {
-        container.innerHTML = `<div class="p-12 text-center text-slate-400 text-xs font-semibold">No RFID cards matching your search.</div>`;
+        container.innerHTML = `<div class="p-12 text-center text-slate-700 text-xs font-semibold">No RFID cards matching your search.</div>`;
         return;
     }
 
     container.innerHTML = `
         <table class="w-full text-left text-xs min-w-[700px]">
-            <thead class="bg-slate-50 border-b border-slate-200 text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">
+            <thead class="bg-slate-50 border-b border-slate-200 text-[10px] font-extrabold text-slate-700 uppercase tracking-wider">
                 <tr>
                     <th class="py-4 px-4 whitespace-nowrap">CARD UID</th>
                     <th class="py-4 px-4 whitespace-nowrap">CUSTOMER NAME</th>
@@ -817,18 +1233,18 @@ function renderAdminRfidTable() {
             </thead>
             <tbody class="divide-y divide-slate-100">
                 ${filtered.map(r => `
-                    <tr class="hover:bg-slate-800/30 transition">
+                    <tr class="hover:bg-slate-50 transition">
                         <td class="py-4 px-4 font-mono font-bold text-indigo-400 whitespace-nowrap">
-                            <i class="fas fa-credit-card mr-1 text-slate-500"></i> ${r.rfidUid}
+                            <i class="fas fa-credit-card mr-1 text-slate-800"></i> ${r.rfidUid}
                         </td>
                         <td class="py-4 px-4 font-bold text-slate-100 whitespace-nowrap">${r.name}</td>
-                        <td class="py-4 px-4 font-mono text-slate-400 whitespace-nowrap">${r.email}</td>
+                        <td class="py-4 px-4 font-mono text-slate-700 whitespace-nowrap">${r.email}</td>
                         <td class="py-4 px-4 text-center whitespace-nowrap">
                             <span class="bg-amber-500/15 text-amber-300 border border-amber-500/30 px-3 py-1 rounded-full font-mono font-extrabold text-xs">
                                 ⭐ ${r.points} PTS
                             </span>
                         </td>
-                        <td class="py-4 px-4 text-slate-400 whitespace-nowrap">${r.lastTap}</td>
+                        <td class="py-4 px-4 text-slate-700 whitespace-nowrap">${r.lastTap}</td>
                         <td class="py-4 px-4 text-right whitespace-nowrap">
                             <button onclick="adminTapSpecificCard('${r.rfidUid}')" class="bg-indigo-500/15 hover:bg-indigo-500/25 text-indigo-300 border border-indigo-500/30 font-bold px-3 py-1.5 rounded-xl transition cursor-pointer text-xs inline-flex items-center gap-1.5 shadow-2xs">
                                 <i class="fas fa-plus-circle text-indigo-400"></i> +20 Pts
@@ -932,10 +1348,10 @@ function renderRegisteredUsers() {
     if (filtered.length === 0) {
         container.innerHTML = `
             <div class="p-12 text-center space-y-2">
-                <div class="w-10 h-10 rounded-xl bg-slate-100 text-slate-400 flex items-center justify-center mx-auto text-sm">
+                <div class="w-10 h-10 rounded-xl bg-slate-100 text-slate-700 flex items-center justify-center mx-auto text-sm">
                     <i class="fas fa-search"></i>
                 </div>
-                <p class="text-xs font-bold text-slate-700">No registered users found</p>
+                <p class="text-xs font-bold text-black">No registered users found</p>
             </div>
         `;
         return;
@@ -943,7 +1359,7 @@ function renderRegisteredUsers() {
 
     container.innerHTML = `
         <table class="w-full text-left text-xs">
-            <thead class="bg-slate-50 border-b border-slate-200 text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">
+            <thead class="bg-slate-50 border-b border-slate-200 text-[10px] font-extrabold text-slate-700 uppercase tracking-wider">
                 <tr>
                     <th class="p-4">USER ID</th>
                     <th class="p-4">NAME / USERNAME</th>
@@ -955,19 +1371,19 @@ function renderRegisteredUsers() {
             </thead>
             <tbody class="divide-y divide-slate-100">
                 ${filtered.map(u => `
-                    <tr class="hover:bg-slate-800/30 transition">
-                        <td class="p-4 font-mono font-bold text-slate-300">${u.id}</td>
-                        <td class="p-4 font-bold text-slate-100">${u.name}</td>
-                        <td class="p-4 text-slate-400 font-mono">${u.email}</td>
-                        <td class="p-4 text-slate-400">${u.phone || '—'}</td>
-                        <td class="p-4 text-slate-400">${u.dateJoined || '—'}</td>
+                    <tr class="hover:bg-slate-50 transition">
+                        <td class="p-4 font-mono font-bold text-black">${u.id}</td>
+                        <td class="p-4 font-bold text-black text-sm">${u.name}</td>
+                        <td class="p-4 text-black font-semibold font-mono">${u.email}</td>
+                        <td class="p-4 text-black font-semibold">${u.phone || '—'}</td>
+                        <td class="p-4 text-black font-semibold">${u.dateJoined || '—'}</td>
                         <td class="p-4 text-right">
                             <div class="flex items-center justify-end gap-1.5">
-                                <button onclick="openEditUserModal('${u.id}')" class="bg-blue-500/15 hover:bg-blue-500/25 text-blue-300 border border-blue-500/30 font-bold px-3 py-1.5 rounded-xl transition cursor-pointer text-xs flex items-center gap-1.5">
+                                <button onclick="openEditUserModal('${u.id}')" class="bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 font-bold px-3 py-1.5 rounded-xl transition cursor-pointer text-xs flex items-center gap-1.5">
                                     <i class="fas fa-edit text-[10px]"></i> Edit
                                 </button>
-                                <button onclick="openDeleteUserModal('${u.id}', '${(u.name || u.email || '').replace(/'/g, "\\'")}')" class="bg-rose-500/15 hover:bg-rose-500/25 text-rose-300 border border-rose-500/30 font-bold px-3 py-1.5 rounded-xl transition cursor-pointer text-xs flex items-center gap-1.5">
-                                    <i class="fas fa-trash-alt text-[10px]"></i> Delete
+                                <button onclick="openDeleteUserModal('${u.id}', '${(u.name || u.email || '').replace(/'/g, "\\'")}')" class="bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 font-bold px-3 py-1.5 rounded-xl transition cursor-pointer text-xs flex items-center gap-1.5">
+                                    <i class="fas fa-box-archive text-[10px]"></i> Archive
                                 </button>
                             </div>
                         </td>
@@ -1128,11 +1544,15 @@ function executeDeleteUser() {
         if (data && data.success) {
             closeDeleteUserModal();
             fetchRegisteredUsers();
+            if (typeof fetchAdminArchives === 'function') fetchAdminArchives();
+            alert("📦 " + (data.message || "User account successfully moved to System Archive! You can restore it anytime from the Archive tab."));
         } else {
-            alert((data && data.message) ? data.message : "Failed to delete user.");
+            alert((data && data.message) ? data.message : "Failed to move user to archive.");
         }
     })
-    .catch(() => {});
+    .catch(() => {
+        alert("Server error occurred while moving user to archive.");
+    });
 }
 
 function fetchAdminOrders() {
@@ -1178,10 +1598,10 @@ function setAdminStatusFilter(statusKey) {
     currentAdminStatusFilter = statusKey;
     currentAdminPage = 1;
     document.querySelectorAll('.admin-status-pill').forEach(btn => {
-        btn.className = "admin-status-pill px-4 py-1.5 rounded-xl bg-slate-100 text-slate-600 hover:bg-slate-200 transition cursor-pointer whitespace-nowrap";
+        btn.className = "admin-status-pill px-4 py-1.5 rounded-xl bg-slate-100 text-black hover:bg-slate-200 transition cursor-pointer whitespace-nowrap";
     });
     const activeBtn = document.getElementById(`statusPill-${statusKey}`);
-    if (activeBtn) activeBtn.className = "admin-status-pill px-4 py-1.5 rounded-xl bg-slate-900 text-white transition cursor-pointer whitespace-nowrap";
+    if (activeBtn) activeBtn.className = "admin-status-pill px-4 py-1.5 rounded-xl bg-emerald-600 text-white shadow-xs font-bold transition cursor-pointer whitespace-nowrap";
     renderAdminOrders();
 }
 
@@ -1192,8 +1612,8 @@ function filterAdminOrders() {
 
 function toggleAdminViewMode(mode) {
     currentAdminViewMode = mode;
-    document.getElementById('viewBtn-list').className = mode === 'list' ? 'px-3 py-1.5 rounded-lg bg-white text-slate-900 shadow-2xs cursor-pointer' : 'px-3 py-1.5 rounded-lg text-slate-600 hover:text-slate-900 cursor-pointer';
-    document.getElementById('viewBtn-cards').className = mode === 'cards' ? 'px-3 py-1.5 rounded-lg bg-white text-slate-900 shadow-2xs cursor-pointer' : 'px-3 py-1.5 rounded-lg text-slate-600 hover:text-slate-900 cursor-pointer';
+    document.getElementById('viewBtn-list').className = mode === 'list' ? 'px-3 py-1.5 rounded-lg bg-white text-black shadow-2xs cursor-pointer' : 'px-3 py-1.5 rounded-lg text-black hover:text-black cursor-pointer';
+    document.getElementById('viewBtn-cards').className = mode === 'cards' ? 'px-3 py-1.5 rounded-lg bg-white text-black shadow-2xs cursor-pointer' : 'px-3 py-1.5 rounded-lg text-black hover:text-black cursor-pointer';
     renderAdminOrders();
 }
 
@@ -1269,7 +1689,7 @@ function renderAdminOrders() {
     });
 
     if (filtered.length === 0) {
-        container.innerHTML = `<div class="p-12 text-center text-slate-400 text-xs font-semibold">No matching orders found under current filters.</div>`;
+        container.innerHTML = `<div class="p-12 text-center text-slate-700 text-xs font-semibold">No matching orders found under current filters.</div>`;
         return;
     }
 
@@ -1286,7 +1706,7 @@ function renderAdminOrders() {
         contentHTML = `
             <div class="overflow-x-auto w-full max-w-full">
                 <table class="w-full text-left text-xs">
-                    <thead class="bg-slate-50 border-b border-slate-200 text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">
+                    <thead class="bg-slate-50 border-b border-slate-200 text-[10px] font-extrabold text-slate-700 uppercase tracking-wider">
                         <tr>
                             <th class="py-2.5 px-2.5 whitespace-nowrap">REF ID</th>
                             <th class="py-2.5 px-2.5 whitespace-nowrap">CUSTOMER</th>
@@ -1315,21 +1735,21 @@ function renderAdminOrders() {
     for (let i = 1; i <= totalPages; i++) {
         const isActive = i === currentAdminPage;
         paginationBtns += `
-            <button onclick="changeAdminPage(${i})" class="w-7 h-7 sm:w-8 sm:h-8 rounded-xl text-xs font-bold transition ${isActive ? 'bg-slate-900 text-white' : 'bg-slate-100 hover:bg-slate-200 text-slate-700'}">${i}</button>
+            <button onclick="changeAdminPage(${i})" class="w-7 h-7 sm:w-8 sm:h-8 rounded-xl text-xs font-bold transition ${isActive ? 'bg-slate-900 text-white' : 'bg-slate-100 hover:bg-slate-200 text-black'}">${i}</button>
         `;
     }
 
     const paginationHTML = `
         <div class="p-3 sm:p-4 border-t border-slate-100 bg-slate-50/50 flex flex-col sm:flex-row justify-between items-center gap-3 text-xs">
-            <span class="text-slate-500 font-medium text-[11px] sm:text-xs">
-                Showing <strong class="text-slate-800">${startIndex + 1}</strong> to <strong class="text-slate-800">${Math.min(startIndex + adminPageSize, filtered.length)}</strong> of <strong class="text-slate-800">${filtered.length}</strong> orders
+            <span class="text-slate-800 font-medium text-[11px] sm:text-xs">
+                Showing <strong class="text-black">${startIndex + 1}</strong> to <strong class="text-black">${Math.min(startIndex + adminPageSize, filtered.length)}</strong> of <strong class="text-black">${filtered.length}</strong> orders
             </span>
             <div class="flex items-center gap-1.5">
-                <button onclick="changeAdminPage(${currentAdminPage - 1})" ${currentAdminPage === 1 ? 'disabled' : ''} class="px-2.5 sm:px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 disabled:opacity-40 disabled:hover:bg-slate-100 text-slate-700 font-bold transition text-xs">
+                <button onclick="changeAdminPage(${currentAdminPage - 1})" ${currentAdminPage === 1 ? 'disabled' : ''} class="px-2.5 sm:px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 disabled:opacity-40 disabled:hover:bg-slate-100 text-black font-bold transition text-xs">
                     <i class="fas fa-chevron-left text-[10px] mr-1"></i> Prev
                 </button>
                 ${paginationBtns}
-                <button onclick="changeAdminPage(${currentAdminPage + 1})" ${currentAdminPage === totalPages ? 'disabled' : ''} class="px-2.5 sm:px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 disabled:opacity-40 disabled:hover:bg-slate-100 text-slate-700 font-bold transition text-xs">
+                <button onclick="changeAdminPage(${currentAdminPage + 1})" ${currentAdminPage === totalPages ? 'disabled' : ''} class="px-2.5 sm:px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 disabled:opacity-40 disabled:hover:bg-slate-100 text-black font-bold transition text-xs">
                     Next <i class="fas fa-chevron-right text-[10px] ml-1"></i>
                 </button>
             </div>
@@ -1367,12 +1787,12 @@ function renderAdminRowHTML(o) {
     const fileTarget = o.fileUrl || o.file_url || o.url || (typeof o.file === 'string' && (o.file.startsWith('http') || o.file.startsWith('/')) ? o.file : null);
 
     return `
-        <tr class="hover:bg-slate-800/30 transition relative">
-            <td class="py-2.5 px-2.5 font-mono font-extrabold text-slate-100 whitespace-nowrap text-[11px]">${o.id}</td>
-            <td class="py-2.5 px-2.5 font-bold text-slate-200 text-xs max-w-[100px] truncate" title="${o.customer || 'Guest'}">${o.customer || 'Guest'}</td>
+        <tr class="hover:bg-slate-50 transition relative">
+            <td class="py-2.5 px-2.5 font-mono font-extrabold text-black whitespace-nowrap text-[11px] font-mono font-extrabold">${o.id}</td>
+            <td class="py-2.5 px-2.5 font-bold text-black text-xs max-w-[100px] truncate" title="${o.customer || 'Guest'}">${o.customer || 'Guest'}</td>
             <td class="py-2.5 px-2.5 max-w-[160px]">
-                <div class="font-bold text-slate-100 text-xs truncate" title="${escapeHtml(o.service || 'Document Printing')}">${escapeHtml(o.service || 'Document Printing')}</div>
-                <div class="text-[10px] text-slate-400 truncate">${escapeHtml(o.paperSize || 'Specs')} • ${formatInteger(o.copies || 1)}x</div>
+                <div class="font-bold text-black text-xs truncate" title="${escapeHtml(o.service || 'Document Printing')}">${escapeHtml(o.service || 'Document Printing')}</div>
+                <div class="text-[10px] text-black font-semibold truncate">${escapeHtml(o.paperSize || 'Specs')} • ${formatInteger(o.copies || 1)}x</div>
                 ${(o.customerNote || o.note) ? `
                     <div class="mt-1 inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-amber-500/15 text-amber-300 border border-amber-500/30 text-[9px] font-semibold max-w-[150px] truncate" title="Special Instructions: ${escapeHtml(o.customerNote || o.note)}">
                         <i class="fas fa-sticky-note text-[8px] text-amber-400 shrink-0"></i>
@@ -1380,8 +1800,15 @@ function renderAdminRowHTML(o) {
                     </div>
                 ` : ''}
             </td>
-            <td class="py-2.5 px-2.5 whitespace-nowrap"><span class="border px-2 py-0.5 rounded-full text-[9px] font-bold ${payBadge}">${escapeHtml(o.payment || 'GCash')}</span></td>
-            <td class="py-2.5 px-2.5 font-mono font-extrabold text-slate-100 text-right whitespace-nowrap text-xs">${formatCurrency(o.total || 0)}</td>
+            <td class="py-2.5 px-2.5 whitespace-nowrap">
+                <span class="border px-2 py-0.5 rounded-full text-[9px] font-bold ${payBadge}">${escapeHtml(o.payment || 'GCash')}</span>
+                ${o.gcashRef ? `
+                    <div class="text-[9px] font-mono text-blue-700 font-extrabold mt-0.5" title="GCash Reference Number">
+                        #${escapeHtml(o.gcashRef)}
+                    </div>
+                ` : ''}
+            </td>
+            <td class="py-2.5 px-2.5 font-mono font-extrabold text-black text-right whitespace-nowrap text-xs">${formatCurrency(o.total || 0)}</td>
             <td class="py-2.5 px-2.5 text-center whitespace-nowrap">${statusPill}</td>
             <td class="py-2.5 px-2.5 text-right whitespace-nowrap">
                 <div class="flex items-center justify-end gap-1 relative">
@@ -1394,29 +1821,29 @@ function renderAdminRowHTML(o) {
                                 <i class="fas fa-chevron-down text-[8px]"></i>
                             </button>
 
-                            <div id="statusMenu-${o.id}" class="status-dropdown-menu absolute right-0 top-full mt-1 w-44 bg-[#0f172a] rounded-2xl shadow-xl border border-slate-700/80 hidden text-left overflow-hidden divide-y divide-slate-800 z-50">
-                                <button onclick="updateOrderStatusFromBackend('${o.id}', 'Approved')" class="w-full px-3.5 py-2 hover:bg-blue-500/20 text-blue-300 font-bold text-xs text-left block cursor-pointer">✓ Approved</button>
-                                <button onclick="updateOrderStatusFromBackend('${o.id}', 'Printing')" class="w-full px-3.5 py-2 hover:bg-indigo-500/20 text-indigo-300 font-bold text-xs text-left block cursor-pointer">🖨️ Start Printing</button>
-                                <button onclick="updateOrderStatusFromBackend('${o.id}', 'Ready for Pickup')" class="w-full px-3.5 py-2 hover:bg-amber-500/20 text-amber-300 font-bold text-xs text-left block cursor-pointer">📦 Ready for Pickup</button>
-                                <button onclick="updateOrderStatusFromBackend('${o.id}', 'Completed')" class="w-full px-3.5 py-2 hover:bg-emerald-500/20 text-emerald-300 font-bold text-xs text-left block cursor-pointer">🎉 Complete Order</button>
+                            <div id="statusMenu-${o.id}" class="status-dropdown-menu absolute right-0 top-full mt-1 w-44 bg-white rounded-2xl shadow-xl border border-slate-200 hidden text-left overflow-hidden divide-y divide-slate-100 z-50">
+                                <button onclick="updateOrderStatusFromBackend('${o.id}', 'Approved')" class="w-full px-3.5 py-2 hover:bg-blue-50 text-blue-800 font-bold text-xs text-left block cursor-pointer">✓ Approved</button>
+                                <button onclick="updateOrderStatusFromBackend('${o.id}', 'Printing')" class="w-full px-3.5 py-2 hover:bg-indigo-50 text-indigo-800 font-bold text-xs text-left block cursor-pointer">🖨️ Start Printing</button>
+                                <button onclick="updateOrderStatusFromBackend('${o.id}', 'Ready for Pickup')" class="w-full px-3.5 py-2 hover:bg-amber-50 text-amber-800 font-bold text-xs text-left block cursor-pointer">📦 Ready for Pickup</button>
+                                <button onclick="updateOrderStatusFromBackend('${o.id}', 'Completed')" class="w-full px-3.5 py-2 hover:bg-emerald-50 text-emerald-800 font-bold text-xs text-left block cursor-pointer">🎉 Complete Order</button>
                             </div>
                         </div>
                     ` : ''}
 
                     <div class="relative action-menu-container">
-                        <button onclick="toggleActionMenuDropdown(event, '${o.id}')" class="w-7 h-7 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700/60 flex items-center justify-center transition cursor-pointer">
+                        <button onclick="toggleActionMenuDropdown(event, '${o.id}')" class="w-7 h-7 rounded-xl bg-slate-100 hover:bg-slate-200 text-black border border-slate-200 flex items-center justify-center transition cursor-pointer">
                             <i class="fas fa-ellipsis-v text-[10px]"></i>
                         </button>
-                        <div id="actionMenu-${o.id}" class="action-menu-dropdown absolute right-0 top-full mt-1 w-44 bg-[#0f172a] rounded-2xl shadow-xl border border-slate-700/80 hidden text-left overflow-hidden divide-y divide-slate-800 z-50">
-                            <button onclick="openReviewSpecsModal('${o.id}')" class="w-full px-3.5 py-2 hover:bg-slate-800 text-slate-300 font-medium text-xs text-left flex items-center gap-2 cursor-pointer">
+                        <div id="actionMenu-${o.id}" class="action-menu-dropdown absolute right-0 top-full mt-1 w-44 bg-white rounded-2xl shadow-xl border border-slate-200 hidden text-left overflow-hidden divide-y divide-slate-100 z-50">
+                            <button onclick="openReviewSpecsModal('${o.id}')" class="w-full px-3.5 py-2 hover:bg-slate-50 text-black font-bold text-xs text-left flex items-center gap-2 cursor-pointer">
                                 <i class="fas fa-eye text-blue-400"></i> Review Specs & File
                             </button>
                             ${fileTarget ? `
-                            <a href="${fileTarget}" target="_blank" download class="w-full px-3.5 py-2 hover:bg-blue-500/20 text-blue-300 font-bold text-xs text-left flex items-center gap-2 cursor-pointer">
+                            <a href="${fileTarget}" target="_blank" download class="w-full px-3.5 py-2 hover:bg-blue-50 text-blue-800 font-bold text-xs text-left flex items-center gap-2 cursor-pointer">
                                 <i class="fas fa-file-download text-blue-400"></i> Open Attached File
                             </a>
                             ` : ''}
-                            <button onclick="openPrintSlipModal('${o.id}')" class="w-full px-3.5 py-2 hover:bg-slate-800 text-slate-300 font-medium text-xs text-left flex items-center gap-2 cursor-pointer">
+                            <button onclick="openPrintSlipModal('${o.id}')" class="w-full px-3.5 py-2 hover:bg-slate-50 text-black font-bold text-xs text-left flex items-center gap-2 cursor-pointer">
                                 <i class="fas fa-print text-purple-400"></i> Print Job Slip
                             </button>
                             <button onclick="openRejectReasonModal('${o.id}')" class="w-full px-3.5 py-2 hover:bg-rose-500/20 text-rose-300 font-bold text-xs text-left flex items-center gap-2 cursor-pointer">
@@ -1445,16 +1872,16 @@ function renderAdminCardHTML(o) {
     const isFinished = s.includes('complete') || s.includes('reject');
 
     return `
-        <div class="bg-[#0b1226] border border-slate-800 rounded-2xl p-4 shadow-xs space-y-3 flex flex-col justify-between">
+        <div class="bg-white text-black border border-slate-200 rounded-2xl p-4 shadow-sm space-y-3 flex flex-col justify-between">
             <div class="space-y-2">
-                <div class="flex justify-between items-center border-b border-slate-800/80 pb-2">
-                    <span class="font-mono font-extrabold text-slate-100 text-xs">${escapeHtml(o.id)}</span>
+                <div class="flex justify-between items-center border-b border-slate-100 pb-2">
+                    <span class="font-mono font-extrabold text-black text-xs">${escapeHtml(o.id)}</span>
                     <span class="border px-2 py-0.5 rounded-full text-[9px] font-bold ${payBadge}">${escapeHtml(o.payment || 'GCash')}</span>
                 </div>
                 <div>
-                    <h4 class="font-bold text-slate-100 text-xs">${escapeHtml(o.service || 'Document Printing')}</h4>
-                    <p class="text-[10px] text-slate-400">Customer: ${escapeHtml(o.customer || 'Guest')}</p>
-                    <p class="text-[10px] text-slate-500 pt-0.5">${escapeHtml(o.paperSize || 'Custom Specs')} • ${formatInteger(o.copies || 1)} copies</p>
+                    <h4 class="font-bold text-black text-xs">${escapeHtml(o.service || 'Document Printing')}</h4>
+                    <p class="text-[10px] text-black font-semibold">Customer: ${escapeHtml(o.customer || 'Guest')}</p>
+                    <p class="text-[10px] text-black font-medium pt-0.5">${escapeHtml(o.paperSize || 'Custom Specs')} • ${formatInteger(o.copies || 1)} copies</p>
                 </div>
                 ${(o.customerNote || o.note) ? `
                     <div class="bg-amber-500/10 border border-amber-500/20 rounded-xl p-2.5 text-xs text-slate-200">
@@ -1466,16 +1893,16 @@ function renderAdminCardHTML(o) {
                 ` : ''}
             </div>
 
-            <div class="pt-2 border-t border-slate-800/80 space-y-2">
+            <div class="pt-2 border-t border-slate-100 space-y-2">
                 <div class="flex justify-between items-center">
-                    <span class="font-mono font-extrabold text-slate-100 text-xs">${formatCurrency(o.total || 0)}</span>
+                    <span class="font-mono font-extrabold text-black text-xs">${formatCurrency(o.total || 0)}</span>
                     ${statusPill}
                 </div>
                 <div class="flex items-center gap-2 pt-1">
                     ${!isFinished ? `
                         <button onclick="updateOrderStatusFromBackend('${o.id}', '${nextStatus}')" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold text-[10px] py-1.5 rounded-lg cursor-pointer">${btnText}</button>
                     ` : ''}
-                    <button onclick="openReviewSpecsModal('${o.id}')" class="bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-[10px] px-2.5 py-1.5 rounded-lg cursor-pointer border border-slate-700/60">Specs & File</button>
+                    <button onclick="openReviewSpecsModal('${o.id}')" class="bg-slate-100 hover:bg-slate-200 text-black font-bold text-[10px] px-2.5 py-1.5 rounded-lg cursor-pointer border border-slate-200">Specs & File</button>
                 </div>
             </div>
         </div>
@@ -1556,6 +1983,26 @@ function openReviewSpecsModal(orderId) {
     const hasValidUrl = fileUrl !== '#';
 
     const customerNote = String(o.customerNote || o.note || '').trim();
+    // Display custom requirements if present
+    let reqsHTML = '';
+    if (o.requirements && typeof o.requirements === 'object' && Object.keys(o.requirements).length > 0) {
+        reqsHTML = `
+            <div class="p-3 bg-blue-500/10 border border-blue-500/20 rounded-2xl text-xs text-slate-200 space-y-1.5">
+                <div class="font-bold text-blue-400 uppercase tracking-wider text-[10px] flex items-center gap-1.5">
+                    <i class="fas fa-list-check text-blue-400"></i> Service Requirements Provided by Customer
+                </div>
+                <div class="grid grid-cols-1 gap-1 text-[11px]">
+                    ${Object.entries(o.requirements).map(([k, v]) => `
+                        <div class="flex justify-between border-b border-slate-700/50 pb-0.5">
+                            <span class="text-slate-700 font-medium">${escapeHtml(k)}:</span>
+                            <span class="text-white font-bold">${escapeHtml(String(v))}</span>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+        `;
+    }
+
     const noteHTML = customerNote !== ''
         ? `<div class="p-3 bg-amber-500/10 border border-amber-500/20 rounded-2xl text-xs text-slate-200 space-y-1">
              <div class="font-bold text-amber-400 uppercase tracking-wider text-[10px] flex items-center gap-1.5">
@@ -1563,7 +2010,7 @@ function openReviewSpecsModal(orderId) {
              </div>
              <p class="whitespace-pre-wrap font-medium leading-relaxed text-slate-300">${escapeHtml(customerNote)}</p>
            </div>`
-        : `<div class="p-2.5 bg-slate-800/60 border border-slate-700/60 rounded-xl text-[11px] text-slate-400 italic">
+        : `<div class="p-2.5 bg-slate-800/60 border border-slate-700/60 rounded-xl text-[11px] text-slate-700 italic">
              No special instructions
            </div>`;
 
@@ -1576,14 +2023,24 @@ function openReviewSpecsModal(orderId) {
             <div class="space-y-1"><strong class="text-slate-300">Copies / Quantity:</strong> <span class="text-slate-100">${formatInteger(o.copies || 1)}</span></div>
             <div class="space-y-1"><strong class="text-slate-300">Color Mode:</strong> <span class="text-slate-100">${escapeHtml(o.colorMode || 'Full Color')}</span></div>
             <div class="space-y-1"><strong class="text-slate-300">Payment Method:</strong> <span class="text-slate-100">${escapeHtml(o.payment || 'GCash')}</span></div>
+            ${o.gcashRef ? `<div class="space-y-1"><strong class="text-slate-300">GCash Ref No:</strong> <span class="font-mono text-emerald-400 font-extrabold text-xs">#${escapeHtml(o.gcashRef)}</span></div>` : ''}
+            ${o.gcashReceiptUrl ? `
+                <div class="space-y-1">
+                    <strong class="text-slate-300">GCash Receipt:</strong> 
+                    <a href="${o.gcashReceiptUrl}" target="_blank" class="inline-flex items-center gap-1 text-xs text-blue-400 hover:underline">
+                        <i class="fas fa-receipt"></i> View Customer Receipt
+                    </a>
+                </div>
+            ` : ''}
             <div class="space-y-1"><strong class="text-slate-300">Total Amount:</strong> <span class="text-slate-100">${formatCurrency(o.total || 0)}</span></div>
             <div class="space-y-1"><strong class="text-slate-300">Submitted Time:</strong> <span class="text-slate-100">${escapeHtml(o.orderDate || 'Today')}</span></div>
 
             <div class="pt-3 border-t border-slate-700/60 space-y-1.5">
                 <strong class="text-slate-300 flex items-center gap-1.5">
-                    <i class="fas fa-comment-dots text-slate-400"></i> Customer Note:
+                    <i class="fas fa-comment-dots text-slate-700"></i> Customer Note:
                 </strong>
-                ${noteHTML}
+                ${reqsHTML}
+            ${noteHTML}
             </div>
             
             <div class="pt-3 border-t border-slate-700/60 space-y-2">
@@ -1629,7 +2086,7 @@ function openPrintSlipModal(orderId) {
             <div>PAYMENT: ${escapeHtml(o.payment || 'GCash')}</div>
             <div>STATUS: ${escapeHtml(o.status || 'Submitted')}</div>
             ${customerNote !== '' ? `<div class="border-t pt-1 mt-1 text-[11px]"><strong>NOTE:</strong> ${escapeHtml(customerNote)}</div>` : ''}
-            <div class="text-right text-[9px] text-slate-400 pt-2">${new Date().toLocaleString()}</div>
+            <div class="text-right text-[9px] text-slate-700 pt-2">${new Date().toLocaleString()}</div>
         `;
     }
     document.getElementById('printSlipModal').classList.remove('hidden');
@@ -1837,13 +2294,13 @@ let adminIsSending = false;
 let adminLastRenderedMessagesHash = '';
 
 const AVATAR_PALETTES = [
-    { bg: 'bg-blue-500/20', text: 'text-blue-300', border: 'border-blue-500/40' },
-    { bg: 'bg-emerald-500/20', text: 'text-emerald-300', border: 'border-emerald-500/40' },
-    { bg: 'bg-purple-500/20', text: 'text-purple-300', border: 'border-purple-500/40' },
-    { bg: 'bg-rose-500/20', text: 'text-rose-300', border: 'border-rose-500/40' },
-    { bg: 'bg-amber-500/20', text: 'text-amber-300', border: 'border-amber-500/40' },
-    { bg: 'bg-indigo-500/20', text: 'text-indigo-300', border: 'border-indigo-500/40' },
-    { bg: 'bg-teal-500/20', text: 'text-teal-300', border: 'border-teal-500/40' }
+    { bg: 'bg-blue-100', text: 'text-blue-800', border: 'border-blue-300' },
+    { bg: 'bg-emerald-100', text: 'text-emerald-800', border: 'border-emerald-300' },
+    { bg: 'bg-purple-100', text: 'text-purple-800', border: 'border-purple-300' },
+    { bg: 'bg-rose-100', text: 'text-rose-800', border: 'border-rose-300' },
+    { bg: 'bg-amber-100', text: 'text-amber-800', border: 'border-amber-300' },
+    { bg: 'bg-indigo-100', text: 'text-indigo-800', border: 'border-indigo-300' },
+    { bg: 'bg-teal-100', text: 'text-teal-800', border: 'border-teal-300' }
 ];
 
 function getAvatarPalette(str) {
@@ -1913,7 +2370,7 @@ function fetchAdminChatThread() {
     loadAdminConversations(true);
     adminChatPollingTimer = setInterval(() => {
         loadAdminConversations(false);
-    }, 2500);
+    }, 5000);
 }
 
 function loadAdminConversations(isInitial = false) {
@@ -1977,7 +2434,7 @@ function renderAdminConversationsList() {
 
     if (filtered.length === 0) {
         listEl.innerHTML = `
-            <div class="p-8 text-center text-slate-400 text-xs">
+            <div class="p-8 text-center text-slate-700 text-xs">
                 ${adminSearchQuery ? 'No customer conversations match your search.' : 'No customer conversations yet.'}
             </div>
         `;
@@ -1991,36 +2448,36 @@ function renderAdminConversationsList() {
         const initials = getInitials(c.customerName || c.customerEmail);
         const timeFormatted = formatMessengerTime(c.lastMessageAt || c.updatedAt);
         const isSenderStaff = c.lastMessageSender === 'admin' || c.lastMessageSender === 'staff';
-        const prefix = isSenderStaff ? '<span class="text-slate-400 font-normal">You: </span>' : '';
-        const previewText = c.lastMessage ? `${prefix}${escapeHtml(c.lastMessage)}` : '<span class="italic text-slate-400">Started a conversation</span>';
+        const prefix = isSenderStaff ? '<span class="text-slate-700 font-semibold">You: </span>' : '';
+        const previewText = c.lastMessage ? `${prefix}${escapeHtml(c.lastMessage)}` : '<span class="italic text-slate-700">Started a conversation</span>';
 
         return `
             <div onclick="selectAdminConversation('${c.id}')"
                  class="p-3.5 flex items-center gap-3 cursor-pointer transition-all border-l-4 ${
                      isSelected 
-                         ? 'bg-blue-600/20 border-blue-500 shadow-2xs' 
-                         : 'bg-transparent hover:bg-slate-800/40 border-transparent'
+                         ? 'bg-emerald-50 border-emerald-500 shadow-xs' 
+                         : 'bg-transparent hover:bg-slate-50 border-transparent'
                  }">
                 <!-- Circular Avatar -->
                 <div class="relative flex-shrink-0">
                     <div class="w-11 h-11 rounded-full ${palette.bg} ${palette.text} border ${palette.border} font-bold text-xs flex items-center justify-center shadow-2xs">
                         ${initials}
                     </div>
-                    <span class="absolute bottom-0 right-0 w-3 h-3 rounded-full bg-emerald-500 border-2 border-[#0b1226]"></span>
+                    <span class="absolute bottom-0 right-0 w-3 h-3 rounded-full bg-emerald-500 border-2 border-white"></span>
                 </div>
 
                 <!-- Conversation Info -->
                 <div class="flex-1 min-w-0">
                     <div class="flex items-center justify-between gap-1 mb-0.5">
-                        <span class="font-extrabold text-xs truncate ${unreadCount > 0 ? 'text-white' : 'text-slate-200'}">
+                        <span class="font-extrabold text-xs truncate ${unreadCount > 0 ? 'text-black' : 'text-slate-900'}">
                             ${escapeHtml(c.customerName || c.customerEmail || 'Customer')}
                         </span>
-                        <span class="text-[10px] ${unreadCount > 0 ? 'text-blue-400 font-bold' : 'text-slate-400'} flex-shrink-0 whitespace-nowrap">
+                        <span class="text-[10px] ${unreadCount > 0 ? 'text-emerald-700 font-bold' : 'text-slate-700 font-medium'} flex-shrink-0 whitespace-nowrap">
                             ${timeFormatted}
                         </span>
                     </div>
                     <div class="flex items-center justify-between gap-2">
-                        <div class="text-[11px] truncate ${unreadCount > 0 ? 'font-bold text-slate-100' : 'text-slate-400'}">
+                        <div class="text-[11px] truncate ${unreadCount > 0 ? 'font-bold text-black' : 'text-slate-700'}">
                             ${previewText}
                         </div>
                         ${unreadCount > 0 ? `
@@ -2118,7 +2575,7 @@ function fetchAdminActiveMessages(scrollToBottom = false) {
 
             if (msgs.length === 0) {
                 thread.innerHTML = `
-                    <div class="text-center text-slate-400 py-16 text-xs flex flex-col items-center gap-2">
+                    <div class="text-center text-slate-700 py-16 text-xs flex flex-col items-center gap-2">
                         <i class="far fa-comments text-2xl text-slate-300"></i>
                         <span>No messages in this conversation yet. Send a greeting to start chatting!</span>
                     </div>
@@ -2147,16 +2604,16 @@ function fetchAdminActiveMessages(scrollToBottom = false) {
                         <div class="max-w-[75%] sm:max-w-[65%] flex flex-col ${isStaff ? 'items-end' : 'items-start'}">
                             <div class="p-3 text-xs leading-relaxed whitespace-pre-wrap break-words shadow-2xs ${
                                 isStaff
-                                    ? 'bg-blue-600 text-white rounded-2xl rounded-br-xs'
-                                    : 'bg-[#0f172a] border border-slate-700/80 text-slate-100 rounded-2xl rounded-bl-xs'
+                                    ? 'bg-emerald-600 text-white font-medium rounded-2xl rounded-br-xs shadow-xs'
+                                    : 'bg-white border border-slate-200 text-black font-medium rounded-2xl rounded-bl-xs shadow-xs'
                             }">
                                 ${escapeHtml(m.message || m.text || '')}
                             </div>
-                            <div class="flex items-center gap-1.5 px-1 pt-0.5 text-[10px] text-slate-400">
+                            <div class="flex items-center gap-1.5 px-1 pt-0.5 text-[10px] text-slate-700">
                                 <span>${timeText}</span>
                                 ${isStaff ? `
                                     <span>•</span>
-                                    <span class="${isSeen ? 'text-blue-400 font-bold' : 'text-slate-500'}">
+                                    <span class="${isSeen ? 'text-blue-400 font-bold' : 'text-slate-800'}">
                                         ${isSeen ? 'Seen' : 'Delivered'}
                                     </span>
                                 ` : ''}
@@ -2213,10 +2670,10 @@ function sendAdminChatMessage() {
         tempBubble.className = 'flex items-end justify-end gap-2 group';
         tempBubble.innerHTML = `
             <div class="max-w-[75%] sm:max-w-[65%] flex flex-col items-end">
-                <div class="p-3 text-xs leading-relaxed whitespace-pre-wrap break-words shadow-2xs bg-blue-600 text-white rounded-2xl rounded-br-xs">
+                <div class="p-3 text-xs leading-relaxed whitespace-pre-wrap break-words shadow-xs bg-emerald-600 text-white font-medium rounded-2xl rounded-br-xs">
                     ${escapeHtml(text)}
                 </div>
-                <div class="flex items-center gap-1.5 px-1 pt-0.5 text-[10px] text-slate-400">
+                <div class="flex items-center gap-1.5 px-1 pt-0.5 text-[10px] text-slate-700">
                     <span>Just now</span>
                     <span>•</span>
                     <span class="text-blue-400">Sending...</span>
@@ -2256,7 +2713,7 @@ function sendAdminChatMessage() {
             if (tempEl) {
                 const statusSpan = tempEl.querySelector('.text-blue-400');
                 if (statusSpan) {
-                    statusSpan.className = 'text-slate-400';
+                    statusSpan.className = 'text-slate-700';
                     statusSpan.textContent = 'Delivered';
                 }
             }
@@ -2291,5 +2748,927 @@ function toggleAdminChatMobileView(showChatPane) {
     }
 }
 
+
+// ===========================================================================
+// ADMIN SAMPLE PRODUCTS & SERVICES SHOWCASE LOGIC
+// ===========================================================================
+let allAdminSamplesCache = [];
+
+function fetchAdminSamples() {
+    fetch('/api/samples')
+    .then(res => res.json())
+    .then(samples => {
+        allAdminSamplesCache = Array.isArray(samples) ? samples : [];
+        renderAdminSamples();
+    })
+    .catch(err => {
+        console.error('Failed to load samples in admin:', err);
+        const grid = document.getElementById('adminSamplesGrid');
+        if (grid) grid.innerHTML = '<div class="col-span-full text-center py-12 text-rose-500 text-xs font-bold">Hindi ma-load ang sample showcase.</div>';
+    });
+}
+
+function filterAdminSamples() {
+    renderAdminSamples();
+}
+
+function renderAdminSamples() {
+    const grid = document.getElementById('adminSamplesGrid');
+    if (!grid) return;
+
+    const searchTerm = (document.getElementById('adminSampleSearchInput')?.value || '').toLowerCase().trim();
+    const filtered = allAdminSamplesCache.filter(s => {
+        const title = (s.title || '').toLowerCase();
+        const cat = (s.category || '').toLowerCase();
+        const desc = (s.description || '').toLowerCase();
+        return title.includes(searchTerm) || cat.includes(searchTerm) || desc.includes(searchTerm);
+    });
+
+    const badgeEl = document.getElementById('headerTotalSamplesBadge');
+    if (badgeEl) badgeEl.textContent = `${allAdminSamplesCache.length} Samples`;
+
+    if (filtered.length === 0) {
+        grid.innerHTML = `
+            <div class="col-span-full p-12 text-center bg-white rounded-3xl border border-slate-200 space-y-3">
+                <div class="w-12 h-12 rounded-2xl bg-slate-100 text-slate-700 flex items-center justify-center mx-auto text-lg">
+                    <i class="fas fa-layer-group"></i>
+                </div>
+                <h4 class="font-black text-black text-sm">Walang Nahanap na Sample Items</h4>
+                <p class="text-xs text-slate-800">Mag-click sa '+ Add New Sample Item' para magdagdag ng mga sample na makikita ng customers.</p>
+            </div>
+        `;
+        return;
+    }
+
+    grid.innerHTML = filtered.map(item => {
+        const img = item.imageUrl || 'https://images.unsplash.com/photo-1589829085413-56de8ae18c73?auto=format&fit=crop&w=600&q=80';
+        const badge = item.badge || 'Sample';
+        const price = item.price || 'Starts at ₱0.00';
+
+        return `
+            <div class="bg-white rounded-3xl border border-slate-200 overflow-hidden shadow-xs hover:shadow-md transition-all flex flex-col justify-between group">
+                <div>
+                    <div class="h-44 overflow-hidden relative bg-slate-100">
+                        <img src="${escapeHtml(img)}" alt="${escapeHtml(item.title || '')}" class="w-full h-full object-cover group-hover:scale-105 transition-all duration-300">
+                        <span class="absolute top-3 left-3 bg-blue-600 text-white text-[10px] font-black uppercase tracking-wider px-3 py-1 rounded-full shadow-md">
+                            ${escapeHtml(badge)}
+                        </span>
+                        <span class="absolute top-3 right-3 bg-white/90 backdrop-blur-md text-black text-[10px] font-bold px-2.5 py-1 rounded-full border border-slate-200">
+                            ${escapeHtml(item.category || 'Printing')}
+                        </span>
+                    </div>
+                    <div class="p-5 space-y-2">
+                        <h4 class="font-black text-black text-sm leading-snug">${escapeHtml(item.title || '')}</h4>
+                        <p class="text-xs text-slate-800 leading-relaxed line-clamp-3">${escapeHtml(item.description || 'Standard high quality print service output.')}</p>
+                    </div>
+                </div>
+
+                <div class="p-5 pt-0 border-t border-slate-100 mt-2 space-y-3">
+                    <div class="flex justify-between items-center pt-3">
+                        <div>
+                            <span class="text-[10px] uppercase font-bold text-slate-700 block tracking-wider">Reference Price</span>
+                            <span class="text-xs font-mono font-black text-blue-600">${escapeHtml(price)}</span>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-2 pt-1">
+                        <button onclick="openEditSampleModal('${escapeHtml(String(item.id))}')" class="bg-slate-100 hover:bg-slate-200 text-black font-bold text-xs py-2 rounded-xl transition flex items-center justify-center gap-1.5 cursor-pointer">
+                            <i class="fas fa-edit text-xs"></i>
+                            <span>Edit</span>
+                        </button>
+                        <button onclick="deleteAdminSample('${escapeHtml(String(item.id))}', '${escapeHtml(item.title || '')}')" class="bg-rose-50 hover:bg-rose-100 text-rose-600 font-bold text-xs py-2 rounded-xl transition flex items-center justify-center gap-1.5 cursor-pointer">
+                            <i class="fas fa-box-archive text-xs"></i>
+                            <span>Archive</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+function openAddSampleModal() {
+    document.getElementById('addEditSampleModalTitle').textContent = 'Add New Sample Product / Service';
+    document.getElementById('adminSampleId').value = '';
+    document.getElementById('adminSampleTitle').value = '';
+    document.getElementById('adminSampleCategory').value = 'Standard Printing';
+    document.getElementById('adminSampleServiceVal').value = 'standardA4';
+    document.getElementById('adminSamplePrice').value = 'Starts at ₱3.00';
+    document.getElementById('adminSampleBadge').value = 'Popular';
+    document.getElementById('adminSampleImageUrl').value = '';
+    document.getElementById('adminSampleDescription').value = '';
+    document.getElementById('addEditSampleModal').classList.remove('hidden');
+}
+
+function openEditSampleModal(id) {
+    const item = allAdminSamplesCache.find(s => String(s.id) === String(id));
+    if (!item) return;
+
+    document.getElementById('addEditSampleModalTitle').textContent = 'Edit Sample Product / Service';
+    document.getElementById('adminSampleId').value = item.id;
+    document.getElementById('adminSampleTitle').value = item.title || '';
+    document.getElementById('adminSampleCategory').value = item.category || 'Standard Printing';
+    document.getElementById('adminSampleServiceVal').value = item.serviceVal || 'standardA4';
+    document.getElementById('adminSamplePrice').value = item.price || '';
+    document.getElementById('adminSampleBadge').value = item.badge || '';
+    document.getElementById('adminSampleImageUrl').value = item.imageUrl || '';
+    document.getElementById('adminSampleDescription').value = item.description || '';
+    document.getElementById('addEditSampleModal').classList.remove('hidden');
+}
+
+function closeAddEditSampleModal() {
+    document.getElementById('addEditSampleModal').classList.add('hidden');
+}
+
+function handleAdminSampleFileUpload(event) {
+    const file = event.target.files[0];
+    if (file) {
+        if (file.size > 5 * 1024 * 1024) {
+            alert('Masyadong malaki ang image. Maximum 5MB lamang.');
+            return;
+        }
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            document.getElementById('adminSampleImageUrl').value = e.target.result;
+            alert('✅ Image successfully loaded at naka-attach na sa sample!');
+        };
+        reader.readAsDataURL(file);
+    }
+}
+
+function submitAdminSampleForm(event) {
+    event.preventDefault();
+    const btn = document.getElementById('adminSampleSubmitBtn');
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin text-xs"></i> <span>Saving...</span>';
+    }
+
+    const sampleId = document.getElementById('adminSampleId').value;
+    const payload = {
+        title: document.getElementById('adminSampleTitle').value.trim(),
+        category: document.getElementById('adminSampleCategory').value,
+        serviceVal: document.getElementById('adminSampleServiceVal').value,
+        price: document.getElementById('adminSamplePrice').value.trim(),
+        badge: document.getElementById('adminSampleBadge').value.trim(),
+        imageUrl: document.getElementById('adminSampleImageUrl').value.trim(),
+        description: document.getElementById('adminSampleDescription').value.trim()
+    };
+
+    if (sampleId) {
+        payload.id = sampleId;
+    }
+
+    fetch('/api/samples', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-save text-xs"></i> <span>Save Sample Product</span>';
+        }
+        if (data.success) {
+            closeAddEditSampleModal();
+            fetchAdminSamples();
+            alert('✅ Sample product / service na-save nang matagumpay!');
+        } else {
+            alert(data.message || 'Failed to save sample.');
+        }
+    })
+    .catch(err => {
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-save text-xs"></i> <span>Save Sample Product</span>';
+        }
+        alert('May naganap na error habang sine-save ang sample.');
+    });
+}
+
+function deleteAdminSample(id, title) {
+    if (!confirm(`Archive sample "${title}"?\n\nThis item will be moved to the System Archive and will not be permanently deleted. You can restore it anytime from the Archive tab.\n\nProceed with archiving?`)) return;
+
+    fetch(`/api/samples/${id}`, {
+        method: 'DELETE'
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            fetchAdminSamples();
+            alert('📦 Sample work successfully moved to System Archive! It can be restored anytime from the Archive tab.');
+        } else {
+            alert(data.message || 'Failed to delete sample.');
+        }
+    })
+    .catch(() => alert('Error deleting sample.'));
+}
+
+// ===========================================================================
+// ADMIN PRINTING SERVICES (PLACE ORDER SERVICES) MANAGER LOGIC
+// ===========================================================================
+let allAdminServicesCache = [];
+
+function fetchAdminServices() {
+    fetchAdminGcashSettings();
+    fetch('/api/services')
+    .then(res => res.json())
+    .then(services => {
+        allAdminServicesCache = Array.isArray(services) ? services : [];
+        allAdminServicesCache.sort((a, b) => (a.sortOrder || 99) - (b.sortOrder || 99));
+        renderAdminServicesTable();
+    })
+    .catch(err => {
+        console.error('Failed to load services in admin:', err);
+        const tbody = document.getElementById('adminServicesTableBody');
+        if (tbody) tbody.innerHTML = '<tr><td colspan="6" class="text-center py-12 text-rose-500 font-bold">Failed to load printing services.</td></tr>';
+    });
+}
+
+function filterAdminServices() {
+    renderAdminServicesTable();
+}
+
+function renderAdminServicesTable() {
+    const tbody = document.getElementById('adminServicesTableBody');
+    if (!tbody) return;
+
+    const searchTerm = (document.getElementById('adminServiceSearchInput')?.value || '').toLowerCase().trim();
+    const filtered = allAdminServicesCache.filter(s => {
+        const name = (s.name || '').toLowerCase();
+        const id = (s.id || '').toLowerCase();
+        const unit = (s.unit || '').toLowerCase();
+        return name.includes(searchTerm) || id.includes(searchTerm) || unit.includes(searchTerm);
+    });
+
+    const badgeEl = document.getElementById('headerTotalServicesBadge');
+    if (badgeEl) badgeEl.textContent = `${allAdminServicesCache.length} Services`;
+
+    if (filtered.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="6" class="text-center py-12 text-slate-700">
+                    <div class="space-y-2">
+                        <i class="fas fa-concierge-bell text-2xl text-slate-300"></i>
+                        <p class="font-bold text-black">No printing services found.</p>
+                        <p class="text-[11px] text-slate-700">Click "+ Add New Service" above to add one.</p>
+                    </div>
+                </td>
+            </tr>
+        `;
+        return;
+    }
+
+    tbody.innerHTML = filtered.map(item => {
+        return `
+            <tr class="border-b border-slate-100 hover:bg-slate-50/80 transition">
+                <td class="px-5 py-3 font-semibold text-black">
+                    <span class="text-base mr-1.5">${escapeHtml(item.emoji || '🖨️')}</span>
+                    <span class="font-bold">${escapeHtml(item.name || '')}</span>
+                </td>
+                <td class="px-5 py-3 font-mono text-slate-800">
+                    <span class="bg-slate-100 text-black px-2 py-0.5 rounded border border-slate-200">${escapeHtml(item.id || '')}</span>
+                </td>
+                <td class="px-5 py-3 font-mono font-bold text-emerald-600">
+                    ₱${parseFloat(item.basePrice || 0).toFixed(2)}
+                </td>
+                <td class="px-5 py-3 text-black">
+                    ${escapeHtml(item.unit || '')}
+                </td>
+                <td class="px-5 py-3 font-mono text-slate-700">
+                    #${item.sortOrder || 1}
+                </td>
+                <td class="px-5 py-3 text-right">
+                    <div class="inline-flex items-center gap-1.5">
+                        <button onclick="openEditServiceModal('${escapeHtml(String(item.id))}')" class="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-black rounded-lg font-bold transition flex items-center gap-1 cursor-pointer">
+                            <i class="fas fa-edit text-[10px]"></i> Edit
+                        </button>
+                        <button onclick="deleteAdminService('${escapeHtml(String(item.id))}', '${escapeHtml(item.name || '')}')" class="px-2.5 py-1 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-lg font-bold transition flex items-center gap-1 cursor-pointer">
+                            <i class="fas fa-box-archive text-[10px]"></i> Archive
+                        </button>
+                    </div>
+                </td>
+            </tr>
+        `;
+    }).join('');
+}
+
+// ---------------------------------------------------------------------------
+// SERVICE REQUIREMENTS (OPTION B) BUILDER LOGIC
+// ---------------------------------------------------------------------------
+function addServiceRequirementRow(reqData = null) {
+    const list = document.getElementById('serviceRequirementsList');
+    if (!list) return;
+
+    const rowId = 'req_' + Date.now() + '_' + Math.floor(Math.random() * 1000);
+    const label = reqData ? (reqData.label || '') : '';
+    const type = reqData ? (reqData.type || 'checkboxes') : 'checkboxes';
+    const isRequired = reqData ? (reqData.required !== false) : true;
+
+    // Normalize initial choices array
+    let initialChoices = [];
+    if (reqData && reqData.options) {
+        if (Array.isArray(reqData.options)) {
+            // Split by comma or slash if accidentally concatenated
+            reqData.options.forEach(opt => {
+                if (typeof opt === 'string' && (opt.includes(',') || opt.includes('/'))) {
+                    const parts = opt.split(/[,/]+/).map(p => p.trim()).filter(p => p.length > 0);
+                    initialChoices.push(...parts);
+                } else if (opt) {
+                    initialChoices.push(String(opt).trim());
+                }
+            });
+        } else if (typeof reqData.options === 'string') {
+            initialChoices = reqData.options.split(/[,/]+/).map(p => p.trim()).filter(p => p.length > 0);
+        }
+    }
+    if (initialChoices.length === 0 && (type === 'checkboxes' || type === 'radio' || type === 'select')) {
+        initialChoices = ['Option 1', 'Option 2'];
+    }
+
+    const rowDiv = document.createElement('div');
+    rowDiv.id = rowId;
+    rowDiv.className = 'req-item-row p-3.5 bg-slate-50 border border-slate-200 rounded-2xl space-y-2.5 relative';
+    rowDiv.innerHTML = `
+        <div class="flex items-center justify-between gap-2 border-b border-slate-200/80 pb-2">
+            <span class="font-bold text-[11px] text-black flex items-center gap-1.5">
+                <i class="fas fa-layer-group text-orange-500 text-xs"></i> Requirement Field
+            </span>
+            <div class="flex items-center gap-3">
+                <label class="inline-flex items-center gap-1.5 text-[10px] font-bold text-black cursor-pointer select-none">
+                    <input type="checkbox" class="req-field-required rounded text-orange-500 focus:ring-orange-400" ${isRequired ? 'checked' : ''}>
+                    <span>Required Field</span>
+                </label>
+                <button type="button" onclick="document.getElementById('${rowId}').remove()" class="text-rose-500 hover:text-rose-700 text-xs px-2 py-0.5 rounded hover:bg-rose-50 transition" title="Delete requirement">
+                    <i class="fas fa-trash-alt"></i> Remove
+                </button>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+            <div>
+                <label class="block text-[10px] font-bold text-black mb-1">Requirement Title / Question <span class="text-rose-500">*</span></label>
+                <input type="text" class="req-field-label w-full bg-white border border-slate-200 rounded-xl p-2 text-xs text-black focus:outline-none focus:border-orange-500 font-medium" placeholder="e.g. Paper Size, Finishing Options" value="${escapeHtml(label)}" required>
+            </div>
+            <div>
+                <label class="block text-[10px] font-bold text-black mb-1">Field Type <span class="text-rose-500">*</span></label>
+                <select class="req-field-type w-full bg-white border border-slate-200 rounded-xl p-2 text-xs text-black focus:outline-none focus:border-orange-500 font-medium" onchange="toggleReqOptionsVisibility('${rowId}')">
+                    <option value="checkboxes" ${type === 'checkboxes' ? 'selected' : ''}>☑️ Multiple Choice (Checkboxes - Select Many)</option>
+                    <option value="radio" ${type === 'radio' ? 'selected' : ''}>🔘 Single Choice (Radio Buttons - Select One)</option>
+                    <option value="select" ${type === 'select' ? 'selected' : ''}>📋 Dropdown Menu (Select)</option>
+                    <option value="text" ${type === 'text' ? 'selected' : ''}>✏️ Text Input (Custom Text)</option>
+                    <option value="number" ${type === 'number' ? 'selected' : ''}>🔢 Number Input (Numeric / Qty)</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- DYNAMIC CHOICES LIST BUILDER -->
+        <div class="req-choices-builder-container pt-1 ${!(type === 'select' || type === 'checkboxes' || type === 'radio') ? 'hidden' : ''}">
+            <div class="flex items-center justify-between mb-1.5">
+                <label class="block text-[10px] font-bold text-black">
+                    Choices List (Each item will be a clickable choice):
+                </label>
+                <button type="button" onclick="addChoiceItemToRow('${rowId}')" class="text-orange-600 hover:text-orange-700 font-bold text-[10px] flex items-center gap-1 bg-orange-50 hover:bg-orange-100 border border-orange-200 px-2 py-0.5 rounded-lg transition">
+                    <i class="fas fa-plus text-[9px]"></i> Add Choice
+                </button>
+            </div>
+            <div id="${rowId}_choicesList" class="space-y-1.5">
+                <!-- Choice item rows injected here -->
+            </div>
+        </div>
+    `;
+
+    list.appendChild(rowDiv);
+
+    // Populate initial choices
+    const container = document.getElementById(`${rowId}_choicesList`);
+    if (container) {
+        initialChoices.forEach(choiceText => {
+            addChoiceItemToRow(rowId, choiceText);
+        });
+    }
+}
+
+function addChoiceItemToRow(rowId, choiceValue = '') {
+    const container = document.getElementById(`${rowId}_choicesList`);
+    if (!container) return;
+
+    const choiceId = 'choice_' + Date.now() + '_' + Math.floor(Math.random() * 1000);
+    const div = document.createElement('div');
+    div.id = choiceId;
+    div.className = 'flex items-center gap-1.5 choice-item-entry';
+    div.innerHTML = `
+        <span class="text-slate-700 text-xs">▫️</span>
+        <input type="text" class="choice-item-input flex-1 bg-white border border-slate-200 rounded-lg px-2.5 py-1 text-xs text-black focus:outline-none focus:border-orange-500 font-medium" placeholder="e.g. A4 Size, 300 GSM, Glossy" value="${escapeHtml(choiceValue)}">
+        <button type="button" onclick="document.getElementById('${choiceId}').remove()" class="text-slate-700 hover:text-rose-500 p-1 rounded hover:bg-slate-100 transition" title="Remove choice">
+            <i class="fas fa-times text-xs"></i>
+        </button>
+    `;
+    container.appendChild(div);
+}
+
+function toggleReqOptionsVisibility(rowId) {
+    const row = document.getElementById(rowId);
+    if (!row) return;
+    const type = row.querySelector('.req-field-type')?.value;
+    const optContainer = row.querySelector('.req-choices-builder-container');
+    if (optContainer) {
+        if (type === 'select' || type === 'checkboxes' || type === 'radio') {
+            optContainer.classList.remove('hidden');
+            // If empty, add at least one choice field
+            const list = document.getElementById(`${rowId}_choicesList`);
+            if (list && list.children.length === 0) {
+                addChoiceItemToRow(rowId, 'Option 1');
+                addChoiceItemToRow(rowId, 'Option 2');
+            }
+        } else {
+            optContainer.classList.add('hidden');
+        }
+    }
+}
+
+function openAddServiceModal() {
+    document.getElementById('addEditServiceModalTitle').textContent = 'Add New Printing Service';
+    document.getElementById('adminServiceIsEdit').value = '0';
+    document.getElementById('adminServiceId').value = '';
+    document.getElementById('adminServiceId').readOnly = false;
+    document.getElementById('adminServiceId').classList.remove('bg-slate-100', 'cursor-not-allowed');
+    document.getElementById('adminServiceEmoji').value = '🖨️';
+    document.getElementById('adminServiceName').value = '';
+    document.getElementById('adminServiceBasePrice').value = '3.00';
+    document.getElementById('adminServiceUnit').value = '₱3.00/pg';
+    document.getElementById('adminServiceSortOrder').value = (allAdminServicesCache.length + 1);
+
+    const list = document.getElementById('serviceRequirementsList');
+    if (list) list.innerHTML = '';
+
+    document.getElementById('addEditServiceModal').classList.remove('hidden');
+}
+
+function openEditServiceModal(id) {
+    const item = allAdminServicesCache.find(s => String(s.id) === String(id));
+    if (!item) return;
+
+    document.getElementById('addEditServiceModalTitle').textContent = 'Edit Printing Service';
+    document.getElementById('adminServiceIsEdit').value = '1';
+    document.getElementById('adminServiceId').value = item.id;
+    document.getElementById('adminServiceId').readOnly = true;
+    document.getElementById('adminServiceId').classList.add('bg-slate-100', 'cursor-not-allowed');
+    document.getElementById('adminServiceEmoji').value = item.emoji || '🖨️';
+    document.getElementById('adminServiceName').value = item.name || '';
+    document.getElementById('adminServiceBasePrice').value = item.basePrice || 0;
+    document.getElementById('adminServiceUnit').value = item.unit || '';
+    document.getElementById('adminServiceSortOrder').value = item.sortOrder || 1;
+
+    // Load Requirements
+    const list = document.getElementById('serviceRequirementsList');
+    if (list) {
+        list.innerHTML = '';
+        if (item.requirements && Array.isArray(item.requirements) && item.requirements.length > 0) {
+            item.requirements.forEach(req => addServiceRequirementRow(req));
+        }
+    }
+
+    document.getElementById('addEditServiceModal').classList.remove('hidden');
+}
+
+function closeAddEditServiceModal() {
+    document.getElementById('addEditServiceModal').classList.add('hidden');
+}
+
+function submitAdminServiceForm(event) {
+    event.preventDefault();
+    const btn = document.getElementById('adminServiceSubmitBtn');
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin text-xs"></i> <span>Saving...</span>';
+    }
+
+    const isEdit = document.getElementById('adminServiceIsEdit').value === '1';
+    const serviceId = document.getElementById('adminServiceId').value.trim();
+
+    // Collect Requirements with Dedicated Choices List
+    const requirements = [];
+    document.querySelectorAll('#serviceRequirementsList .req-item-row').forEach(row => {
+        const label = row.querySelector('.req-field-label')?.value.trim();
+        const type = row.querySelector('.req-field-type')?.value || 'select';
+        const required = row.querySelector('.req-field-required')?.checked !== false;
+
+        if (label) {
+            let optionsList = [];
+            if (type === 'select' || type === 'checkboxes' || type === 'radio') {
+                row.querySelectorAll('.choice-item-input').forEach(input => {
+                    const val = input.value.trim();
+                    if (val) optionsList.push(val);
+                });
+                if (optionsList.length === 0) optionsList = ['Option 1', 'Option 2'];
+            }
+            requirements.push({
+                label: label,
+                type: type,
+                required: required,
+                options: optionsList
+            });
+        }
+    });
+
+    const payload = {
+        id: serviceId,
+        emoji: document.getElementById('adminServiceEmoji').value.trim(),
+        name: document.getElementById('adminServiceName').value.trim(),
+        basePrice: parseFloat(document.getElementById('adminServiceBasePrice').value) || 0,
+        unit: document.getElementById('adminServiceUnit').value.trim(),
+        sortOrder: parseInt(document.getElementById('adminServiceSortOrder').value) || 1,
+        requirements: requirements
+    };
+
+    fetch('/api/services', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-save text-xs"></i> <span>Save Service</span>';
+        }
+        if (data.success || data.item) {
+            closeAddEditServiceModal();
+            fetchAdminServices();
+            alert('✅ Printing service saved successfully!');
+        } else {
+            alert(data.message || 'Failed to save service.');
+        }
+    })
+    .catch(err => {
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-save text-xs"></i> <span>Save Service</span>';
+        }
+        alert('An error occurred while saving the service.');
+    });
+}
+
+function deleteAdminService(id, name) {
+    if (!confirm(`Archive printing service "${name}"?\n\nThis service will be moved to the System Archive and will not be permanently deleted. You can restore it anytime from the Archive tab.\n\nProceed with archiving?`)) return;
+
+    fetch(`/api/services/${id}`, {
+        method: 'DELETE'
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            fetchAdminServices();
+            alert('📦 Printing service successfully moved to System Archive! It can be restored anytime from the Archive tab.');
+        } else {
+            alert(data.message || 'Failed to delete service.');
+        }
+    })
+    .catch(() => alert('Error deleting service.'));
+}
+
+// ===========================================================================
+// ADMIN GCASH MERCHANT SETTINGS MANAGEMENT
+// ===========================================================================
+let currentAdminGcashSettings = null;
+
+function fetchAdminGcashSettings() {
+    fetch('/api/settings/gcash')
+    .then(res => res.json())
+    .then(data => {
+        if (data.success && data.settings) {
+            currentAdminGcashSettings = data.settings;
+            const nameInput = document.getElementById('adminGcashAccountName');
+            const numInput = document.getElementById('adminGcashAccountNumber');
+            const previewImg = document.getElementById('adminGcashQrPreview');
+
+            if (nameInput) nameInput.value = data.settings.accountName || '';
+            if (numInput) numInput.value = data.settings.accountNumber || '';
+            if (previewImg && data.settings.qrUrl) previewImg.src = data.settings.qrUrl;
+        }
+    })
+    .catch(err => console.error('Error fetching GCash settings:', err));
+}
+
+function saveAdminGcashSettings(event) {
+    event.preventDefault();
+    const btn = document.getElementById('btnSaveGcashSettings');
+    const badge = document.getElementById('gcashSettingsStatusBadge');
+    
+    const accName = document.getElementById('adminGcashAccountName').value.trim();
+    const accNum = document.getElementById('adminGcashAccountNumber').value.trim();
+
+    if (!accName || !accNum) {
+        alert('Pakilagay ang kumpletong GCash Account Name at Number.');
+        return;
+    }
+
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin text-xs"></i> <span>Saving...</span>';
+    }
+
+    fetch('/api/settings/gcash', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            accountName: accName,
+            accountNumber: accNum,
+            qrUrl: currentAdminGcashSettings?.qrUrl || '/static/images/gcash_qr.png'
+        })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-save text-xs"></i> <span>Save GCash Details</span>';
+        }
+        if (data.success) {
+            currentAdminGcashSettings = data.settings;
+            if (badge) {
+                badge.className = "text-[11px] font-bold px-3 py-1 rounded-full bg-emerald-100 text-emerald-800";
+                badge.textContent = "✓ Saved Successfully";
+                badge.classList.remove('hidden');
+                setTimeout(() => badge.classList.add('hidden'), 4000);
+            }
+            alert('✅ GCash account details successfully updated! Awtomatiko na itong makikita ng customers.');
+        } else {
+            alert('❌ ' + (data.message || 'Failed to update GCash settings.'));
+        }
+    })
+    .catch(() => {
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-save text-xs"></i> <span>Save GCash Details</span>';
+        }
+        alert('Network error while saving GCash settings.');
+    });
+}
+
+function uploadAdminGcashQr(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append('qrFile', file);
+
+    const msg = document.getElementById('adminQrUploadMsg');
+    if (msg) {
+        msg.textContent = 'Uploading new QR...';
+        msg.className = 'text-[10px] font-bold text-blue-600 text-center';
+    }
+
+    fetch('/api/settings/gcash/upload-qr', {
+        method: 'POST',
+        body: formData
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            const previewImg = document.getElementById('adminGcashQrPreview');
+            if (previewImg) previewImg.src = data.qrUrl;
+            if (currentAdminGcashSettings) currentAdminGcashSettings.qrUrl = data.qrUrl;
+            if (msg) {
+                msg.textContent = '✅ QR image updated!';
+                msg.className = 'text-[10px] font-bold text-emerald-600 text-center';
+                setTimeout(() => {
+                    msg.textContent = 'PNG, JPG, or WEBP';
+                    msg.className = 'text-[10px] font-semibold text-slate-600 text-center';
+                }, 3000);
+            }
+        } else {
+            alert('❌ ' + (data.message || 'Failed to upload QR code.'));
+            if (msg) {
+                msg.textContent = 'Upload failed';
+                msg.className = 'text-[10px] font-bold text-rose-600 text-center';
+            }
+        }
+    })
+    .catch(() => {
+        alert('Network error while uploading QR code.');
+    });
+}
+
+// ===========================================================================
+// ADMIN SYSTEM ARCHIVES LOGIC
+// ===========================================================================
+let allAdminArchivesCache = [];
+let currentArchiveCategory = 'all';
+
+function fetchAdminArchives() {
+    const container = document.getElementById('adminArchiveTableContainer');
+    if (container) {
+        container.innerHTML = `<div class="p-12 text-center text-slate-700 text-xs flex flex-col items-center gap-2">
+            <i class="fas fa-spinner fa-spin text-emerald-600 text-lg"></i>
+            <span>Loading archived records...</span>
+        </div>`;
+    }
+
+    fetch('/api/archive?type=all')
+    .then(async res => {
+        let data;
+        try {
+            data = await res.json();
+        } catch(e) {
+            data = { success: false, message: 'Server returned invalid format' };
+        }
+        if (!res.ok) {
+            throw new Error(data.message || `HTTP ${res.status}`);
+        }
+        return data;
+    })
+    .then(data => {
+        allAdminArchivesCache = (data && data.archives) ? data.archives : [];
+        updateArchiveCounts();
+        renderArchiveTable();
+    })
+    .catch(err => {
+        console.warn('Archive fetch warning:', err);
+        // Fallback: render table with empty archives instead of a blocking error
+        allAdminArchivesCache = [];
+        updateArchiveCounts();
+        renderArchiveTable();
+    });
+}
+
+function refreshArchiveTable() {
+    fetchAdminArchives();
+}
+
+function updateArchiveCounts() {
+    const counts = {
+        all: allAdminArchivesCache.length,
+        user: 0,
+        service: 0,
+        store_product: 0,
+        sample_product: 0
+    };
+
+    allAdminArchivesCache.forEach(item => {
+        const t = item.itemType || 'other';
+        if (counts[t] !== undefined) counts[t]++;
+    });
+
+    if (document.getElementById('archiveTotalBadge')) {
+        document.getElementById('archiveTotalBadge').textContent = `${counts.all} Archived Items`;
+    }
+    if (document.getElementById('archiveCount-all')) document.getElementById('archiveCount-all').textContent = counts.all;
+    if (document.getElementById('archiveCount-user')) document.getElementById('archiveCount-user').textContent = counts.user;
+    if (document.getElementById('archiveCount-service')) document.getElementById('archiveCount-service').textContent = counts.service;
+    if (document.getElementById('archiveCount-store_product')) document.getElementById('archiveCount-store_product').textContent = counts.store_product;
+    if (document.getElementById('archiveCount-sample_product')) document.getElementById('archiveCount-sample_product').textContent = counts.sample_product;
+}
+
+function setArchiveCategoryFilter(cat) {
+    currentArchiveCategory = cat;
+    document.querySelectorAll('.archive-cat-btn').forEach(btn => {
+        btn.className = "archive-cat-btn px-3.5 py-1.5 rounded-xl bg-slate-100 text-black hover:bg-slate-200 transition cursor-pointer whitespace-nowrap";
+    });
+    const activeBtn = document.getElementById(`archiveCatBtn-${cat}`);
+    if (activeBtn) {
+        activeBtn.className = "archive-cat-btn px-3.5 py-1.5 rounded-xl bg-emerald-600 text-white shadow-xs font-bold transition cursor-pointer whitespace-nowrap";
+    }
+    renderArchiveTable();
+}
+
+function filterArchiveTable() {
+    renderArchiveTable();
+}
+
+function renderArchiveTable() {
+    const container = document.getElementById('adminArchiveTableContainer');
+    if (!container) return;
+
+    const query = (document.getElementById('archiveSearchInput')?.value || '').toLowerCase().trim();
+
+    const filtered = allAdminArchivesCache.filter(item => {
+        if (currentArchiveCategory !== 'all' && item.itemType !== currentArchiveCategory) {
+            return false;
+        }
+
+        if (query) {
+            const dataStr = JSON.stringify(item.data || {}).toLowerCase();
+            const idStr = String(item.originalId || item.id || '').toLowerCase();
+            const typeStr = String(item.itemType || '').toLowerCase();
+            return dataStr.includes(query) || idStr.includes(query) || typeStr.includes(query);
+        }
+        return true;
+    });
+
+    if (filtered.length === 0) {
+        container.innerHTML = `
+            <div class="p-16 text-center space-y-2">
+                <div class="w-12 h-12 rounded-2xl bg-slate-100 text-slate-400 flex items-center justify-center mx-auto text-lg">
+                    <i class="fas fa-box-open"></i>
+                </div>
+                <h4 class="font-extrabold text-sm text-black">No Archived Items Found</h4>
+                <p class="text-xs text-slate-500">Deleted items like users, printing services, in-store products, or sample works will appear here.</p>
+            </div>
+        `;
+        return;
+    }
+
+    const typeBadges = {
+        user: { label: 'User Account', bg: 'bg-purple-50 text-purple-700 border-purple-200', icon: 'fa-user' },
+        service: { label: 'Printing Service', bg: 'bg-orange-50 text-orange-700 border-orange-200', icon: 'fa-concierge-bell' },
+        store_product: { label: 'In-Store Supply', bg: 'bg-blue-50 text-blue-700 border-blue-200', icon: 'fa-box' },
+        sample_product: { label: 'Sample Work', bg: 'bg-emerald-50 text-emerald-700 border-emerald-200', icon: 'fa-palette' }
+    };
+
+    container.innerHTML = `
+        <table class="w-full text-left text-xs">
+            <thead class="bg-slate-50 border-b border-slate-200 text-[10px] font-extrabold text-slate-700 uppercase tracking-wider">
+                <tr>
+                    <th class="p-4">ITEM TYPE</th>
+                    <th class="p-4">ITEM NAME / DETAILS</th>
+                    <th class="p-4">ORIGINAL ID</th>
+                    <th class="p-4">ARCHIVED DATE</th>
+                    <th class="p-4 text-right">RESTORE / PERMANENT DELETE</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100">
+                ${filtered.map(item => {
+                    const badge = typeBadges[item.itemType] || { label: item.itemType || 'Item', bg: 'bg-slate-100 text-slate-700 border-slate-200', icon: 'fa-archive' };
+                    const d = item.data || {};
+                    const name = d.name || d.title || d.username || d.email || `Item #${item.originalId}`;
+                    const subtitle = d.email ? `${d.email} • ${d.phone || 'No phone'}` : 
+                                    (d.category ? `Category: ${d.category} • ₱${d.price || d.basePrice || 0}` : 
+                                    (d.unit ? `Price: ${d.unit}` : ''));
+                    const archivedDate = item.archivedAt ? new Date(item.archivedAt).toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' }) : 'Recently';
+
+                    return `
+                        <tr class="hover:bg-slate-50 transition">
+                            <td class="p-4 whitespace-nowrap">
+                                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-extrabold border ${badge.bg}">
+                                    <i class="fas ${badge.icon} text-[9px]"></i>
+                                    <span>${badge.label}</span>
+                                </span>
+                            </td>
+                            <td class="p-4 max-w-xs">
+                                <div class="font-bold text-black text-sm truncate" title="${escapeHtml(name)}">${escapeHtml(name)}</div>
+                                ${subtitle ? `<div class="text-[11px] text-slate-600 truncate mt-0.5">${escapeHtml(subtitle)}</div>` : ''}
+                            </td>
+                            <td class="p-4 font-mono font-bold text-black whitespace-nowrap">${escapeHtml(String(item.originalId))}</td>
+                            <td class="p-4 text-black font-semibold whitespace-nowrap">${archivedDate}</td>
+                            <td class="p-4 text-right whitespace-nowrap">
+                                <div class="flex items-center justify-end gap-2">
+                                    <button onclick="restoreArchiveItem('${item.archiveDocId}', '${escapeHtml(name)}')" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 font-bold px-3 py-1.5 rounded-xl transition cursor-pointer text-xs flex items-center gap-1.5 shadow-2xs" title="Restore to active system">
+                                        <i class="fas fa-rotate-left text-[11px]"></i>
+                                        <span>Restore</span>
+                                    </button>
+                                    <button onclick="deleteArchiveItemPermanently('${item.archiveDocId}', '${escapeHtml(name)}')" class="bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 font-bold px-3 py-1.5 rounded-xl transition cursor-pointer text-xs flex items-center gap-1.5 shadow-2xs" title="Permanently delete from database">
+                                        <i class="fas fa-trash-alt text-[10px]"></i>
+                                        <span>Delete Forever</span>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    `;
+                }).join('')}
+            </tbody>
+        </table>
+    `;
+}
+
+function restoreArchiveItem(archiveDocId, itemName) {
+    if (!confirm(`Do you want to restore "${itemName}" back to active service/records?`)) return;
+
+    fetch(`/api/archive/${archiveDocId}/restore`, {
+        method: 'POST'
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            alert(data.message || 'Item restored successfully!');
+            fetchAdminArchives();
+            // Refresh other relevant datasets if open
+            if (typeof fetchRegisteredUsers === 'function') fetchRegisteredUsers();
+            if (typeof fetchAdminServices === 'function') fetchAdminServices();
+            if (typeof fetchAdminSamples === 'function') fetchAdminSamples();
+        } else {
+            alert(data.message || 'Failed to restore item.');
+        }
+    })
+    .catch(() => alert('Error restoring archived item.'));
+}
+
+function deleteArchiveItemPermanently(archiveDocId, itemName) {
+    if (!confirm(`CAUTION: Permanently delete "${itemName}"?\nThis cannot be undone.`)) return;
+
+    fetch(`/api/archive/${archiveDocId}`, {
+        method: 'DELETE'
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            alert('Item permanently deleted from archive.');
+            fetchAdminArchives();
+        } else {
+            alert(data.message || 'Failed to delete archived item.');
+        }
+    })
+    .catch(() => alert('Error permanently deleting archived item.'));
+}
 </script>
 {% endblock %}

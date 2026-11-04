@@ -50,6 +50,31 @@ def create_order(order_data):
             return False
         doc_id = order_data.get('id')
         ref.document(doc_id).set(order_data)
+
+        # Notify Admin about new incoming order
+        try:
+            cust_name = order_data.get('customerName') or order_data.get('customer') or 'Customer'
+            svc_name = order_data.get('service') or 'Print Job'
+            notif_id = f"notif_{int(datetime.datetime.now().timestamp()*1000)}"
+            create_notification({
+                'id': notif_id,
+                'userId': 'ADMIN',
+                'title': f'New Order: {doc_id}',
+                'message': f'{cust_name} placed an order for {svc_name}.',
+                'status': 'Unread',
+                'link': '/admin',
+                'timestamp': datetime.datetime.now().isoformat()
+            })
+            send_fcm_push_notification(
+                recipient_role='admin',
+                recipient_email=None,
+                title=f'New Order: {doc_id}',
+                body=f'{cust_name} submitted a new {svc_name} order.',
+                click_url='/admin'
+            )
+        except Exception as e_ord_notif:
+            print(f"Non-fatal order notification error: {e_ord_notif}")
+
         return True
     except Exception as e:
         print(f"Error creating order: {e}")
@@ -86,6 +111,32 @@ def update_order_status(order_id, new_status):
             print(f"❌ Invalid status transition from {current_status} to {new_status}.")
             return False
         order_ref.update({'status': new_status})
+
+        # Notify Customer about status change
+        try:
+            c_email = order_data.get('customerEmail') or order_data.get('email')
+            c_uid = order_data.get('customerId') or order_data.get('uid') or c_email
+            svc = order_data.get('service') or 'Print Order'
+            notif_id = f"notif_{int(datetime.datetime.now().timestamp()*1000)}"
+            create_notification({
+                'id': notif_id,
+                'userId': c_uid or 'ALL',
+                'title': f'Order Status: {new_status}',
+                'message': f'Ang iyong {svc} ({order_id}) ay nasa status na: {new_status}.',
+                'status': 'Unread',
+                'link': '/customer?tab=myOrders',
+                'timestamp': datetime.datetime.now().isoformat()
+            })
+            if c_email:
+                send_fcm_push_notification(
+                    recipient_role='customer',
+                    recipient_email=c_email,
+                    title=f'Order {new_status}: {order_id}',
+                    body=f'Your {svc} order is now {new_status}!',
+                    click_url='/customer?tab=myOrders'
+                )
+        except Exception as e_status_notif:
+            print(f"Non-fatal status update notification error: {e_status_notif}")
 
         if new_status in ['Approved', 'Completed']:
             service_desc = str(order_data.get('service', '')).lower()
@@ -268,12 +319,224 @@ def delete_store_product(prod_id):
 def get_inventory():
     return get_store_products()
 
+# ---------------------------------------------------------------------------
+# SAMPLES & SERVICES SHOWCASE (SAMPLE WORKS CATALOG)
+# ---------------------------------------------------------------------------
+DEFAULT_SAMPLE_PRODUCTS = [
+    {
+        "id": "sample-1",
+        "title": "Document & Thesis Bookbinding",
+        "category": "Standard Printing",
+        "serviceVal": "standardA4",
+        "price": "Starts at ₱3.00 / page",
+        "badge": "Best Seller",
+        "imageUrl": "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=600&q=80",
+        "description": "High-definition monochrome & full-color document printing with 80 GSM smooth bond paper. Available for softbound, hardbound, and ring bind options."
+    },
+    {
+        "id": "sample-2",
+        "title": "Premium Waterproof PVC IDs & Lanyards",
+        "category": "ID & Badges",
+        "serviceVal": "photoCanvas",
+        "price": "₱50.00 / card",
+        "badge": "Heavy Duty",
+        "imageUrl": "https://images.unsplash.com/photo-1589829085413-56de8ae18c73?auto=format&fit=crop&w=600&q=80",
+        "description": "Thick ATM-type PVC cards, fade-proof digital pigment ink, vibrant color reproduction for school, company IDs, and visitor badges."
+    },
+    {
+        "id": "sample-3",
+        "title": "Glossy Die-Cut Vinyl Stickers",
+        "category": "Stickers & Labels",
+        "serviceVal": "stickers",
+        "price": "Starts at ₱5.00 / pc",
+        "badge": "Waterproof",
+        "imageUrl": "https://images.unsplash.com/photo-1572375992501-4b0892d50c69?auto=format&fit=crop&w=600&q=80",
+        "description": "Machine-cut kiss-cut or die-cut vinyl stickers with matte or glossy cold laminate coating. Waterproof, tear-resistant, and scratch-proof."
+    },
+    {
+        "id": "sample-4",
+        "title": "Event Tarpaulin & Billboard Banners",
+        "category": "Large Format",
+        "serviceVal": "tarpaulins",
+        "price": "₱15.00 / sq.ft",
+        "badge": "High Demand",
+        "imageUrl": "https://images.unsplash.com/photo-1563986768609-322da13575f3?auto=format&fit=crop&w=600&q=80",
+        "description": "Heavy-duty 13oz high-gloss tarpaulin banner printing with rust-resistant metal eyelets. Perfect for birthdays, grand openings, and announcements."
+    },
+    {
+        "id": "sample-5",
+        "title": "Corporate Matte Business Cards",
+        "category": "Corporate Branding",
+        "serviceVal": "businessCards",
+        "price": "₱250.00 / box (100 pcs)",
+        "badge": "Professional",
+        "imageUrl": "https://images.unsplash.com/photo-1593062096033-9a26b09da705?auto=format&fit=crop&w=600&q=80",
+        "description": "Premium 300 GSM cardstock coated with smooth matte or soft-touch velvet laminate. Single or double-sided full color with rounded corners available."
+    },
+    {
+        "id": "sample-6",
+        "title": "Custom DTF Printed Shirts & Apparel",
+        "category": "Apparel & Merch",
+        "serviceVal": "shirt",
+        "price": "Starts at ₱180.00 / pc",
+        "badge": "Full Color DTF",
+        "imageUrl": "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?auto=format&fit=crop&w=600&q=80",
+        "description": "Vibrant direct-to-film (DTF) apparel printing on 100% combed cotton or dri-fit shirts. Stretchable, washable, and highly detailed graphic prints."
+    }
+]
+
+def get_sample_products():
+    try:
+        if db is not None:
+            docs = db.collection('sample_products').stream()
+            samples = []
+            for doc in docs:
+                data = doc.to_dict()
+                if 'id' not in data or not data['id']:
+                    data['id'] = doc.id
+                samples.append(data)
+            if samples:
+                return samples
+
+            # Seed default samples if collection is empty
+            for s in DEFAULT_SAMPLE_PRODUCTS:
+                db.collection('sample_products').document(s['id']).set(s)
+            return DEFAULT_SAMPLE_PRODUCTS
+        return DEFAULT_SAMPLE_PRODUCTS
+    except Exception as e:
+        print(f"Error fetching sample products: {e}")
+        return DEFAULT_SAMPLE_PRODUCTS
+
+def save_sample_product(sample_data):
+    try:
+        if db is not None:
+            s_id = str(sample_data.get('id') or f"sample-{int(datetime.datetime.now().timestamp())}")
+            sample_data['id'] = s_id
+            sample_data['updatedAt'] = datetime.datetime.now().isoformat()
+            db.collection('sample_products').document(s_id).set(sample_data, merge=True)
+            return sample_data
+        return sample_data
+    except Exception as e:
+        print(f"Error saving sample product: {e}")
+        return None
+
+def delete_sample_product(sample_id):
+    try:
+        if db is not None:
+            str_id = str(sample_id)
+            db.collection('sample_products').document(str_id).delete()
+            return True
+        return False
+    except Exception as e:
+        print(f"Error deleting sample product: {e}")
+        return False
+
+# ---------------------------------------------------------------------------
+# SERVICES CRUD (Printing Services available for customer order form)
+# ---------------------------------------------------------------------------
+
+DEFAULT_SERVICES = [
+    {"id": "businessCards", "name": "Business Cards", "emoji": "💳", "basePrice": 250, "unit": "from ₱250", "sortOrder": 1},
+    {"id": "tarpaulins", "name": "Tarpaulins", "emoji": "🚩", "basePrice": 15, "unit": "₱15/sqft", "sortOrder": 2},
+    {"id": "flyers", "name": "Flyers & Leaflets", "emoji": "📄", "basePrice": 2.5, "unit": "₱2.50/pc", "sortOrder": 3},
+    {"id": "stickers", "name": "Stickers & Labels", "emoji": "🏷️", "basePrice": 5, "unit": "₱5/pc", "sortOrder": 4},
+    {"id": "invitations", "name": "Invitations", "emoji": "✉", "basePrice": 35, "unit": "₱35/pc", "sortOrder": 5},
+    {"id": "shirt", "name": "Shirt Printing - DTF/Sublimation", "emoji": "👕", "basePrice": 180, "unit": "₱180/pc", "sortOrder": 6},
+    {"id": "photoCanvas", "name": "Photo & Canvas Prints", "emoji": "🖼️", "basePrice": 120, "unit": "from ₱120", "sortOrder": 7},
+    {"id": "booklets", "name": "Booklets & Menus", "emoji": "📖", "basePrice": 45, "unit": "₱45/pc", "sortOrder": 8},
+    {"id": "mug", "name": "Mug Printing", "emoji": "☕", "basePrice": 150, "unit": "₱150/pc", "sortOrder": 9},
+    {"id": "standardA4", "name": "Standard A4 Print", "emoji": "🖨️", "basePrice": 3, "unit": "₱3.00/pg", "sortOrder": 10},
+]
+
+def get_services():
+    try:
+        if db is not None:
+            docs = db.collection('services').order_by('sortOrder').stream()
+            services = []
+            for doc in docs:
+                data = doc.to_dict()
+                if 'id' not in data or not data['id']:
+                    data['id'] = doc.id
+                services.append(data)
+            if services:
+                return services
+            # Seed defaults if collection is empty
+            for s in DEFAULT_SERVICES:
+                db.collection('services').document(s['id']).set(s)
+            return DEFAULT_SERVICES
+        return DEFAULT_SERVICES
+    except Exception as e:
+        print(f"Error fetching services: {e}")
+        return DEFAULT_SERVICES
+
+def save_service(service_data):
+    try:
+        if db is not None:
+            s_id = str(service_data.get('id') or f"service-{int(datetime.datetime.now().timestamp())}")
+            service_data['id'] = s_id
+            service_data['updatedAt'] = datetime.datetime.now().isoformat()
+            db.collection('services').document(s_id).set(service_data, merge=True)
+            return service_data
+        return service_data
+    except Exception as e:
+        print(f"Error saving service: {e}")
+        return None
+
+def delete_service(service_id):
+    try:
+        if db is not None:
+            db.collection('services').document(str(service_id)).delete()
+            return True
+        return False
+    except Exception as e:
+        print(f"Error deleting service: {e}")
+        return False
+
 def log_rfid_tap(tap_data):
     try:
         db.collection('rfid_logs').document(tap_data['id']).set(tap_data)
         return True
     except Exception:
         return False
+
+# ===========================================================================
+# SYSTEM SETTINGS / GCASH MERCHANT CONFIG
+# ===========================================================================
+DEFAULT_GCASH_SETTINGS = {
+    "accountName": "XIAN JOHN DAVID DAWINAN",
+    "accountNumber": "09311508184",
+    "qrUrl": "/static/images/gcash_qr.png",
+    "isActive": True,
+    "updatedAt": datetime.datetime.now().isoformat()
+}
+
+def get_gcash_settings():
+    try:
+        if db is not None:
+            doc = db.collection('settings').document('gcash_config').get()
+            if doc.exists:
+                data = doc.to_dict() or {}
+                # merge with default fallback
+                merged = {**DEFAULT_GCASH_SETTINGS, **data}
+                return merged
+            # seed default if not exists
+            db.collection('settings').document('gcash_config').set(DEFAULT_GCASH_SETTINGS)
+            return DEFAULT_GCASH_SETTINGS
+        return DEFAULT_GCASH_SETTINGS
+    except Exception as e:
+        print(f"Error fetching gcash_settings: {e}")
+        return DEFAULT_GCASH_SETTINGS
+
+def save_gcash_settings(settings_data):
+    try:
+        if db is not None:
+            settings_data['updatedAt'] = datetime.datetime.now().isoformat()
+            db.collection('settings').document('gcash_config').set(settings_data, merge=True)
+            return settings_data
+        return settings_data
+    except Exception as e:
+        print(f"Error saving gcash_settings: {e}")
+        return None
 
 def get_notifications(user_id):
     try:
@@ -830,3 +1093,107 @@ def send_fcm_push_notification(recipient_role, recipient_email, title, body, cli
     except Exception as e:
         print(f"Error in send_fcm_push_notification: {e}")
         return {"success": False, "sent_count": 0, "error": str(e)}
+
+
+# ---------------------------------------------------------------------------
+# ARCHIVE MANAGEMENT SYSTEM (Soft-delete & Restore for Users, Services, Products, Samples)
+# ---------------------------------------------------------------------------
+
+def archive_item(item_type, item_id, item_data=None, original_source=None):
+    """
+    Archives an item into the Firestore archives collection.
+    item_type can be: user, service, store_product, sample_product
+    """
+    try:
+        if db is not None:
+            import datetime
+            archived_id = f"{item_type}_{item_id}"
+            payload = {
+                'id': archived_id,
+                'originalId': str(item_id),
+                'itemType': item_type,
+                'data': item_data or {},
+                'source': original_source or 'admin',
+                'archivedAt': datetime.datetime.now().isoformat()
+            }
+            db.collection('archives').document(archived_id).set(payload, merge=True)
+            print(f"✓ Archived {item_type} ({item_id}) successfully!")
+            return True
+        return False
+    except Exception as e:
+        print(f"Error archiving item: {e}")
+        return False
+
+def get_archived_items(item_type=None):
+    """
+    Retrieves archived items from Firestore archives collection.
+    """
+    try:
+        if db is not None:
+            col = db.collection('archives')
+            if item_type and item_type != 'all':
+                docs = col.where('itemType', '==', item_type).stream()
+            else:
+                docs = col.stream()
+            items = []
+            for d in docs:
+                data = d.to_dict()
+                data['archiveDocId'] = d.id
+                items.append(data)
+            items.sort(key=lambda x: x.get('archivedAt', ''), reverse=True)
+            return items
+        return []
+    except Exception as e:
+        print(f"Error fetching archives: {e}")
+        return []
+
+def restore_archived_item(archive_doc_id):
+    """
+    Restores an archived item back to its original collection and deletes it from archives.
+    """
+    try:
+        if db is not None:
+            doc_ref = db.collection('archives').document(archive_doc_id)
+            doc = doc_ref.get()
+            if not doc.exists:
+                return False, "Archived item not found."
+            
+            item = doc.to_dict()
+            item_type = item.get('itemType')
+            orig_id = item.get('originalId')
+            data = item.get('data') or {}
+
+            if item_type == 'user':
+                db.collection('customers').document(str(orig_id)).set(data, merge=True)
+            elif item_type == 'service':
+                save_service(data)
+            elif item_type == 'store_product':
+                current_products = get_store_products()
+                exists = any(str(p.get('id')) == str(orig_id) for p in current_products)
+                if not exists:
+                    current_products.append(data)
+                    save_store_products(current_products)
+            elif item_type == 'sample_product':
+                save_sample_product(data)
+            else:
+                return False, f"Unknown item type: {item_type}"
+
+            doc_ref.delete()
+            return True, f"Item ({orig_id}) restored successfully!"
+        return False, "Database not connected."
+    except Exception as e:
+        print(f"Error restoring archived item: {e}")
+        return False, str(e)
+
+def permanently_delete_archived_item(archive_doc_id):
+    """
+    Permanently deletes an item from the archives collection.
+    """
+    try:
+        if db is not None:
+            db.collection('archives').document(archive_doc_id).delete()
+            return True
+        return False
+    except Exception as e:
+        print(f"Error permanently deleting archive: {e}")
+        return False

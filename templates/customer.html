@@ -1,4 +1,4 @@
-﻿{% extends "base.html" %}
+{% extends "base.html" %}
 
 {% block content %}
 
@@ -17,11 +17,11 @@
                 🛡️
             </div>
             <div>
-                <h4 class="font-bold text-slate-800 text-xs sm:text-sm">Logged in as Staff Admin</h4>
-                <p class="text-[11px] text-slate-600">Naka-login ka bilang Admin. Para mag-manage ng print queue at sales analytics, pumunta sa Admin Dashboard.</p>
+                <h4 class="font-bold text-black text-xs sm:text-sm">Logged in as Staff Admin</h4>
+                <p class="text-[11px] text-black">Naka-login ka bilang Admin. Para mag-manage ng print queue at sales analytics, pumunta sa Admin Dashboard.</p>
             </div>
         </div>
-        <a href="/admin" class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-4 py-2.5 rounded-xl shadow-xs transition flex items-center justify-center gap-2 whitespace-nowrap">
+        <a href="/admin" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-4 py-2.5 rounded-xl shadow-xs transition flex items-center justify-center gap-2 whitespace-nowrap">
             <i class="fas fa-tasks"></i> Go to Admin Dashboard
         </a>
     </div>
@@ -30,29 +30,29 @@
 <div class="max-w-7xl mx-auto">
     <div class="bg-white/95 backdrop-blur-md border border-slate-200 rounded-3xl p-5 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div class="flex items-center gap-4">
-            <div class="w-14 h-14 rounded-2xl bg-gradient-to-tr from-blue-600 via-indigo-600 to-rose-500 flex items-center justify-center text-white font-black text-2xl shadow-md shadow-blue-500/20 shrink-0">
-                🖨️
+            <div class="w-14 h-14 rounded-2xl overflow-hidden border border-emerald-500/30 shadow-md shadow-emerald-500/15 shrink-0 select-none pointer-events-none">
+                <img src="{{ url_for('static', filename='images/kcz_logo.jpg') }}" alt="KCZ Logo" class="w-full h-full object-cover">
             </div>
             <div>
-                <h2 class="font-extrabold text-lg text-slate-900">{{ session.get('username', 'Customer') }}</h2>
-                <p class="text-xs font-semibold text-blue-600 flex items-center gap-1.5 mt-0.5">
+                <h2 class="font-extrabold text-lg text-black">{{ session.get('username', 'Customer') }}</h2>
+                <p class="text-xs font-semibold text-emerald-600 flex items-center gap-1.5 mt-0.5">
                     <span class="w-2 h-2 rounded-full bg-emerald-500 inline-block"></span>
                     Customer Portal
                 </p>
             </div>
         </div>
         <div class="flex items-center gap-3 flex-wrap">
-            <div class="bg-blue-50 border border-blue-100 rounded-2xl px-4 py-2.5 text-center min-w-[80px]">
-                <p class="text-[11px] text-blue-500 font-semibold uppercase tracking-wide">Customer ID</p>
-                <p class="font-extrabold text-blue-700 text-sm" id="headerCustomerId">—</p>
+            <div class="bg-emerald-50 border border-emerald-100 rounded-2xl px-4 py-2.5 text-center min-w-[80px]">
+                <p class="text-[11px] text-emerald-600 font-semibold uppercase tracking-wide">Customer ID</p>
+                <p class="font-extrabold text-emerald-800 text-sm" id="headerCustomerId">—</p>
             </div>
             <div class="bg-emerald-50 border border-emerald-100 rounded-2xl px-4 py-2.5 text-center min-w-[80px]">
-                <p class="text-[11px] text-emerald-500 font-semibold uppercase tracking-wide">RFID Points</p>
+                <p class="text-[11px] text-emerald-600 font-semibold uppercase tracking-wide">RFID Points</p>
                 <p class="font-extrabold text-emerald-700 text-sm" id="headerRfidPoints">—</p>
             </div>
             <div class="bg-slate-50 border border-slate-200 rounded-2xl px-4 py-2.5 text-center min-w-[80px]">
-                <p class="text-[11px] text-slate-500 font-semibold uppercase tracking-wide">My Orders</p>
-                <p class="font-extrabold text-slate-800 text-sm" id="headerOrderCount">—</p>
+                <p class="text-[11px] text-slate-800 font-semibold uppercase tracking-wide">My Orders</p>
+                <p class="font-extrabold text-black text-sm" id="headerOrderCount">—</p>
             </div>
         </div>
     </div>
@@ -65,33 +65,28 @@
     <div class="bg-white/95 backdrop-blur-md border border-slate-200 rounded-3xl px-4 py-3 shadow-xs">
         <div class="flex items-center gap-2 overflow-x-auto">
             <div class="flex items-center gap-1 shrink-0 pr-3 mr-1 border-r border-slate-200">
-                <span class="text-[10px] uppercase tracking-wider text-slate-400 font-extrabold whitespace-nowrap">Services & Orders</span>
+                <span class="text-[10px] uppercase tracking-wider text-slate-700 font-extrabold whitespace-nowrap">Services & Orders</span>
             </div>
 
-            <button onclick="switchCustomerTab('placeOrder')" id="tabBtn-placeOrder" class="cust-tab-btn shrink-0 flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-blue-600 text-white text-xs font-bold shadow-xs transition-all cursor-pointer whitespace-nowrap">
-                <i class="fas fa-print text-xs"></i>
-                <span>Place Print Order</span>
-            </button>
-
-            <button onclick="switchCustomerTab('myOrders')" id="tabBtn-myOrders" class="cust-tab-btn shrink-0 flex items-center gap-2 px-4 py-2.5 rounded-2xl text-slate-600 hover:bg-slate-100 text-xs font-bold transition-all cursor-pointer whitespace-nowrap">
+            <button onclick="switchCustomerTab('myOrders')" id="tabBtn-myOrders" class="cust-tab-btn shrink-0 flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-emerald-600 text-white text-xs font-bold shadow-xs transition-all cursor-pointer whitespace-nowrap">
                 <i class="fas fa-box text-xs"></i>
                 <span>My Orders & Tracker</span>
             </button>
 
             <div class="shrink-0 w-px h-5 bg-slate-200 mx-1"></div>
 
-            <button onclick="switchCustomerTab('chat')" id="tabBtn-chat" class="cust-tab-btn shrink-0 flex items-center gap-2 px-4 py-2.5 rounded-2xl text-slate-600 hover:bg-slate-100 text-xs font-bold transition-all cursor-pointer whitespace-nowrap">
+            <button onclick="switchCustomerTab('chat')" id="tabBtn-chat" class="cust-tab-btn shrink-0 flex items-center gap-2 px-4 py-2.5 rounded-2xl text-black hover:bg-slate-100 text-xs font-bold transition-all cursor-pointer whitespace-nowrap">
                 <i class="fas fa-comments text-xs"></i>
                 <span>Live Chat</span>
             </button>
 
-            <button onclick="switchCustomerTab('rfid')" id="tabBtn-rfid" class="cust-tab-btn shrink-0 flex items-center gap-2 px-4 py-2.5 rounded-2xl text-slate-600 hover:bg-slate-100 text-xs font-bold transition-all cursor-pointer whitespace-nowrap">
+            <button onclick="switchCustomerTab('rfid')" id="tabBtn-rfid" class="cust-tab-btn shrink-0 flex items-center gap-2 px-4 py-2.5 rounded-2xl text-black hover:bg-slate-100 text-xs font-bold transition-all cursor-pointer whitespace-nowrap">
                 <i class="fas fa-id-card text-xs"></i>
                 <span>RFID Loyalty Rewards</span>
             </button>
 
             <div class="ml-auto shrink-0">
-                <a href="/store" class="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-blue-50 border border-blue-100 text-blue-600 text-[11px] font-bold hover:bg-blue-100 transition whitespace-nowrap">
+                <a href="/store" class="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-emerald-50 border border-emerald-100 text-emerald-700 text-[11px] font-bold hover:bg-emerald-100 transition whitespace-nowrap">
                     <i class="fas fa-store text-xs"></i> Visit Store
                 </a>
             </div>
@@ -101,163 +96,26 @@
         <!-- ================= MAIN CUSTOMER CONTENT AREA ================= -->
         <main class="space-y-6">
 
-            <!-- 1. PLACE ORDER TAB CONTENT -->
-            <div id="custSection-placeOrder" class="cust-section-content grid grid-cols-1 lg:grid-cols-12 gap-6">
-        <div class="lg:col-span-7 space-y-5">
-            <!-- Step 1: Upload Document -->
-            <div class="bg-white rounded-2xl p-6 border border-slate-200 shadow-xs space-y-3" id="fileUploadContainer">
-                <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider">Step 1: Upload Document or Design <span class="text-rose-500">*</span></label>
-                <div class="border-2 border-dashed border-blue-200 bg-blue-50/30 rounded-2xl p-6 text-center space-y-3 hover:border-blue-400 transition" id="fileDropzoneBox">
-                    <div class="w-12 h-12 bg-blue-100 text-blue-600 rounded-xl flex items-center justify-center text-xl mx-auto font-bold" id="fileDropzoneIcon">📄</div>
-                    <div class="text-xs font-semibold text-slate-700" id="orderFileNameDisplay">Mag-upload ng design o document file</div>
-                    <!-- Accepted formats & limits info -->
-                    <div class="text-[10px] text-slate-400 leading-relaxed">
-                        Accepted: <span class="font-semibold text-slate-500">PDF, PNG, JPG, JPEG, DOC, DOCX</span> &nbsp;•&nbsp; Max <span class="font-semibold text-slate-500">10 MB</span> per file
-                    </div>
-                    <!-- File info bar (hidden until file selected) -->
-                    <div id="fileInfoBar" class="hidden bg-white border border-blue-200 rounded-xl px-4 py-2.5 flex items-center gap-3 text-left">
-                        <span class="text-base">📎</span>
-                        <div class="flex-1 min-w-0">
-                            <div id="fileInfoName" class="text-xs font-bold text-slate-700 truncate"></div>
-                            <div id="fileInfoSize" class="text-[10px] text-slate-400"></div>
-                        </div>
-                        <button type="button" onclick="removeSelectedFile()" class="text-rose-500 hover:text-rose-700 text-xs font-bold px-2 py-1 rounded-lg hover:bg-rose-50 transition flex-shrink-0 cursor-pointer" title="Remove file">✕ Remove</button>
-                    </div>
-                    <!-- Upload progress bar (hidden until upload starts) -->
-                    <div id="fileUploadProgressWrap" class="hidden space-y-1">
-                        <div class="flex justify-between text-[10px] text-slate-500">
-                            <span>Uploading to server…</span>
-                            <span id="fileUploadProgressPct">0%</span>
-                        </div>
-                        <div class="w-full bg-slate-100 rounded-full h-1.5">
-                            <div id="fileUploadProgressBar" class="bg-blue-500 h-1.5 rounded-full transition-all" style="width:0%"></div>
-                        </div>
-                    </div>
-                    <div>
-                        <input type="file" id="orderFileInput" onchange="handleFileSelected(event)"
-                               accept=".pdf,.png,.jpg,.jpeg,.doc,.docx" class="hidden">
-                        <label for="orderFileInput" id="chooseFileBtn"
-                               class="bg-white border border-slate-300 text-slate-700 font-bold text-xs px-4 py-2 rounded-xl cursor-pointer hover:bg-slate-50 transition shadow-2xs inline-block">
-                            Choose File
-                        </label>
-                    </div>
-                    <!-- Upload status message -->
-                    <div id="fileUploadStatusMsg" class="hidden text-[11px] font-semibold rounded-lg px-3 py-1.5"></div>
-                </div>
-            </div>
-
-            <!-- Step 2: Print Specifications -->
-            <div class="bg-white rounded-2xl p-6 border border-slate-200 shadow-xs space-y-4 text-xs">
-                <label class="block font-bold text-slate-400 uppercase tracking-wider">Step 2: Select Service & Custom Specifications</label>
-                
-                <div>
-                    <label class="block mb-1.5 font-semibold text-slate-700">Printing Service Type</label>
-                    <select id="custServiceSelect" onchange="onServiceChange()" class="w-full bg-slate-50 border border-slate-200 p-3 rounded-xl font-medium focus:outline-none focus:border-blue-600 text-xs">
-                        <option value="businessCards" data-base="250">💳 Business Cards (from ₱250)</option>
-                        <option value="tarpaulins" data-base="15">🚩 Tarpaulins (₱15/sqft)</option>
-                        <option value="flyers" data-base="2.5">📄 Flyers & Leaflets (₱2.50/pc)</option>
-                        <option value="stickers" data-base="5">🏷️ Stickers & Labels (₱5/pc)</option>
-                        <option value="invitations" data-base="35">✉ Invitations (₱35/pc)</option>
-                        <option value="shirt" data-base="180">👕 Shirt Printing - DTF/Sublimation (₱180/pc)</option>
-                        <option value="photoCanvas" data-base="120">🖼️ Photo & Canvas Prints (from ₱120)</option>
-                        <option value="booklets" data-base="45">📖 Booklets & Menus (₱45/pc)</option>
-                        <option value="mug" data-base="150">☕ Mug Printing (₱150/pc)</option>
-                        <option value="standardA4" data-base="3" selected>🖨️ Standard A4 Print (₱3.00/pg)</option>
-                    </select>
-                </div>
-
-                <!-- DYNAMIC SERVICE SPECIFICATION FIELDS CONTAINER -->
-                <div id="dynamicServiceSpecsContainer" class="space-y-4 pt-2 border-t border-slate-100">
-                    <!-- Rendered dynamically via JS based on selected service -->
-                </div>
-            </div>
-
-            <!-- Special Instructions / Order Note (Optional) -->
-            <div class="bg-white rounded-2xl p-6 border border-slate-200 shadow-xs space-y-3 text-xs">
-                <div class="flex items-center justify-between">
-                    <label for="custOrderNote" class="font-bold text-slate-700 flex items-center gap-1.5 uppercase tracking-wider text-[11px]">
-                        <span>📝</span> Special Instructions (Optional)
-                    </label>
-                    <span id="custOrderNoteCount" class="text-[10px] text-slate-400 font-mono">0 / 500</span>
-                </div>
-                <textarea id="custOrderNote" rows="3" maxlength="500" placeholder="Write any special instructions for your order..." oninput="updateOrderNoteCounter(this)" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-600 focus:bg-white transition resize-none"></textarea>
-                <p class="text-[10px] text-slate-400 italic">e.g., Specific paper textures, page order preferences, folding instructions, etc.</p>
-            </div>
-
-            <!-- Step 3: Payment Method -->
-            <div class="bg-white rounded-2xl p-6 border border-slate-200 shadow-xs space-y-4 text-xs">
-                <label class="block font-bold text-slate-400 uppercase tracking-wider">Step 3: Payment Method</label>
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <label class="border-2 border-blue-600 bg-blue-50/50 p-4 rounded-xl flex items-center justify-between cursor-pointer transition pay-option-card" id="payCard-gcash">
-                        <div class="flex items-center gap-3">
-                            <input type="radio" name="custPaymentMethod" value="GCash Online" checked onchange="togglePaymentSelection('gcash')" class="w-4 h-4 text-blue-600 focus:ring-blue-500">
-                            <div>
-                                <div class="font-bold text-slate-900 flex items-center gap-1.5">
-                                    <span>📲</span> GCash Online
-                                </div>
-                                <div class="text-[11px] text-slate-500 pt-0.5">Pay online instantly</div>
-                            </div>
-                        </div>
-                        <span class="text-[10px] bg-blue-600 text-white font-semibold px-2 py-0.5 rounded-full">Instant</span>
-                    </label>
-
-                    <label class="border-2 border-slate-200 bg-white p-4 rounded-xl flex items-center justify-between cursor-pointer transition pay-option-card" id="payCard-cop">
-                        <div class="flex items-center gap-3">
-                            <input type="radio" name="custPaymentMethod" value="Cash on Pickup" onchange="togglePaymentSelection('cop')" class="w-4 h-4 text-blue-600 focus:ring-blue-500">
-                            <div>
-                                <div class="font-bold text-slate-900 flex items-center gap-1.5">
-                                    <span>💵</span> Cash on Pickup
-                                </div>
-                                <div class="text-[11px] text-slate-500 pt-0.5">Pay at shop counter</div>
-                            </div>
-                        </div>
-                        <span class="text-[10px] bg-slate-100 text-slate-600 font-semibold px-2 py-0.5 rounded-full">In-Store</span>
-                    </label>
-                </div>
-            </div>
-        </div>
-
-        <!-- Right Order Summary Sidebar -->
-        <div class="lg:col-span-5 bg-slate-900 text-white rounded-2xl p-8 space-y-6 shadow-lg flex flex-col justify-between">
-            <div class="space-y-4">
-                <h3 class="font-bold text-xs text-slate-400 uppercase tracking-wider border-b border-slate-800 pb-3">Total Summary</h3>
-                <div class="space-y-2 pt-2">
-                    <div class="text-xs text-slate-400">Estimated Total:</div>
-                    <div id="custCalculatedTotal" class="text-4xl font-extrabold font-mono text-amber-400">₱ 30.00</div>
-                </div>
-                <div class="bg-slate-800/80 border border-slate-700/50 p-3.5 rounded-xl space-y-1.5 text-xs text-slate-300">
-                    <div class="flex justify-between text-[11px]">
-                        <span class="text-slate-400">Payment:</span>
-                        <strong id="summaryPayMethodText" class="text-blue-400">GCash Online</strong>
-                    </div>
-                    <div class="flex justify-between text-[11px]">
-                        <span class="text-slate-400">Estimated Pickup:</span>
-                        <strong class="text-slate-200">Tomorrow 4:00 PM</strong>
-                    </div>
-                </div>
-                <p class="text-[11px] text-slate-400 leading-relaxed">Maaaring magbayad online gamit ang GCash o piliin ang Cash on Pickup sa shop.</p>
-            </div>
-            <button onclick="submitOrderToBackend()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs py-3.5 rounded-xl transition shadow-md cursor-pointer flex items-center justify-center gap-2">
-                <span>Confirm & Submit Order</span>
-                <i class="fas fa-arrow-right text-xs"></i>
-            </button>
-        </div>
-    </div>
-
     <!-- 2. MY ORDERS & STATUS TRACKER TAB CONTENT -->
-    <div id="custSection-myOrders" class="cust-section-content hidden bg-white rounded-2xl border border-slate-200 p-6 space-y-6 shadow-xs">
+    <div id="custSection-myOrders" class="cust-section-content bg-white rounded-2xl border border-slate-200 p-6 space-y-6 shadow-xs">
         <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-slate-100 pb-5">
             <div>
-                <h3 class="font-black text-sm text-slate-900 tracking-tight uppercase flex items-center gap-2">
-                    <span class="w-2.5 h-2.5 rounded-full bg-blue-600"></span>
+                <h3 class="font-black text-sm text-black tracking-tight uppercase flex items-center gap-2">
+                    <span class="w-2.5 h-2.5 rounded-full bg-emerald-600"></span>
                     My Active Orders & Live Status Tracker
                 </h3>
-                <p class="text-xs text-slate-500 pt-0.5">Subaybayan ang real-time production status ng iyong print jobs step-by-step</p>
+                <p class="text-xs text-slate-800 pt-0.5">Subaybayan ang real-time production status ng iyong print jobs step-by-step</p>
             </div>
             
-            <div class="flex items-center gap-2 w-full md:w-auto">
+            <div class="flex flex-wrap items-center gap-2 w-full md:w-auto">
+                <!-- TIMELINE SORT DROPDOWN (Latest to Previous / Previous to Latest) -->
+                <select id="custSortDropdown" onchange="renderCustomerFilteredOrders()" class="bg-slate-50 border border-slate-200 px-3 py-2.5 rounded-xl text-xs font-bold text-black focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 cursor-pointer shadow-2xs">
+                    <option value="latest">Latest to Previous</option>
+                    <option value="previous">Previous to Latest</option>
+                </select>
+
                 <div class="relative flex-1 md:w-60">
-                    <select id="custServiceCategoryFilter" onchange="renderCustomerFilteredOrders()" class="w-full bg-slate-50 border border-slate-200 text-xs font-bold text-slate-700 py-2.5 px-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 transition shadow-2xs">
+                    <select id="custServiceCategoryFilter" onchange="renderCustomerFilteredOrders()" class="w-full bg-slate-50 border border-slate-200 text-xs font-bold text-black py-2.5 px-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 transition shadow-2xs">
                         <option value="ALL">All Services & Store Items</option>
                         <option value="STORE">🛒 Store Supply / In-Store Items</option>
                         <option value="PRINT">🖨️ Standard Printing</option>
@@ -268,7 +126,7 @@
                     </select>
                 </div>
 
-                <button onclick="fetchCustomerOrders()" class="text-blue-600 hover:text-blue-700 text-xs font-bold flex items-center gap-1.5 cursor-pointer bg-blue-50 hover:bg-blue-100/80 px-4 py-2.5 rounded-xl border border-blue-100 transition shadow-2xs">
+                <button onclick="fetchCustomerOrders()" class="text-emerald-600 hover:text-emerald-700 text-xs font-bold flex items-center gap-1.5 cursor-pointer bg-emerald-50 hover:bg-emerald-100/80 px-4 py-2.5 rounded-xl border border-emerald-100 transition shadow-2xs">
                     <i class="fas fa-sync-alt"></i> <span>Refresh</span>
                 </button>
             </div>
@@ -284,79 +142,101 @@
         </div>
 
         <div id="customerOrderList" class="space-y-4">
-            <div class="text-xs text-slate-500 py-10 text-center font-medium">Loading orders and tracker...</div>
+            <div class="text-xs text-slate-800 py-10 text-center font-medium">Loading orders and tracker...</div>
         </div>
 
-        <div id="custPaginationContainer" class="flex flex-col sm:flex-row justify-between items-center gap-3 pt-4 border-t border-slate-100 text-xs font-medium text-slate-500"></div>
+        <div id="custPaginationContainer" class="flex flex-col sm:flex-row justify-between items-center gap-3 pt-4 border-t border-slate-100 text-xs font-medium text-slate-800"></div>
     </div>
 
-    <!-- 3. CHAT SUPPORT TAB CONTENT (MESSENGER-STYLE DARK NAVY) -->
-    <div id="custSection-chat" class="cust-section-content hidden bg-[#0b1226] rounded-3xl border border-slate-800 h-[600px] flex flex-col justify-between shadow-xl overflow-hidden">
+    <!-- 3. CHAT SUPPORT TAB CONTENT (CLEAN WHITE) -->
+    <div id="custSection-chat" class="cust-section-content hidden bg-white rounded-3xl border border-slate-200 h-[600px] flex flex-col justify-between shadow-sm overflow-hidden">
         <!-- Chat Header -->
-        <div class="px-5 py-3.5 border-b border-slate-800/80 flex items-center justify-between bg-[#0b1226]">
+        <div class="px-5 py-3.5 border-b border-slate-100 flex items-center justify-between bg-white">
             <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-blue-600 to-indigo-600 text-white font-black flex items-center justify-center text-sm shadow-md">
-                    KZ
+                <div class="w-10 h-10 rounded-2xl overflow-hidden border border-emerald-500/30 shadow-xs shrink-0 select-none pointer-events-none">
+                    <img src="{{ url_for('static', filename='images/kcz_logo.jpg') }}" alt="KCZ Logo" class="w-full h-full object-cover">
                 </div>
                 <div>
-                    <div class="font-extrabold text-xs text-white flex items-center gap-2">
+                    <div class="font-extrabold text-xs text-black flex items-center gap-2">
                         <span>Kez C-Em Zek Shop Support</span>
-                        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
                     </div>
-                    <div class="text-[11px] text-slate-400">Live Staff Available • Real-Time Responses</div>
+                    <div class="text-[11px] text-slate-700">Live Staff Available • Real-Time Responses</div>
                 </div>
             </div>
             <div class="flex items-center gap-2">
                 <!-- Push Notification Permission Toggle Button -->
-                <button type="button" class="push-notif-toggle-btn px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700/80 text-xs font-bold transition flex items-center gap-1.5 cursor-pointer" title="Enable browser push notifications for chat replies">
-                    <i class="far fa-bell text-slate-400"></i>
+                <button type="button" class="push-notif-toggle-btn px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-black border border-slate-200 text-xs font-bold transition flex items-center gap-1.5 cursor-pointer" title="Enable browser push notifications for chat replies">
+                    <i class="far fa-bell text-slate-800"></i>
                     <span>Enable Alerts</span>
                 </button>
-                <span class="text-[10px] bg-emerald-500/15 text-emerald-400 font-bold px-3 py-1 rounded-full border border-emerald-500/30">
+                <span class="text-[10px] bg-emerald-50 text-emerald-700 font-bold px-3 py-1 rounded-full border border-emerald-200">
                     Staff Online
                 </span>
             </div>
         </div>
 
         <!-- Chat Message Thread Container -->
-        <div id="customerChatThread" class="space-y-3 overflow-y-auto text-xs flex-1 p-4 bg-[#070b19]">
-            <div class="text-center text-slate-400 py-12 flex flex-col items-center gap-2">
-                <i class="fas fa-spinner fa-spin text-blue-500 text-base"></i>
+        <div id="customerChatThread" class="space-y-3 overflow-y-auto text-xs flex-1 p-4 bg-slate-50/70">
+            <div class="text-center text-slate-700 py-12 flex flex-col items-center gap-2">
+                <i class="fas fa-spinner fa-spin text-emerald-600 text-base"></i>
                 <span>Loading messages...</span>
             </div>
         </div>
 
         <!-- Chat Input Footer -->
-        <div class="p-3.5 border-t border-slate-800/80 bg-[#0b1226]">
+        <div class="p-3.5 border-t border-slate-100 bg-white">
             <div class="flex items-end gap-2">
                 <textarea id="custChatInput" rows="1"
-                          placeholder="I-type ang iyong mensahe dito... (Press Enter to send, Shift+Enter for newline)"
+                          placeholder="Type your message here... (Press Enter to send, Shift+Enter for newline)"
                           onkeydown="handleCustomerChatKeydown(event)"
-                          class="flex-1 bg-[#070b19] border border-slate-700/80 text-xs px-4 py-3 rounded-2xl focus:outline-none focus:border-blue-500 focus:bg-[#070b19] resize-none font-medium text-white placeholder-slate-500 transition max-h-32 min-h-[44px]"></textarea>
+                          class="flex-1 bg-slate-50 border border-slate-200 text-xs px-4 py-3 rounded-2xl focus:outline-none focus:border-emerald-500 focus:bg-white resize-none font-medium text-black placeholder-slate-400 transition max-h-32 min-h-[44px]"></textarea>
                 <button id="custChatSendBtn" onclick="sendCustomerChatMessage()"
-                        class="bg-blue-600 hover:bg-blue-500 active:scale-95 text-white text-xs font-bold px-5 py-3 rounded-2xl transition shadow-xs cursor-pointer flex items-center gap-2 flex-shrink-0">
+                        class="bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white text-xs font-bold px-5 py-3 rounded-2xl transition shadow-xs cursor-pointer flex items-center gap-2 flex-shrink-0">
                     <span>Send</span>
                     <i class="fas fa-paper-plane text-xs"></i>
                 </button>
             </div>
-            <div class="flex justify-between items-center text-[10px] text-slate-400 mt-1.5 px-1">
-                <span>Press <kbd class="px-1 py-0.5 bg-slate-800 rounded text-slate-300 font-mono border border-slate-700">Enter</kbd> to send • <kbd class="px-1 py-0.5 bg-slate-800 rounded text-slate-300 font-mono border border-slate-700">Shift + Enter</kbd> for newline</span>
-                <span id="custChatSendStatus" class="font-medium text-blue-400"></span>
+            <div class="flex justify-between items-center text-[10px] text-slate-700 mt-1.5 px-1">
+                <span>Press <kbd class="px-1 py-0.5 bg-slate-100 rounded text-black font-mono border border-slate-200">Enter</kbd> to send • <kbd class="px-1 py-0.5 bg-slate-100 rounded text-black font-mono border border-slate-200">Shift + Enter</kbd> for newline</span>
+                <span id="custChatSendStatus" class="font-medium text-emerald-600"></span>
             </div>
         </div>
     </div>
 
     <!-- 4. RFID REWARDS TAB CONTENT -->
     <div id="custSection-rfid" class="cust-section-content hidden bg-white rounded-2xl border border-slate-200 p-8 space-y-6 text-center max-w-lg mx-auto shadow-xs">
-        <div class="w-16 h-16 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center text-3xl mx-auto shadow-xs">💳</div>
+        <div class="w-16 h-16 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center text-3xl mx-auto shadow-xs">💳</div>
         <div class="space-y-1">
-            <div class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Kez C-Em Zek Loyalty Card</div>
-            <div class="text-4xl font-extrabold font-mono text-slate-900 pt-1" id="rfidPointsText">170 PTS</div>
-            <p class="text-xs text-slate-500 pt-1">I-tap ang iyong RFID card sa aming counter tuwing magpi-print o bibili para kumita ng points at discounts!</p>
+            <div class="text-xs font-semibold text-slate-700 uppercase tracking-wider">Kez C-Em Zek Loyalty Card</div>
+            <div class="text-4xl font-extrabold font-mono text-black pt-1" id="rfidPointsText">170 PTS</div>
+            <p class="text-xs text-slate-800 pt-1">I-tap ang iyong RFID card sa aming counter tuwing magpi-print o bibili para kumita ng points at discounts!</p>
         </div>
         <button onclick="simulateRfidTapAction()" class="w-full bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold py-3.5 rounded-xl transition shadow-md cursor-pointer">
             Simulate Card Tap (+20 Pts)
         </button>
+    </div>
+
+    <!-- GCASH QR CODE ENLARGED MODAL -->
+    <div id="gcashQrModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 hidden flex items-center justify-center p-4" onclick="closeGcashQrModal()">
+        <div class="bg-white rounded-3xl max-w-sm w-full p-6 space-y-4 shadow-2xl border border-slate-200 text-center relative" onclick="event.stopPropagation()">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                <h3 class="font-extrabold text-black text-sm">Scan to Pay via GCash</h3>
+                <button type="button" onclick="closeGcashQrModal()" class="text-slate-500 hover:text-black p-1 cursor-pointer">
+                    <i class="fas fa-times text-sm"></i>
+                </button>
+            </div>
+            <div class="p-2 bg-emerald-50/50 rounded-2xl border border-emerald-100">
+                <img src="{{ url_for('static', filename='images/gcash_qr.png') }}" alt="Enlarged GCash QR" class="w-full h-auto rounded-xl shadow-xs">
+            </div>
+            <div class="space-y-1 text-xs">
+                <p class="font-black text-black">XIAN JOHN DAVID DAWINAN</p>
+                <p class="font-mono text-emerald-700 font-bold">0931 150 8184</p>
+            </div>
+            <button type="button" onclick="closeGcashQrModal()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 rounded-xl transition text-xs">
+                Close QR
+            </button>
+        </div>
     </div>
 
         </main>
@@ -402,20 +282,66 @@ function getProperPaymentMethod(pay) {
     return pay || 'GCash Online';
 }
 
+// ---------------------------------------------------------------------------
+// Dynamically populate the service dropdown from /api/services
+// ---------------------------------------------------------------------------
+let allLoadedServicesCache = [];
+
+async function fetchAndPopulateServices() {
+    try {
+        const resp = await fetch('/api/services');
+        if (!resp.ok) throw new Error('Failed to load services');
+        const services = await resp.json();
+        if (!Array.isArray(services) || services.length === 0) return;
+        allLoadedServicesCache = services;
+
+        const sel = document.getElementById('custServiceSelect');
+        if (!sel) return;
+
+        // Sort by sortOrder
+        services.sort((a, b) => (a.sortOrder || 99) - (b.sortOrder || 99));
+
+        // Remember previously selected value
+        const urlParams = new URLSearchParams(window.location.search);
+        const urlService = urlParams.get('service');
+        const prev = urlService || sel.value;
+
+        // Rebuild options
+        sel.innerHTML = '';
+        services.forEach(svc => {
+            const opt = document.createElement('option');
+            opt.value = svc.id;
+            opt.setAttribute('data-base', svc.basePrice || 0);
+            opt.textContent = `${svc.emoji || ''} ${svc.name} (${svc.unit || ''})`;
+            if (svc.id === (prev || 'standardA4')) opt.selected = true;
+            sel.appendChild(opt);
+        });
+
+        // Re-trigger spec display for newly selected option
+        onServiceChange();
+    } catch (e) {
+        console.warn('fetchAndPopulateServices fallback (keeping defaults):', e);
+    }
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     // Initialize push notifications (user-initiated via the bell button)
     if (typeof kczInitPushNotifications === 'function') kczInitPushNotifications();
 
-    onServiceChange();
+    fetchAndPopulateServices();
     checkAdminAccessOnCustomerPage();
     populateCustomerPortalHeader();
 
     const urlParams = new URLSearchParams(window.location.search);
     const requestedTab = urlParams.get('tab');
+    if (requestedTab === 'placeOrder') {
+        window.location.href = '/order';
+        return;
+    }
     if (requestedTab) {
         switchCustomerTab(requestedTab);
     } else {
-        fetchCustomerOrders();
+        switchCustomerTab('myOrders');
     }
 });
 
@@ -458,7 +384,7 @@ function switchCustomerTab(tabId) {
     document.querySelectorAll('.cust-section-content').forEach(el => el.classList.add('hidden'));
     
     document.querySelectorAll('.cust-tab-btn').forEach(btn => {
-        btn.className = "cust-tab-btn shrink-0 flex items-center gap-2 px-4 py-2.5 rounded-2xl text-slate-600 hover:bg-slate-100 text-xs font-bold transition-all cursor-pointer whitespace-nowrap";
+        btn.className = "cust-tab-btn shrink-0 flex items-center gap-2 px-4 py-2.5 rounded-2xl text-black hover:bg-slate-100 text-xs font-bold transition-all cursor-pointer whitespace-nowrap";
     });
     
     const activeSection = document.getElementById(`custSection-${tabId}`);
@@ -466,7 +392,7 @@ function switchCustomerTab(tabId) {
     
     if (activeSection) activeSection.classList.remove('hidden');
     if (activeBtn) {
-        activeBtn.className = "cust-tab-btn shrink-0 flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-blue-600 text-white text-xs font-bold shadow-xs transition-all cursor-pointer whitespace-nowrap";
+        activeBtn.className = "cust-tab-btn shrink-0 flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-emerald-600 text-white text-xs font-bold shadow-xs transition-all cursor-pointer whitespace-nowrap";
     }
 
     if (tabId === 'myOrders') fetchCustomerOrders();
@@ -497,7 +423,7 @@ function _showUploadStatus(msg, type /* 'ok'|'err'|'info' */) {
     el.className = 'text-[11px] font-semibold rounded-lg px-3 py-1.5 ' + (
         type === 'ok'  ? 'bg-green-50 text-green-700' :
         type === 'err' ? 'bg-rose-50 text-rose-700'   :
-                         'bg-blue-50 text-blue-700'
+                         'bg-emerald-50 text-emerald-700'
     );
     el.classList.remove('hidden');
 }
@@ -524,7 +450,7 @@ function removeSelectedFile() {
     if (fi) fi.value = '';
     const infoBar = document.getElementById('fileInfoBar');
     if (infoBar) infoBar.classList.add('hidden');
-    document.getElementById('orderFileNameDisplay').textContent = 'Mag-upload ng design o document file';
+    document.getElementById('orderFileNameDisplay').textContent = 'Upload design or document file';
     const icon = document.getElementById('fileDropzoneIcon');
     if (icon) icon.textContent = '📄';
     _setProgress(null);
@@ -579,16 +505,168 @@ function togglePaymentSelection(type) {
     const gcashCard = document.getElementById('payCard-gcash');
     const copCard = document.getElementById('payCard-cop');
     const summaryPayText = document.getElementById('summaryPayMethodText');
+    const gcashDetailsPanel = document.getElementById('gcashPaymentDetailsPanel');
 
     if (type === 'gcash') {
-        if (gcashCard) gcashCard.className = "border-2 border-blue-600 bg-blue-50/50 p-4 rounded-xl flex items-center justify-between cursor-pointer transition pay-option-card";
+        if (gcashCard) gcashCard.className = "border-2 border-emerald-600 bg-emerald-50/50 p-4 rounded-xl flex items-center justify-between cursor-pointer transition pay-option-card";
         if (copCard) copCard.className = "border-2 border-slate-200 bg-white p-4 rounded-xl flex items-center justify-between cursor-pointer transition pay-option-card";
         if (summaryPayText) summaryPayText.textContent = "GCash Online";
+        if (gcashDetailsPanel) gcashDetailsPanel.classList.remove('hidden');
     } else {
-        if (copCard) copCard.className = "border-2 border-blue-600 bg-blue-50/50 p-4 rounded-xl flex items-center justify-between cursor-pointer transition pay-option-card";
+        if (copCard) copCard.className = "border-2 border-emerald-600 bg-emerald-50/50 p-4 rounded-xl flex items-center justify-between cursor-pointer transition pay-option-card";
         if (gcashCard) gcashCard.className = "border-2 border-slate-200 bg-white p-4 rounded-xl flex items-center justify-between cursor-pointer transition pay-option-card";
         if (summaryPayText) summaryPayText.textContent = "Cash on Pickup";
+        if (gcashDetailsPanel) gcashDetailsPanel.classList.add('hidden');
     }
+}
+
+// Copy GCash Number to Clipboard
+function copyGcashNumber() {
+    const num = "09311508184";
+    navigator.clipboard.writeText(num).then(() => {
+        const btnLabel = document.getElementById('copyBtnLabel');
+        if (btnLabel) {
+            btnLabel.textContent = "Copied!";
+            setTimeout(() => { btnLabel.textContent = "Copy"; }, 2000);
+        }
+    }).catch(() => {
+        alert("GCash Number: " + num);
+    });
+}
+
+// Format & Auto-clean GCash Reference Number Input
+function handleGcashRefInput(el) {
+    let raw = el.value.replace(/\D/g, '');
+    if (raw.length > 13) raw = raw.slice(0, 13);
+    
+    // Group formatted for pleasant reading: 0000 0000 00000
+    let formatted = raw;
+    if (raw.length > 8) {
+        formatted = `${raw.slice(0, 4)} ${raw.slice(4, 8)} ${raw.slice(8)}`;
+    } else if (raw.length > 4) {
+        formatted = `${raw.slice(0, 4)} ${raw.slice(4)}`;
+    }
+    el.value = formatted;
+
+    const counter = document.getElementById('refDigitsCounter');
+    const icon = document.getElementById('refValidationIcon');
+    if (counter) counter.textContent = `${raw.length} / 13 digits`;
+
+    if (icon) {
+        icon.classList.remove('hidden');
+        if (raw.length === 13) {
+            icon.className = "absolute right-3 top-1/2 -translate-y-1/2 text-xs text-emerald-600 font-bold";
+            icon.innerHTML = `<i class="fas fa-check-circle text-sm"></i> Valid Ref`;
+            el.classList.remove('border-rose-400');
+            el.classList.add('border-emerald-500');
+        } else if (raw.length >= 8) {
+            icon.className = "absolute right-3 top-1/2 -translate-y-1/2 text-xs text-emerald-500 font-bold";
+            icon.innerHTML = `<i class="fas fa-info-circle"></i>`;
+            el.classList.remove('border-rose-400', 'border-emerald-500');
+        } else {
+            icon.className = "absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-400";
+            icon.innerHTML = ``;
+            el.classList.remove('border-emerald-500');
+        }
+    }
+}
+
+// Client-side Automatic GCash Receipt Image OCR / Reader
+let _uploadedGcashReceiptDataUrl = '';
+
+function handleGcashReceiptUpload(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const statusEl = document.getElementById('receiptOcrStatus');
+    const clearBtn = document.getElementById('btnClearGcashReceipt');
+    if (clearBtn) clearBtn.classList.remove('hidden');
+
+    if (statusEl) {
+        statusEl.classList.remove('hidden', 'bg-rose-50', 'text-rose-700', 'bg-emerald-50', 'text-emerald-700');
+        statusEl.className = "text-[10px] font-semibold rounded-lg px-2.5 py-1 bg-emerald-50 text-emerald-700 flex items-center gap-1.5";
+        statusEl.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Reading GCash receipt & scanning reference number...`;
+    }
+
+    // Save image preview / data URL
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        _uploadedGcashReceiptDataUrl = e.target.result;
+
+        // Try extracting using client-side OCR if Tesseract.js is present or fallback regex
+        if (typeof Tesseract !== 'undefined') {
+            Tesseract.recognize(
+                _uploadedGcashReceiptDataUrl,
+                'eng',
+                { logger: m => {} }
+            ).then(({ data: { text } }) => {
+                const detectedRef = extractGcashRefFromText(text);
+                if (detectedRef) {
+                    const refInput = document.getElementById('custGcashRefInput');
+                    if (refInput) {
+                        refInput.value = detectedRef;
+                        handleGcashRefInput(refInput);
+                    }
+                    if (statusEl) {
+                        statusEl.className = "text-[10px] font-bold rounded-lg px-2.5 py-1 bg-emerald-50 text-emerald-700 flex items-center gap-1.5";
+                        statusEl.innerHTML = `✅ Successfully detected Reference No: <span class="font-mono underline">${detectedRef}</span>`;
+                    }
+                } else {
+                    if (statusEl) {
+                        statusEl.className = "text-[10px] font-medium rounded-lg px-2.5 py-1 bg-amber-50 text-amber-800 flex items-center gap-1.5";
+                        statusEl.innerHTML = `ℹ️ Receipt attached. Kung hindi na-detect ang number, i-type lamang ito nang manu-mano sa field sa itaas.`;
+                    }
+                }
+            }).catch(() => {
+                if (statusEl) {
+                    statusEl.className = "text-[10px] font-medium rounded-lg px-2.5 py-1 bg-slate-100 text-slate-700";
+                    statusEl.textContent = "Receipt attached. Please confirm or input the Reference No. above.";
+                }
+            });
+        } else {
+            // Soft fallback without heavy OCR library
+            if (statusEl) {
+                statusEl.className = "text-[10px] font-semibold rounded-lg px-2.5 py-1 bg-emerald-50 text-emerald-700 flex items-center gap-1.5";
+                statusEl.innerHTML = `✅ Receipt image attached. Pakitiyak na tugma ang Reference Number sa text box.`;
+            }
+        }
+    };
+    reader.readAsDataURL(file);
+}
+
+function extractGcashRefFromText(rawText) {
+    if (!rawText) return null;
+    // Look for 13 digit sequences or patterns after Ref No / Reference
+    const match13 = rawText.match(/\b\d{13}\b/);
+    if (match13) return match13[0];
+    
+    // Look for pattern Ref No. : 1234 567 890123
+    const refMatch = rawText.match(/(?:ref(?:erence)?(?:\s*no\.?)?[:\s]*)([0-9\s]{9,16})/i);
+    if (refMatch && refMatch[1]) {
+        const digitsOnly = refMatch[1].replace(/\D/g, '');
+        if (digitsOnly.length >= 9 && digitsOnly.length <= 16) return digitsOnly;
+    }
+    return null;
+}
+
+function clearGcashReceipt() {
+    const fileInput = document.getElementById('gcashReceiptFile');
+    if (fileInput) fileInput.value = '';
+    _uploadedGcashReceiptDataUrl = '';
+    const statusEl = document.getElementById('receiptOcrStatus');
+    if (statusEl) statusEl.classList.add('hidden');
+    const clearBtn = document.getElementById('btnClearGcashReceipt');
+    if (clearBtn) clearBtn.classList.add('hidden');
+}
+
+function openGcashQrModal() {
+    const modal = document.getElementById('gcashQrModal');
+    if (modal) modal.classList.remove('hidden');
+}
+
+function closeGcashQrModal() {
+    const modal = document.getElementById('gcashQrModal');
+    if (modal) modal.classList.add('hidden');
 }
 
 function onServiceChange() {
@@ -603,42 +681,42 @@ function onServiceChange() {
         html = `
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                    <label class="block mb-1 font-semibold text-slate-700">Quantity (pcs)</label>
-                    <input type="number" id="specQty" value="100" min="50" oninput="recalculateTotal()" class="w-full bg-slate-50 border border-slate-200 p-2.5 rounded-xl font-medium focus:outline-none focus:border-blue-600">
+                    <label class="block mb-1 font-semibold text-black">Quantity (pcs)</label>
+                    <input type="number" id="specQty" value="100" min="50" max="100000" oninput="validateNumberInput(this); recalculateTotal()" class="w-full bg-slate-50 border border-slate-200 p-2.5 rounded-xl font-medium focus:outline-none focus:border-emerald-600">
                 </div>
                 <div>
-                    <label class="block mb-1 font-semibold text-slate-700">Size</label>
-                    <select id="specSize" class="w-full bg-slate-50 border border-slate-200 p-2.5 rounded-xl font-medium focus:outline-none focus:border-blue-600">
+                    <label class="block mb-1 font-semibold text-black">Size</label>
+                    <select id="specSize" class="w-full bg-slate-50 border border-slate-200 p-2.5 rounded-xl font-medium focus:outline-none focus:border-emerald-600">
                         <option value="Standard 3.5 x 2 in">Standard (3.5 x 2 in)</option>
                         <option value="Square 2.5 x 2.5 in">Square (2.5 x 2.5 in)</option>
                     </select>
                 </div>
                 <div>
-                    <label class="block mb-1 font-semibold text-slate-700">Paper Type & Thickness</label>
-                    <select id="specStock" class="w-full bg-slate-50 border border-slate-200 p-2.5 rounded-xl font-medium focus:outline-none focus:border-blue-600">
+                    <label class="block mb-1 font-semibold text-black">Paper Type & Thickness</label>
+                    <select id="specStock" class="w-full bg-slate-50 border border-slate-200 p-2.5 rounded-xl font-medium focus:outline-none focus:border-emerald-600">
                         <option value="300 GSM Matte Cardstock">300 GSM Matte Cardstock</option>
                         <option value="350 GSM Glossy Cardstock">350 GSM Glossy Cardstock</option>
                         <option value="Premium Textured Linen">Premium Textured Linen</option>
                     </select>
                 </div>
                 <div>
-                    <label class="block mb-1 font-semibold text-slate-700">Printing Sides</label>
-                    <select id="specSides" class="w-full bg-slate-50 border border-slate-200 p-2.5 rounded-xl font-medium focus:outline-none focus:border-blue-600">
+                    <label class="block mb-1 font-semibold text-black">Printing Sides</label>
+                    <select id="specSides" class="w-full bg-slate-50 border border-slate-200 p-2.5 rounded-xl font-medium focus:outline-none focus:border-emerald-600">
                         <option value="1-Side Printing">1-Side Printing</option>
                         <option value="2-Side Printing">2-Side Printing</option>
                     </select>
                 </div>
                 <div>
-                    <label class="block mb-1 font-semibold text-slate-700">Finish</label>
-                    <select id="specFinish" class="w-full bg-slate-50 border border-slate-200 p-2.5 rounded-xl font-medium focus:outline-none focus:border-blue-600">
+                    <label class="block mb-1 font-semibold text-black">Finish</label>
+                    <select id="specFinish" class="w-full bg-slate-50 border border-slate-200 p-2.5 rounded-xl font-medium focus:outline-none focus:border-emerald-600">
                         <option value="Matte Finish">Matte Finish</option>
                         <option value="Glossy Finish">Glossy Finish</option>
                         <option value="Spot UV Coating">Spot UV Coating</option>
                     </select>
                 </div>
                 <div>
-                    <label class="block mb-1 font-semibold text-slate-700">Corners</label>
-                    <select id="specCorners" class="w-full bg-slate-50 border border-slate-200 p-2.5 rounded-xl font-medium focus:outline-none focus:border-blue-600">
+                    <label class="block mb-1 font-semibold text-black">Corners</label>
+                    <select id="specCorners" class="w-full bg-slate-50 border border-slate-200 p-2.5 rounded-xl font-medium focus:outline-none focus:border-emerald-600">
                         <option value="Square Corners">Square Corners</option>
                         <option value="Rounded Corners">Rounded Corners</option>
                     </select>
@@ -649,35 +727,35 @@ function onServiceChange() {
         html = `
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                    <label class="block mb-1 font-semibold text-slate-700">Width (ft)</label>
-                    <input type="number" id="specWidth" value="3" min="1" oninput="recalculateTotal()" class="w-full bg-slate-50 border border-slate-200 p-2.5 rounded-xl font-medium focus:outline-none focus:border-blue-600">
+                    <label class="block mb-1 font-semibold text-black">Width (ft)</label>
+                    <input type="number" id="specWidth" value="3" min="1" max="100" oninput="validateNumberInput(this); recalculateTotal()" class="w-full bg-slate-50 border border-slate-200 p-2.5 rounded-xl font-medium focus:outline-none focus:border-emerald-600">
                 </div>
                 <div>
-                    <label class="block mb-1 font-semibold text-slate-700">Height (ft)</label>
-                    <input type="number" id="specHeight" value="4" min="1" oninput="recalculateTotal()" class="w-full bg-slate-50 border border-slate-200 p-2.5 rounded-xl font-medium focus:outline-none focus:border-blue-600">
+                    <label class="block mb-1 font-semibold text-black">Height (ft)</label>
+                    <input type="number" id="specHeight" value="4" min="1" max="100" oninput="validateNumberInput(this); recalculateTotal()" class="w-full bg-slate-50 border border-slate-200 p-2.5 rounded-xl font-medium focus:outline-none focus:border-emerald-600">
                 </div>
                 <div>
-                    <label class="block mb-1 font-semibold text-slate-700">Quantity (pcs)</label>
-                    <input type="number" id="specQty" value="1" min="1" oninput="recalculateTotal()" class="w-full bg-slate-50 border border-slate-200 p-2.5 rounded-xl font-medium focus:outline-none focus:border-blue-600">
+                    <label class="block mb-1 font-semibold text-black">Quantity (pcs)</label>
+                    <input type="number" id="specQty" value="1" min="1" max="100000" oninput="validateNumberInput(this); recalculateTotal()" class="w-full bg-slate-50 border border-slate-200 p-2.5 rounded-xl font-medium focus:outline-none focus:border-emerald-600">
                 </div>
                 <div>
-                    <label class="block mb-1 font-semibold text-slate-700">Material Thickness</label>
-                    <select id="specMaterial" class="w-full bg-slate-50 border border-slate-200 p-2.5 rounded-xl font-medium focus:outline-none focus:border-blue-600">
+                    <label class="block mb-1 font-semibold text-black">Material Thickness</label>
+                    <select id="specMaterial" class="w-full bg-slate-50 border border-slate-200 p-2.5 rounded-xl font-medium focus:outline-none focus:border-emerald-600">
                         <option value="10 oz Standard">10 oz Standard Tarpaulin</option>
                         <option value="13 oz Heavy Duty">13 oz Heavy Duty Tarpaulin</option>
                     </select>
                 </div>
                 <div>
-                    <label class="block mb-1 font-semibold text-slate-700">Eyelets / Rings</label>
-                    <select id="specEyelets" class="w-full bg-slate-50 border border-slate-200 p-2.5 rounded-xl font-medium focus:outline-none focus:border-blue-600">
+                    <label class="block mb-1 font-semibold text-black">Eyelets / Rings</label>
+                    <select id="specEyelets" class="w-full bg-slate-50 border border-slate-200 p-2.5 rounded-xl font-medium focus:outline-none focus:border-emerald-600">
                         <option value="With Eyelets (4 Corners)">With Eyelets (4 Corners)</option>
                         <option value="With Eyelets Every 1 ft">With Eyelets Every 1 ft</option>
                         <option value="No Eyelets">No Eyelets / Raw Edge</option>
                     </select>
                 </div>
                 <div>
-                    <label class="block mb-1 font-semibold text-slate-700">Finishing</label>
-                    <select id="specFinishing" class="w-full bg-slate-50 border border-slate-200 p-2.5 rounded-xl font-medium focus:outline-none focus:border-blue-600">
+                    <label class="block mb-1 font-semibold text-black">Finishing</label>
+                    <select id="specFinishing" class="w-full bg-slate-50 border border-slate-200 p-2.5 rounded-xl font-medium focus:outline-none focus:border-emerald-600">
                         <option value="Folded Edge (Kaibe)">Folded Edge (Kaibe)</option>
                         <option value="Standard Cut">Standard Cut</option>
                     </select>
@@ -688,42 +766,42 @@ function onServiceChange() {
         html = `
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                    <label class="block mb-1 font-semibold text-slate-700">Size</label>
-                    <select id="specSize" class="w-full bg-slate-50 border border-slate-200 p-2.5 rounded-xl font-medium focus:outline-none focus:border-blue-600">
+                    <label class="block mb-1 font-semibold text-black">Size</label>
+                    <select id="specSize" class="w-full bg-slate-50 border border-slate-200 p-2.5 rounded-xl font-medium focus:outline-none focus:border-emerald-600">
                         <option value="A4 Size">A4 Size</option>
                         <option value="A5 Size">A5 Size</option>
                         <option value="A6 Size">A6 Size</option>
                     </select>
                 </div>
                 <div>
-                    <label class="block mb-1 font-semibold text-slate-700">Quantity (pcs)</label>
-                    <input type="number" id="specQty" value="100" min="20" oninput="recalculateTotal()" class="w-full bg-slate-50 border border-slate-200 p-2.5 rounded-xl font-medium focus:outline-none focus:border-blue-600">
+                    <label class="block mb-1 font-semibold text-black">Quantity (pcs)</label>
+                    <input type="number" id="specQty" value="100" min="20" max="100000" oninput="validateNumberInput(this); recalculateTotal()" class="w-full bg-slate-50 border border-slate-200 p-2.5 rounded-xl font-medium focus:outline-none focus:border-emerald-600">
                 </div>
                 <div>
-                    <label class="block mb-1 font-semibold text-slate-700">Paper Type & Thickness</label>
-                    <select id="specStock" class="w-full bg-slate-50 border border-slate-200 p-2.5 rounded-xl font-medium focus:outline-none focus:border-blue-600">
+                    <label class="block mb-1 font-semibold text-black">Paper Type & Thickness</label>
+                    <select id="specStock" class="w-full bg-slate-50 border border-slate-200 p-2.5 rounded-xl font-medium focus:outline-none focus:border-emerald-600">
                         <option value="80 GSM Bond Paper">80 GSM Bond Paper</option>
                         <option value="100 GSM Book Paper">100 GSM Book Paper</option>
                         <option value="128 GSM C2S Glossy">128 GSM C2S Glossy</option>
                     </select>
                 </div>
                 <div>
-                    <label class="block mb-1 font-semibold text-slate-700">Printing Sides</label>
-                    <select id="specSides" class="w-full bg-slate-50 border border-slate-200 p-2.5 rounded-xl font-medium focus:outline-none focus:border-blue-600">
+                    <label class="block mb-1 font-semibold text-black">Printing Sides</label>
+                    <select id="specSides" class="w-full bg-slate-50 border border-slate-200 p-2.5 rounded-xl font-medium focus:outline-none focus:border-emerald-600">
                         <option value="1-Side Printing">1-Side Printing</option>
                         <option value="2-Side Printing">2-Side Printing</option>
                     </select>
                 </div>
                 <div>
-                    <label class="block mb-1 font-semibold text-slate-700">Finish</label>
-                    <select id="specFinish" class="w-full bg-slate-50 border border-slate-200 p-2.5 rounded-xl font-medium focus:outline-none focus:border-blue-600">
+                    <label class="block mb-1 font-semibold text-black">Finish</label>
+                    <select id="specFinish" class="w-full bg-slate-50 border border-slate-200 p-2.5 rounded-xl font-medium focus:outline-none focus:border-emerald-600">
                         <option value="Glossy Finish">Glossy Finish</option>
                         <option value="Matte Finish">Matte Finish</option>
                     </select>
                 </div>
                 <div>
-                    <label class="block mb-1 font-semibold text-slate-700">Folding Option</label>
-                    <select id="specFolding" class="w-full bg-slate-50 border border-slate-200 p-2.5 rounded-xl font-medium focus:outline-none focus:border-blue-600">
+                    <label class="block mb-1 font-semibold text-black">Folding Option</label>
+                    <select id="specFolding" class="w-full bg-slate-50 border border-slate-200 p-2.5 rounded-xl font-medium focus:outline-none focus:border-emerald-600">
                         <option value="No Fold (Flat)">No Fold (Flat)</option>
                         <option value="Half Fold">Half Fold</option>
                         <option value="Tri-Fold">Tri-Fold</option>
@@ -735,40 +813,40 @@ function onServiceChange() {
         html = `
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                    <label class="block mb-1 font-semibold text-slate-700">Size / Dimensions</label>
-                    <input type="text" id="specSizeText" value="2x2 inches" class="w-full bg-slate-50 border border-slate-200 p-2.5 rounded-xl font-medium focus:outline-none focus:border-blue-600">
+                    <label class="block mb-1 font-semibold text-black">Size / Dimensions</label>
+                    <input type="text" id="specSizeText" value="2x2 inches" class="w-full bg-slate-50 border border-slate-200 p-2.5 rounded-xl font-medium focus:outline-none focus:border-emerald-600">
                 </div>
                 <div>
-                    <label class="block mb-1 font-semibold text-slate-700">Quantity (pcs)</label>
-                    <input type="number" id="specQty" value="50" min="10" oninput="recalculateTotal()" class="w-full bg-slate-50 border border-slate-200 p-2.5 rounded-xl font-medium focus:outline-none focus:border-blue-600">
+                    <label class="block mb-1 font-semibold text-black">Quantity (pcs)</label>
+                    <input type="number" id="specQty" value="50" min="10" max="100000" oninput="validateNumberInput(this); recalculateTotal()" class="w-full bg-slate-50 border border-slate-200 p-2.5 rounded-xl font-medium focus:outline-none focus:border-emerald-600">
                 </div>
                 <div>
-                    <label class="block mb-1 font-semibold text-slate-700">Shape / Die-cut</label>
-                    <select id="specShape" class="w-full bg-slate-50 border border-slate-200 p-2.5 rounded-xl font-medium focus:outline-none focus:border-blue-600">
+                    <label class="block mb-1 font-semibold text-black">Shape / Die-cut</label>
+                    <select id="specShape" class="w-full bg-slate-50 border border-slate-200 p-2.5 rounded-xl font-medium focus:outline-none focus:border-emerald-600">
                         <option value="Die-Cut (Custom Shape)">Die-Cut (Custom Shape)</option>
                         <option value="Circle / Round">Circle / Round</option>
                         <option value="Square / Rectangle">Square / Rectangle</option>
                     </select>
                 </div>
                 <div>
-                    <label class="block mb-1 font-semibold text-slate-700">Material</label>
-                    <select id="specMaterial" class="w-full bg-slate-50 border border-slate-200 p-2.5 rounded-xl font-medium focus:outline-none focus:border-blue-600">
+                    <label class="block mb-1 font-semibold text-black">Material</label>
+                    <select id="specMaterial" class="w-full bg-slate-50 border border-slate-200 p-2.5 rounded-xl font-medium focus:outline-none focus:border-emerald-600">
                         <option value="Vinyl Sticker (Waterproof)">Vinyl Sticker (Waterproof)</option>
                         <option value="Matte Paper Sticker">Matte Paper Sticker</option>
                         <option value="Transparent Vinyl">Transparent Vinyl</option>
                     </select>
                 </div>
                 <div>
-                    <label class="block mb-1 font-semibold text-slate-700">Finish</label>
-                    <select id="specFinish" class="w-full bg-slate-50 border border-slate-200 p-2.5 rounded-xl font-medium focus:outline-none focus:border-blue-600">
+                    <label class="block mb-1 font-semibold text-black">Finish</label>
+                    <select id="specFinish" class="w-full bg-slate-50 border border-slate-200 p-2.5 rounded-xl font-medium focus:outline-none focus:border-emerald-600">
                         <option value="Glossy Laminated">Glossy Laminated</option>
                         <option value="Matte Laminated">Matte Laminated</option>
                         <option value="Unlaminated">Unlaminated</option>
                     </select>
                 </div>
                 <div>
-                    <label class="block mb-1 font-semibold text-slate-700">Adhesive Type</label>
-                    <select id="specAdhesive" class="w-full bg-slate-50 border border-slate-200 p-2.5 rounded-xl font-medium focus:outline-none focus:border-blue-600">
+                    <label class="block mb-1 font-semibold text-black">Adhesive Type</label>
+                    <select id="specAdhesive" class="w-full bg-slate-50 border border-slate-200 p-2.5 rounded-xl font-medium focus:outline-none focus:border-emerald-600">
                         <option value="Permanent Strong Adhesive">Permanent Strong Adhesive</option>
                         <option value="Removable Adhesive">Removable Adhesive</option>
                     </select>
@@ -779,42 +857,42 @@ function onServiceChange() {
         html = `
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                    <label class="block mb-1 font-semibold text-slate-700">Quantity (pcs)</label>
-                    <input type="number" id="specQty" value="30" min="10" oninput="recalculateTotal()" class="w-full bg-slate-50 border border-slate-200 p-2.5 rounded-xl font-medium focus:outline-none focus:border-blue-600">
+                    <label class="block mb-1 font-semibold text-black">Quantity (pcs)</label>
+                    <input type="number" id="specQty" value="30" min="10" max="100000" oninput="validateNumberInput(this); recalculateTotal()" class="w-full bg-slate-50 border border-slate-200 p-2.5 rounded-xl font-medium focus:outline-none focus:border-emerald-600">
                 </div>
                 <div>
-                    <label class="block mb-1 font-semibold text-slate-700">Card Size</label>
-                    <select id="specSize" class="w-full bg-slate-50 border border-slate-200 p-2.5 rounded-xl font-medium focus:outline-none focus:border-blue-600">
+                    <label class="block mb-1 font-semibold text-black">Card Size</label>
+                    <select id="specSize" class="w-full bg-slate-50 border border-slate-200 p-2.5 rounded-xl font-medium focus:outline-none focus:border-emerald-600">
                         <option value="5x7 inches">5 x 7 inches (Standard)</option>
                         <option value="4x6 inches">4 x 6 inches</option>
                         <option value="Square 6x6 in">Square (6 x 6 in)</option>
                     </select>
                 </div>
                 <div>
-                    <label class="block mb-1 font-semibold text-slate-700">Paper Type & Thickness</label>
-                    <select id="specStock" class="w-full bg-slate-50 border border-slate-200 p-2.5 rounded-xl font-medium focus:outline-none focus:border-blue-600">
+                    <label class="block mb-1 font-semibold text-black">Paper Type & Thickness</label>
+                    <select id="specStock" class="w-full bg-slate-50 border border-slate-200 p-2.5 rounded-xl font-medium focus:outline-none focus:border-emerald-600">
                         <option value="250 GSM Linen Cardstock">250 GSM Linen Cardstock</option>
                         <option value="300 GSM Matte Cardstock">300 GSM Matte Cardstock</option>
                         <option value="Pearlescent Shimmer Paper">Pearlescent Shimmer Paper</option>
                     </select>
                 </div>
                 <div>
-                    <label class="block mb-1 font-semibold text-slate-700">Printing Sides</label>
-                    <select id="specSides" class="w-full bg-slate-50 border border-slate-200 p-2.5 rounded-xl font-medium focus:outline-none focus:border-blue-600">
+                    <label class="block mb-1 font-semibold text-black">Printing Sides</label>
+                    <select id="specSides" class="w-full bg-slate-50 border border-slate-200 p-2.5 rounded-xl font-medium focus:outline-none focus:border-emerald-600">
                         <option value="Front & Back">Front & Back Printing</option>
                         <option value="Front Only">Front Only Printing</option>
                     </select>
                 </div>
                 <div>
-                    <label class="block mb-1 font-semibold text-slate-700">Finish & Folding</label>
-                    <select id="specFinish" class="w-full bg-slate-50 border border-slate-200 p-2.5 rounded-xl font-medium focus:outline-none focus:border-blue-600">
+                    <label class="block mb-1 font-semibold text-black">Finish & Folding</label>
+                    <select id="specFinish" class="w-full bg-slate-50 border border-slate-200 p-2.5 rounded-xl font-medium focus:outline-none focus:border-emerald-600">
                         <option value="Flat Card">Flat Card</option>
                         <option value="Gatefold / Folded Card">Gatefold / Folded Card</option>
                     </select>
                 </div>
                 <div>
-                    <label class="block mb-1 font-semibold text-slate-700">Envelope Included</label>
-                    <select id="specEnvelope" class="w-full bg-slate-50 border border-slate-200 p-2.5 rounded-xl font-medium focus:outline-none focus:border-blue-600">
+                    <label class="block mb-1 font-semibold text-black">Envelope Included</label>
+                    <select id="specEnvelope" class="w-full bg-slate-50 border border-slate-200 p-2.5 rounded-xl font-medium focus:outline-none focus:border-emerald-600">
                         <option value="With Matching Envelope">With Matching Envelope</option>
                         <option value="No Envelope">No Envelope</option>
                     </select>
@@ -825,8 +903,8 @@ function onServiceChange() {
         html = `
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                    <label class="block mb-1 font-semibold text-slate-700">Shirt Size</label>
-                    <select id="specShirtSize" class="w-full bg-slate-50 border border-slate-200 p-2.5 rounded-xl font-medium focus:outline-none focus:border-blue-600">
+                    <label class="block mb-1 font-semibold text-black">Shirt Size</label>
+                    <select id="specShirtSize" class="w-full bg-slate-50 border border-slate-200 p-2.5 rounded-xl font-medium focus:outline-none focus:border-emerald-600">
                         <option value="Small (S)">Small (S)</option>
                         <option value="Medium (M)">Medium (M)</option>
                         <option value="Large (L)">Large (L)</option>
@@ -834,12 +912,12 @@ function onServiceChange() {
                     </select>
                 </div>
                 <div>
-                    <label class="block mb-1 font-semibold text-slate-700">Quantity (pcs)</label>
-                    <input type="number" id="specQty" value="1" min="1" oninput="recalculateTotal()" class="w-full bg-slate-50 border border-slate-200 p-2.5 rounded-xl font-medium focus:outline-none focus:border-blue-600">
+                    <label class="block mb-1 font-semibold text-black">Quantity (pcs)</label>
+                    <input type="number" id="specQty" value="1" min="1" max="100000" oninput="validateNumberInput(this); recalculateTotal()" class="w-full bg-slate-50 border border-slate-200 p-2.5 rounded-xl font-medium focus:outline-none focus:border-emerald-600">
                 </div>
                 <div>
-                    <label class="block mb-1 font-semibold text-slate-700">Shirt Color</label>
-                    <select id="specShirtColor" class="w-full bg-slate-50 border border-slate-200 p-2.5 rounded-xl font-medium focus:outline-none focus:border-blue-600">
+                    <label class="block mb-1 font-semibold text-black">Shirt Color</label>
+                    <select id="specShirtColor" class="w-full bg-slate-50 border border-slate-200 p-2.5 rounded-xl font-medium focus:outline-none focus:border-emerald-600">
                         <option value="Black">Black</option>
                         <option value="White">White</option>
                         <option value="Navy Blue">Navy Blue</option>
@@ -847,24 +925,24 @@ function onServiceChange() {
                     </select>
                 </div>
                 <div>
-                    <label class="block mb-1 font-semibold text-slate-700">Shirt Type / Fabric</label>
-                    <select id="specShirtType" class="w-full bg-slate-50 border border-slate-200 p-2.5 rounded-xl font-medium focus:outline-none focus:border-blue-600">
+                    <label class="block mb-1 font-semibold text-black">Shirt Type / Fabric</label>
+                    <select id="specShirtType" class="w-full bg-slate-50 border border-slate-200 p-2.5 rounded-xl font-medium focus:outline-none focus:border-emerald-600">
                         <option value="Cotton Blend 200 GSM">Cotton Blend 200 GSM</option>
                         <option value="Heavyweight Cotton">Heavyweight Cotton</option>
                         <option value="Drifit Sports Shirt">Drifit Sports Shirt</option>
                     </select>
                 </div>
                 <div>
-                    <label class="block mb-1 font-semibold text-slate-700">Printing Method</label>
-                    <select id="specPrintMethod" class="w-full bg-slate-50 border border-slate-200 p-2.5 rounded-xl font-medium focus:outline-none focus:border-blue-600">
+                    <label class="block mb-1 font-semibold text-black">Printing Method</label>
+                    <select id="specPrintMethod" class="w-full bg-slate-50 border border-slate-200 p-2.5 rounded-xl font-medium focus:outline-none focus:border-emerald-600">
                         <option value="DTF (Direct to Film)">DTF (Direct to Film)</option>
                         <option value="Sublimation">Sublimation</option>
                         <option value="Silkscreen Print">Silkscreen Print</option>
                     </select>
                 </div>
                 <div>
-                    <label class="block mb-1 font-semibold text-slate-700">Print Location</label>
-                    <select id="specPrintLoc" class="w-full bg-slate-50 border border-slate-200 p-2.5 rounded-xl font-medium focus:outline-none focus:border-blue-600">
+                    <label class="block mb-1 font-semibold text-black">Print Location</label>
+                    <select id="specPrintLoc" class="w-full bg-slate-50 border border-slate-200 p-2.5 rounded-xl font-medium focus:outline-none focus:border-emerald-600">
                         <option value="Front Chest (Standard)">Front Chest (Standard)</option>
                         <option value="Back Print">Back Print</option>
                         <option value="Front & Back">Front & Back</option>
@@ -877,43 +955,43 @@ function onServiceChange() {
         html = `
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                    <label class="block mb-1 font-semibold text-slate-700">Size / Dimensions</label>
-                    <select id="specSize" class="w-full bg-slate-50 border border-slate-200 p-2.5 rounded-xl font-medium focus:outline-none focus:border-blue-600">
+                    <label class="block mb-1 font-semibold text-black">Size / Dimensions</label>
+                    <select id="specSize" class="w-full bg-slate-50 border border-slate-200 p-2.5 rounded-xl font-medium focus:outline-none focus:border-emerald-600">
                         <option value="8x10 inches">8 x 10 inches (₱120)</option>
                         <option value="11x14 inches">11 x 14 inches (₱250)</option>
                         <option value="16x20 inches Canvas">16 x 20 inches Canvas (₱550)</option>
                     </select>
                 </div>
                 <div>
-                    <label class="block mb-1 font-semibold text-slate-700">Quantity (pcs)</label>
-                    <input type="number" id="specQty" value="1" min="1" oninput="recalculateTotal()" class="w-full bg-slate-50 border border-slate-200 p-2.5 rounded-xl font-medium focus:outline-none focus:border-blue-600">
+                    <label class="block mb-1 font-semibold text-black">Quantity (pcs)</label>
+                    <input type="number" id="specQty" value="1" min="1" max="100000" oninput="validateNumberInput(this); recalculateTotal()" class="w-full bg-slate-50 border border-slate-200 p-2.5 rounded-xl font-medium focus:outline-none focus:border-emerald-600">
                 </div>
                 <div>
-                    <label class="block mb-1 font-semibold text-slate-700">Material</label>
-                    <select id="specMaterial" class="w-full bg-slate-50 border border-slate-200 p-2.5 rounded-xl font-medium focus:outline-none focus:border-blue-600">
+                    <label class="block mb-1 font-semibold text-black">Material</label>
+                    <select id="specMaterial" class="w-full bg-slate-50 border border-slate-200 p-2.5 rounded-xl font-medium focus:outline-none focus:border-emerald-600">
                         <option value="Glossy Photo Paper">Glossy Photo Paper</option>
                         <option value="Canvas Stretched on Wood">Canvas Stretched on Wood Frame</option>
                         <option value="Matte Art Paper">Matte Art Paper</option>
                     </select>
                 </div>
                 <div>
-                    <label class="block mb-1 font-semibold text-slate-700">Orientation</label>
-                    <select id="specOrientation" class="w-full bg-slate-50 border border-slate-200 p-2.5 rounded-xl font-medium focus:outline-none focus:border-blue-600">
+                    <label class="block mb-1 font-semibold text-black">Orientation</label>
+                    <select id="specOrientation" class="w-full bg-slate-50 border border-slate-200 p-2.5 rounded-xl font-medium focus:outline-none focus:border-emerald-600">
                         <option value="Portrait">Portrait</option>
                         <option value="Landscape">Landscape</option>
                     </select>
                 </div>
                 <div>
-                    <label class="block mb-1 font-semibold text-slate-700">Finish</label>
-                    <select id="specFinish" class="w-full bg-slate-50 border border-slate-200 p-2.5 rounded-xl font-medium focus:outline-none focus:border-blue-600">
+                    <label class="block mb-1 font-semibold text-black">Finish</label>
+                    <select id="specFinish" class="w-full bg-slate-50 border border-slate-200 p-2.5 rounded-xl font-medium focus:outline-none focus:border-emerald-600">
                         <option value="Gloss Lamination">Gloss Lamination</option>
                         <option value="Matte Lamination">Matte Lamination</option>
                         <option value="UV Protected Texture">UV Protected Texture</option>
                     </select>
                 </div>
                 <div>
-                    <label class="block mb-1 font-semibold text-slate-700">Frame Option</label>
-                    <select id="specFrame" class="w-full bg-slate-50 border border-slate-200 p-2.5 rounded-xl font-medium focus:outline-none focus:border-blue-600">
+                    <label class="block mb-1 font-semibold text-black">Frame Option</label>
+                    <select id="specFrame" class="w-full bg-slate-50 border border-slate-200 p-2.5 rounded-xl font-medium focus:outline-none focus:border-emerald-600">
                         <option value="Without Frame">Without Frame</option>
                         <option value="Black Minimalist Frame">Black Minimalist Frame</option>
                         <option value="Wood Brown Frame">Wood Brown Frame</option>
@@ -925,37 +1003,37 @@ function onServiceChange() {
         html = `
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                    <label class="block mb-1 font-semibold text-slate-700">Size</label>
-                    <select id="specSize" class="w-full bg-slate-50 border border-slate-200 p-2.5 rounded-xl font-medium focus:outline-none focus:border-blue-600">
+                    <label class="block mb-1 font-semibold text-black">Size</label>
+                    <select id="specSize" class="w-full bg-slate-50 border border-slate-200 p-2.5 rounded-xl font-medium focus:outline-none focus:border-emerald-600">
                         <option value="A4 Size Booklet">A4 Size Booklet</option>
                         <option value="A5 Size Booklet">A5 Size Booklet</option>
                     </select>
                 </div>
                 <div>
-                    <label class="block mb-1 font-semibold text-slate-700">Quantity (pcs)</label>
-                    <input type="number" id="specQty" value="10" min="1" oninput="recalculateTotal()" class="w-full bg-slate-50 border border-slate-200 p-2.5 rounded-xl font-medium focus:outline-none focus:border-blue-600">
+                    <label class="block mb-1 font-semibold text-black">Quantity (pcs)</label>
+                    <input type="number" id="specQty" value="10" min="1" max="100000" oninput="validateNumberInput(this); recalculateTotal()" class="w-full bg-slate-50 border border-slate-200 p-2.5 rounded-xl font-medium focus:outline-none focus:border-emerald-600">
                 </div>
                 <div>
-                    <label class="block mb-1 font-semibold text-slate-700">Number of Pages</label>
-                    <input type="number" id="specPages" value="12" min="4" step="4" oninput="recalculateTotal()" class="w-full bg-slate-50 border border-slate-200 p-2.5 rounded-xl font-medium focus:outline-none focus:border-blue-600">
+                    <label class="block mb-1 font-semibold text-black">Number of Pages</label>
+                    <input type="number" id="specPages" value="12" min="4" max="500" step="4" oninput="validateNumberInput(this); recalculateTotal()" class="w-full bg-slate-50 border border-slate-200 p-2.5 rounded-xl font-medium focus:outline-none focus:border-emerald-600">
                 </div>
                 <div>
-                    <label class="block mb-1 font-semibold text-slate-700">Paper Type (Inner Pages)</label>
-                    <select id="specStock" class="w-full bg-slate-50 border border-slate-200 p-2.5 rounded-xl font-medium focus:outline-none focus:border-blue-600">
+                    <label class="block mb-1 font-semibold text-black">Paper Type (Inner Pages)</label>
+                    <select id="specStock" class="w-full bg-slate-50 border border-slate-200 p-2.5 rounded-xl font-medium focus:outline-none focus:border-emerald-600">
                         <option value="80 GSM Bond Paper">80 GSM Bond Paper</option>
                         <option value="100 GSM Book Paper">100 GSM Book Paper</option>
                     </select>
                 </div>
                 <div>
-                    <label class="block mb-1 font-semibold text-slate-700">Cover Type & Thickness</label>
-                    <select id="specCover" class="w-full bg-slate-50 border border-slate-200 p-2.5 rounded-xl font-medium focus:outline-none focus:border-blue-600">
+                    <label class="block mb-1 font-semibold text-black">Cover Type & Thickness</label>
+                    <select id="specCover" class="w-full bg-slate-50 border border-slate-200 p-2.5 rounded-xl font-medium focus:outline-none focus:border-emerald-600">
                         <option value="200 GSM Glossy Card Cover">200 GSM Glossy Card Cover</option>
                         <option value="Same as Inner Pages">Same as Inner Pages (Self-Cover)</option>
                     </select>
                 </div>
                 <div>
-                    <label class="block mb-1 font-semibold text-slate-700">Printing Sides & Binding</label>
-                    <select id="specBinding" class="w-full bg-slate-50 border border-slate-200 p-2.5 rounded-xl font-medium focus:outline-none focus:border-blue-600">
+                    <label class="block mb-1 font-semibold text-black">Printing Sides & Binding</label>
+                    <select id="specBinding" class="w-full bg-slate-50 border border-slate-200 p-2.5 rounded-xl font-medium focus:outline-none focus:border-emerald-600">
                         <option value="Saddle Stitch (Wire Staple)">Saddle Stitch (Wire Staple)</option>
                         <option value="Spiral Wire Binding">Spiral Wire Binding</option>
                     </select>
@@ -966,33 +1044,33 @@ function onServiceChange() {
         html = `
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                    <label class="block mb-1 font-semibold text-slate-700">Quantity (pcs)</label>
-                    <input type="number" id="specQty" value="1" min="1" oninput="recalculateTotal()" class="w-full bg-slate-50 border border-slate-200 p-2.5 rounded-xl font-medium focus:outline-none focus:border-blue-600">
+                    <label class="block mb-1 font-semibold text-black">Quantity (pcs)</label>
+                    <input type="number" id="specQty" value="1" min="1" max="100000" oninput="validateNumberInput(this); recalculateTotal()" class="w-full bg-slate-50 border border-slate-200 p-2.5 rounded-xl font-medium focus:outline-none focus:border-emerald-600">
                 </div>
                 <div>
-                    <label class="block mb-1 font-semibold text-slate-700">Mug Type</label>
-                    <select id="specMugType" class="w-full bg-slate-50 border border-slate-200 p-2.5 rounded-xl font-medium focus:outline-none focus:border-blue-600">
+                    <label class="block mb-1 font-semibold text-black">Mug Type</label>
+                    <select id="specMugType" class="w-full bg-slate-50 border border-slate-200 p-2.5 rounded-xl font-medium focus:outline-none focus:border-emerald-600">
                         <option value="White Ceramic Mug (Standard)">White Ceramic Mug (Standard)</option>
                         <option value="Magic Mug (Color Changing)">Magic Mug (Color Changing)</option>
                         <option value="Inside Color Mug">Inside Color Mug</option>
                     </select>
                 </div>
                 <div>
-                    <label class="block mb-1 font-semibold text-slate-700">Size / Capacity</label>
-                    <select id="specCapacity" class="w-full bg-slate-50 border border-slate-200 p-2.5 rounded-xl font-medium focus:outline-none focus:border-blue-600">
+                    <label class="block mb-1 font-semibold text-black">Size / Capacity</label>
+                    <select id="specCapacity" class="w-full bg-slate-50 border border-slate-200 p-2.5 rounded-xl font-medium focus:outline-none focus:border-emerald-600">
                         <option value="11 oz Standard">11 oz Standard Capacity</option>
                         <option value="15 oz Large Mug">15 oz Large Mug</option>
                     </select>
                 </div>
                 <div>
-                    <label class="block mb-1 font-semibold text-slate-700">Printing Method</label>
-                    <select id="specPrintMethod" class="w-full bg-slate-50 border border-slate-200 p-2.5 rounded-xl font-medium focus:outline-none focus:border-blue-600">
+                    <label class="block mb-1 font-semibold text-black">Printing Method</label>
+                    <select id="specPrintMethod" class="w-full bg-slate-50 border border-slate-200 p-2.5 rounded-xl font-medium focus:outline-none focus:border-emerald-600">
                         <option value="Sublimation Full Color">Sublimation Full Color</option>
                     </select>
                 </div>
                 <div class="sm:col-span-2">
-                    <label class="block mb-1 font-semibold text-slate-700">Print Area (Front / Back / Both)</label>
-                    <select id="specPrintArea" class="w-full bg-slate-50 border border-slate-200 p-2.5 rounded-xl font-medium focus:outline-none focus:border-blue-600">
+                    <label class="block mb-1 font-semibold text-black">Print Area (Front / Back / Both)</label>
+                    <select id="specPrintArea" class="w-full bg-slate-50 border border-slate-200 p-2.5 rounded-xl font-medium focus:outline-none focus:border-emerald-600">
                         <option value="Front & Back (Both Sides)">Front & Back (Both Sides / Wrap Around)</option>
                         <option value="Front Side Only">Front Side Only</option>
                     </select>
@@ -1003,34 +1081,171 @@ function onServiceChange() {
         html = `
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                    <label class="block mb-1 font-semibold text-slate-700">Paper Stock</label>
-                    <select id="custStockSelect" onchange="recalculateTotal()" class="w-full bg-slate-50 border border-slate-200 p-2.5 rounded-xl font-medium focus:outline-none focus:border-blue-600">
+                    <label class="block mb-1 font-semibold text-black">Paper Stock</label>
+                    <select id="custStockSelect" onchange="recalculateTotal()" class="w-full bg-slate-50 border border-slate-200 p-2.5 rounded-xl font-medium focus:outline-none focus:border-emerald-600">
                         <option value="80gsm" data-mult="1.0">80 GSM Standard Bond</option>
                         <option value="230gsm" data-mult="2.0">230 GSM Glossy Photo Paper</option>
                         <option value="matte" data-mult="1.5">Matte Finished Cardstock</option>
                     </select>
                 </div>
                 <div>
-                    <label class="block mb-1 font-semibold text-slate-700">Color Mode</label>
-                    <select id="specColorMode" class="w-full bg-slate-50 border border-slate-200 p-2.5 rounded-xl font-medium focus:outline-none focus:border-blue-600">
+                    <label class="block mb-1 font-semibold text-black">Color Mode</label>
+                    <select id="specColorMode" class="w-full bg-slate-50 border border-slate-200 p-2.5 rounded-xl font-medium focus:outline-none focus:border-emerald-600">
                         <option value="Full Color (High Quality)">Full Color (High Quality)</option>
                         <option value="Black & White (Grayscale)">Black & White (Grayscale)</option>
                     </select>
                 </div>
                 <div>
-                    <label class="block mb-1 font-semibold text-slate-700">Pages</label>
-                    <input type="number" id="custPageCount" value="1" min="1" oninput="recalculateTotal()" class="w-full bg-slate-50 border border-slate-200 p-2.5 rounded-xl font-medium focus:outline-none focus:border-blue-600">
+                    <label class="block mb-1 font-semibold text-black">Pages</label>
+                    <input type="number" id="custPageCount" value="1" min="1" max="5000" oninput="validateNumberInput(this); recalculateTotal()" class="w-full bg-slate-50 border border-slate-200 p-2.5 rounded-xl font-medium focus:outline-none focus:border-emerald-600">
                 </div>
                 <div>
-                    <label class="block mb-1 font-semibold text-slate-700">Quantity / Copies</label>
-                    <input type="number" id="custQtyCount" value="10" min="1" oninput="recalculateTotal()" class="w-full bg-slate-50 border border-slate-200 p-2.5 rounded-xl font-medium focus:outline-none focus:border-blue-600">
+                    <label class="block mb-1 font-semibold text-black">Quantity / Copies</label>
+                    <input type="number" id="custQtyCount" value="10" min="1" max="100000" oninput="validateNumberInput(this); recalculateTotal()" class="w-full bg-slate-50 border border-slate-200 p-2.5 rounded-xl font-medium focus:outline-none focus:border-emerald-600">
                 </div>
             </div>
         `;
     }
 
+    // Check if the current service has custom requirements defined by Admin (Option B)
+    const currentSvc = allLoadedServicesCache.find(s => s.id === val);
+    if (currentSvc && Array.isArray(currentSvc.requirements) && currentSvc.requirements.length > 0) {
+        let reqFieldsHtml = `
+            <div class="pt-3 border-t border-slate-100 space-y-3">
+                <div class="flex items-center gap-2">
+                    <span class="w-2 h-2 rounded-full bg-orange-500"></span>
+                    <label class="font-bold text-black uppercase tracking-wider text-[11px]">
+                        Service Specific Requirements
+                    </label>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        `;
+
+        currentSvc.requirements.forEach((req, idx) => {
+            const reqId = `custReqField_${idx}`;
+            const reqLabel = escapeHtml(req.label || `Requirement ${idx + 1}`);
+            const isReq = req.required !== false;
+            const star = isReq ? '<span class="text-rose-500">*</span>' : '<span class="text-slate-700 font-normal">(Optional)</span>';
+
+            reqFieldsHtml += `
+                <div>
+                    <label class="block mb-1 font-semibold text-black">${reqLabel} ${star}</label>
+            `;
+
+            if (req.type === 'checkboxes') {
+                                let opts = [];
+                if (Array.isArray(req.options)) {
+                    req.options.forEach(opt => {
+                        if (typeof opt === 'string' && (opt.includes('/') || opt.includes(','))) {
+                            const splitted = opt.split(/[,/]+/).map(s => s.trim()).filter(s => s.length > 0);
+                            opts.push(...splitted);
+                        } else if (opt) {
+                            opts.push(String(opt).trim());
+                        }
+                    });
+                } else if (typeof req.options === 'string') {
+                    opts = req.options.split(/[,/]+/).map(s => s.trim()).filter(s => s.length > 0);
+                }
+                reqFieldsHtml += `
+                    <div class="cust-custom-req-group space-y-2 p-3 bg-slate-50 border border-slate-200 rounded-xl" data-req-label="${reqLabel}" data-req-type="checkboxes" data-req-required="${isReq}">
+                        ${opts.map((o, optIdx) => `
+                            <label class="flex items-center gap-2.5 text-xs text-black cursor-pointer hover:text-emerald-700 font-medium select-none">
+                                <input type="checkbox" name="${reqId}" value="${escapeHtml(o)}" class="cust-req-checkbox w-4 h-4 rounded text-emerald-600 border-slate-300 focus:ring-emerald-500 cursor-pointer">
+                                <span>${escapeHtml(o)}</span>
+                            </label>
+                        `).join('')}
+                    </div>
+                `;
+            } else if (req.type === 'radio') {
+                                let opts = [];
+                if (Array.isArray(req.options)) {
+                    req.options.forEach(opt => {
+                        if (typeof opt === 'string' && (opt.includes('/') || opt.includes(','))) {
+                            const splitted = opt.split(/[,/]+/).map(s => s.trim()).filter(s => s.length > 0);
+                            opts.push(...splitted);
+                        } else if (opt) {
+                            opts.push(String(opt).trim());
+                        }
+                    });
+                } else if (typeof req.options === 'string') {
+                    opts = req.options.split(/[,/]+/).map(s => s.trim()).filter(s => s.length > 0);
+                }
+                reqFieldsHtml += `
+                    <div class="cust-custom-req-group space-y-2 p-3 bg-slate-50 border border-slate-200 rounded-xl" data-req-label="${reqLabel}" data-req-type="radio" data-req-required="${isReq}">
+                        ${opts.map((o, optIdx) => `
+                            <label class="flex items-center gap-2.5 text-xs text-black cursor-pointer hover:text-emerald-700 font-medium select-none">
+                                <input type="radio" name="${reqId}" value="${escapeHtml(o)}" ${optIdx === 0 ? 'checked' : ''} class="cust-req-radio w-4 h-4 text-emerald-600 border-slate-300 focus:ring-emerald-500 cursor-pointer">
+                                <span>${escapeHtml(o)}</span>
+                            </label>
+                        `).join('')}
+                    </div>
+                `;
+            } else if (req.type === 'select') {
+                                let opts = [];
+                if (Array.isArray(req.options)) {
+                    req.options.forEach(opt => {
+                        if (typeof opt === 'string' && (opt.includes('/') || opt.includes(','))) {
+                            const splitted = opt.split(/[,/]+/).map(s => s.trim()).filter(s => s.length > 0);
+                            opts.push(...splitted);
+                        } else if (opt) {
+                            opts.push(String(opt).trim());
+                        }
+                    });
+                } else if (typeof req.options === 'string') {
+                    opts = req.options.split(/[,/]+/).map(s => s.trim()).filter(s => s.length > 0);
+                }
+                reqFieldsHtml += `
+                    <select id="${reqId}" data-req-label="${reqLabel}" data-req-required="${isReq}" class="cust-custom-req-input w-full bg-slate-50 border border-slate-200 p-2.5 rounded-xl font-medium focus:outline-none focus:border-emerald-600 text-xs">
+                        ${opts.map(o => `<option value="${escapeHtml(o)}">${escapeHtml(o)}</option>`).join('')}
+                    </select>
+                `;
+            } else if (req.type === 'number') {
+                reqFieldsHtml += `
+                    <input type="number" id="${reqId}" data-req-label="${reqLabel}" data-req-required="${isReq}" min="1" max="100000" oninput="validateNumberInput(this)" placeholder="Enter ${reqLabel} (Max: 100,000)..." class="cust-custom-req-input w-full bg-slate-50 border border-slate-200 p-2.5 rounded-xl font-medium focus:outline-none focus:border-emerald-600 text-xs">
+                `;
+            } else {
+                reqFieldsHtml += `
+                    <input type="text" id="${reqId}" data-req-label="${reqLabel}" data-req-required="${isReq}" maxlength="150" placeholder="Enter ${reqLabel}..." class="cust-custom-req-input w-full bg-slate-50 border border-slate-200 p-2.5 rounded-xl font-medium focus:outline-none focus:border-emerald-600 text-xs">
+                `;
+            }
+
+            reqFieldsHtml += `</div>`;
+        });
+
+        reqFieldsHtml += `
+                </div>
+            </div>
+        `;
+
+        html += reqFieldsHtml;
+    }
+
     container.innerHTML = html;
     recalculateTotal();
+}
+
+function validateNumberInput(input) {
+    if (!input) return;
+    const maxVal = parseFloat(input.getAttribute('max')) || 100000;
+    const minVal = parseFloat(input.getAttribute('min')) || 0;
+    let val = parseFloat(input.value);
+
+    if (isNaN(val)) return;
+
+    if (val > maxVal) {
+        input.value = maxVal;
+        showInputWarningBadge(input, `Maximum limit is ${maxVal.toLocaleString()}`);
+    } else if (val < minVal && input.value !== '') {
+        // do not auto-force min while typing, but prevent negative
+        if (val < 0) input.value = 0;
+    }
+}
+
+function showInputWarningBadge(input, msg) {
+    input.classList.add('border-amber-500', 'ring-2', 'ring-amber-200');
+    setTimeout(() => {
+        input.classList.remove('border-amber-500', 'ring-2', 'ring-amber-200');
+    }, 2000);
 }
 
 function recalculateTotal() {
@@ -1073,8 +1288,15 @@ function recalculateTotal() {
         total = basePrice * stockMult * pages * qty;
     }
 
+    // Clamp maximum reasonable total to prevent absurd numbers like 25 quadrillion
+    if (total > 5000000) total = 5000000;
+    if (total < 0 || isNaN(total)) total = 0;
+
+    const formattedTotal = total.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     const totalElem = document.getElementById('custCalculatedTotal');
-    if (totalElem) totalElem.textContent = `₱ ${total.toFixed(2)}`;
+    if (totalElem) totalElem.textContent = `₱ ${formattedTotal}`;
+    const gcashPayAmountDisplay = document.getElementById('gcashPayAmountDisplay');
+    if (gcashPayAmountDisplay) gcashPayAmountDisplay.textContent = `₱ ${formattedTotal}`;
 }
 
 // STRICT FRONTEND ORDER SUBMISSION VALIDATION
@@ -1083,7 +1305,7 @@ function submitOrderToBackend() {
     
     // 1. MANDATORY FILE ATTACHMENT VALIDATION
     if (!fileInput || fileInput.files.length === 0) {
-        alert("⚠️ Pahabol: Pakipili o mag-upload muna ng iyong document o design file sa Step 1 bago i-submit ang order!");
+        alert("⚠️ Please upload your document or design file in Step 1 before submitting the order!");
         const uploadBox = document.getElementById('fileUploadContainer');
         if (uploadBox) {
             uploadBox.scrollIntoView({ behavior: 'smooth' });
@@ -1096,16 +1318,43 @@ function submitOrderToBackend() {
     const file = fileInput.files[0];
     const fileName = file.name;
 
-    // 2. NUMERIC QUANTITY & PAGES VALIDATION
-    const qtyVal = parseInt(document.getElementById('specQty')?.value || document.getElementById('custQtyCount')?.value) || 0;
-    const pagesVal = parseInt(document.getElementById('specPages')?.value || document.getElementById('custPageCount')?.value) || 1;
+    // 2. NUMERIC QUANTITY & PAGES VALIDATION WITH UPPER BOUND LIMITS
+    const qtyInput = document.getElementById('specQty') || document.getElementById('custQtyCount');
+    const pagesInput = document.getElementById('specPages') || document.getElementById('custPageCount');
+    const widthInput = document.getElementById('specWidth');
+    const heightInput = document.getElementById('specHeight');
+
+    const qtyVal = parseInt(qtyInput?.value) || 0;
+    const pagesVal = parseInt(pagesInput?.value) || 1;
 
     if (qtyVal <= 0) {
         alert("⚠️ Ang Quantity ay dapat mas mataas sa zero (0).");
+        qtyInput?.focus();
+        return;
+    }
+    if (qtyVal > 100000) {
+        alert("⚠️ Ang pinakamataas na Quantity ay 100,000 pcs lang po kada order.");
+        qtyInput?.focus();
         return;
     }
     if (pagesVal <= 0) {
         alert("⚠️ Ang Number of Pages ay dapat mas mataas sa zero (0).");
+        pagesInput?.focus();
+        return;
+    }
+    if (pagesVal > 5000) {
+        alert("⚠️ Ang pinakamataas na Pages ay 5,000 pages lang po.");
+        pagesInput?.focus();
+        return;
+    }
+    if (widthInput && (parseFloat(widthInput.value) > 100 || parseFloat(widthInput.value) <= 0)) {
+        alert("⚠️ Ang sukat ng lapad (Width) ay dapat nasa pagitan ng 1 hanggang 100 ft.");
+        widthInput.focus();
+        return;
+    }
+    if (heightInput && (parseFloat(heightInput.value) > 100 || parseFloat(heightInput.value) <= 0)) {
+        alert("⚠️ Ang sukat ng taas (Height) ay dapat nasa pagitan ng 1 hanggang 100 ft.");
+        heightInput.focus();
         return;
     }
 
@@ -1113,10 +1362,14 @@ function submitOrderToBackend() {
     const selectedOption = serviceSelect.options[serviceSelect.selectedIndex];
     const serviceName = selectedOption.text.split('(')[0].trim();
     const totalElem = document.getElementById('custCalculatedTotal');
-    const totalAmount = parseFloat(totalElem.textContent.replace('₱', '').trim()) || 0.0;
+    const totalAmount = parseFloat(totalElem.textContent.replace('₱', '').replace(/,/g, '').trim()) || 0.0;
 
     if (totalAmount <= 0) {
         alert("⚠️ Maling order total. Paki-check ang inyong piniling specifications.");
+        return;
+    }
+    if (totalAmount > 5000000) {
+        alert("⚠️ Ang total amount ay lumagpas sa pinakamataas na limitasyon (₱5,000,000). Paki-check ang quantity.");
         return;
     }
 
@@ -1124,9 +1377,47 @@ function submitOrderToBackend() {
     const paymentMethod = selectedPayRadio ? selectedPayRadio.value : "GCash Online";
     const loggedUser = JSON.parse(localStorage.getItem('kcz_logged_user') || '{"email":"juan.delacruz@gmail.com"}');
 
+    // Mandatory GCash Reference Validation if paying via GCash Online
+    let gcashRefVal = "";
+    if (paymentMethod === "GCash Online") {
+        const refInput = document.getElementById('custGcashRefInput');
+        gcashRefVal = (refInput ? refInput.value : '').replace(/\D/g, '');
+        if (!gcashRefVal || gcashRefVal.length < 8) {
+            alert("⚠️ Kailangan ilagay ang wastong GCash Reference Number (13 digits mula sa GCash receipt) bago mag-submit.");
+            if (refInput) {
+                refInput.scrollIntoView({ behavior: 'smooth' });
+                refInput.focus();
+                refInput.classList.add('border-rose-500', 'ring-2', 'ring-rose-200');
+                setTimeout(() => refInput.classList.remove('ring-2', 'ring-rose-200'), 3000);
+            }
+            return;
+        }
+    }
+
     const now = new Date();
     const dateStr = now.toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' });
     const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+
+    // Validate & Collect Custom Requirements (Option B)
+    const customRequirementsData = {};
+    let missingReqField = false;
+    document.querySelectorAll('.cust-custom-req-input').forEach(field => {
+        const rLabel = field.getAttribute('data-req-label') || 'Requirement';
+        const isRRequired = field.getAttribute('data-req-required') === 'true';
+        const val = field.value.trim();
+
+        if (isRRequired && !val) {
+            missingReqField = rLabel;
+        }
+        if (val) {
+            customRequirementsData[rLabel] = val;
+        }
+    });
+
+    if (missingReqField) {
+        alert(`⚠️ Please provide a value for: "${missingReqField}"`);
+        return;
+    }
 
     const noteEl = document.getElementById('custOrderNote');
     const customerNote = noteEl ? noteEl.value.trim() : "";
@@ -1149,6 +1440,8 @@ function submitOrderToBackend() {
         totalAmount: totalAmount,
         file: fileName,
         payment: paymentMethod,
+        gcashRef: gcashRefVal,
+        gcashReceiptUrl: _uploadedGcashReceiptDataUrl,
         orderDate: `${dateStr} • ${timeStr}`,
         customerNote: customerNote
     };
@@ -1174,6 +1467,12 @@ function submitOrderToBackend() {
                 const counter = document.getElementById('custOrderNoteCount');
                 if (counter) counter.textContent = '0 / 500';
             }
+            const refInput = document.getElementById('custGcashRefInput');
+            if (refInput) {
+                refInput.value = '';
+                handleGcashRefInput(refInput);
+            }
+            clearGcashReceipt();
             switchCustomerTab('myOrders');
         } else if (data) {
             alert("❌ Validation Error: " + (data.message || "Error submitting order."));
@@ -1229,7 +1528,7 @@ function fetchCustomerOrders() {
     })
     .catch(() => {
         const container = document.getElementById('customerOrderList');
-        if (container) container.innerHTML = `<div class="text-xs text-slate-500 py-6 text-center">Unable to load orders at this moment.</div>`;
+        if (container) container.innerHTML = `<div class="text-xs text-slate-800 py-6 text-center">Unable to load orders at this moment.</div>`;
     });
 }
 
@@ -1295,8 +1594,19 @@ function renderCustomerFilteredOrders() {
         return true;
     });
 
+    // APPLY TIMELINE SORTING (LATEST TO PREVIOUS OR PREVIOUS TO LATEST)
+    const custSortOrder = document.getElementById('custSortDropdown')?.value || 'latest';
+    filtered.sort((a, b) => {
+        const timeA = new Date(a.createdAt || a.timestamp || a.orderDate || 0).getTime();
+        const timeB = new Date(b.createdAt || b.timestamp || b.orderDate || 0).getTime();
+        if (custSortOrder === 'previous') {
+            return timeA - timeB; // Oldest first
+        }
+        return timeB - timeA; // Latest first (default)
+    });
+
     if (filtered.length === 0) {
-        container.innerHTML = `<div class="text-xs text-slate-400 py-12 text-center bg-slate-50/50 rounded-2xl border border-dashed border-slate-200 font-semibold">No active orders found under "${currentCustFilter}" filter.</div>`;
+        container.innerHTML = `<div class="text-xs text-slate-700 py-12 text-center bg-slate-50/50 rounded-2xl border border-dashed border-slate-200 font-semibold">No active orders found under "${currentCustFilter}" filter.</div>`;
         if (paginationContainer) paginationContainer.classList.add('hidden');
         return;
     }
@@ -1335,25 +1645,25 @@ function renderCustomerFilteredOrders() {
                 <div class="bg-white border-2 border-rose-100 rounded-2xl p-4 shadow-2xs space-y-3 hover:border-rose-200 transition">
                     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 border-b border-slate-100 pb-3">
                         <div class="flex items-center gap-2 flex-wrap">
-                            <span class="font-mono font-bold text-slate-900 text-xs">${o.id}</span>
+                            <span class="font-mono font-bold text-black text-xs">${o.id}</span>
                             ${serviceCategoryBadge}
-                            <span class="text-[10px] text-slate-400 font-medium">🕒 ${o.orderDate || 'Oct 05, 2026 • 09:52 AM'}</span>
+                            <span class="text-[10px] text-slate-700 font-medium">🕒 ${o.orderDate || 'Oct 05, 2026 • 09:52 AM'}</span>
                         </div>
                         <div class="flex items-center gap-2">
                             <span class="bg-rose-50 text-rose-700 border border-rose-200 px-3 py-0.5 rounded-full text-[10px] font-bold">
                                 ❌ ${o.status}
                             </span>
-                            <button onclick="deleteCustomerOrder('${o.id}')" class="text-slate-400 hover:text-rose-600 p-1.5 rounded-lg hover:bg-rose-50 transition cursor-pointer" title="Delete Order">
+                            <button onclick="deleteCustomerOrder('${o.id}')" class="text-slate-700 hover:text-rose-600 p-1.5 rounded-lg hover:bg-rose-50 transition cursor-pointer" title="Delete Order">
                                 <i class="fas fa-trash-alt text-xs"></i>
                             </button>
                         </div>
                     </div>
-                    <div class="flex justify-between items-center text-xs text-slate-600">
+                    <div class="flex justify-between items-center text-xs text-black">
                         <div>
-                            <div class="font-bold text-slate-800 text-xs">${o.service || 'Document Printing'}</div>
-                            <div class="text-[11px] text-slate-400">${properPaper} • ${properQty}</div>
+                            <div class="font-bold text-black text-xs">${o.service || 'Document Printing'}</div>
+                            <div class="text-[11px] text-slate-700">${properPaper} • ${properQty}</div>
                         </div>
-                        <div class="text-right font-mono font-extrabold text-slate-900 text-sm">${o.formattedTotal || ('₱ ' + parseFloat(o.total || 0).toFixed(2))}</div>
+                        <div class="text-right font-mono font-extrabold text-black text-sm">${o.formattedTotal || ('₱ ' + parseFloat(o.total || 0).toFixed(2))}</div>
                     </div>
                 </div>
             `;
@@ -1367,14 +1677,14 @@ function renderCustomerFilteredOrders() {
             const isCurrent = idx === currentIndex;
 
             let circleClass = "kcz-step-circle " + (isDone ? "kcz-step-circle-done" : "kcz-step-circle-pending");
-            if (isCurrent) circleClass += " ring-4 ring-blue-100 animate-pulse";
+            if (isCurrent) circleClass += " ring-4 ring-emerald-100 animate-pulse";
 
             return `
                 <div class="flex flex-col items-center flex-1 relative">
                     <div class="${circleClass}">
                         <i class="${st.icon}"></i>
                     </div>
-                    <span class="text-[10px] font-bold ${isDone ? 'text-blue-700' : 'text-slate-400'} pt-1.5 text-center">${st.label}</span>
+                    <span class="text-[10px] font-bold ${isDone ? 'text-emerald-700' : 'text-slate-700'} pt-1.5 text-center">${st.label}</span>
                 </div>
             `;
         }).join('');
@@ -1383,14 +1693,14 @@ function renderCustomerFilteredOrders() {
             <div class="kcz-card space-y-4">
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 border-b border-slate-100 pb-3">
                     <div class="flex items-center gap-2.5 flex-wrap">
-                        <span class="font-mono font-bold text-slate-900 text-xs bg-slate-100 px-2.5 py-1 rounded-lg">${o.id}</span>
+                        <span class="font-mono font-bold text-black text-xs bg-slate-100 px-2.5 py-1 rounded-lg">${o.id}</span>
                         ${serviceCategoryBadge}
                         <span class="${payBadgeClass}">${payIcon}</span>
-                        <span class="text-[11px] text-slate-400 font-medium ms-1"><i class="far fa-clock"></i> ${o.orderDate || 'Oct 05, 2026 • 09:52 AM'}</span>
+                        <span class="text-[11px] text-slate-700 font-medium ms-1"><i class="far fa-clock"></i> ${o.orderDate || 'Oct 05, 2026 • 09:52 AM'}</span>
                     </div>
                     <div class="flex items-center gap-3 self-end sm:self-auto">
                         <div class="text-right">
-                            <div class="font-mono font-black text-slate-900 text-base">${o.formattedTotal || ('₱ ' + parseFloat(o.total || 0).toFixed(2))}</div>
+                            <div class="font-mono font-black text-black text-base">${o.formattedTotal || ('₱ ' + parseFloat(o.total || 0).toFixed(2))}</div>
                         </div>
                         <button onclick="deleteCustomerOrder('${o.id}')" class="text-slate-300 hover:text-rose-600 p-1.5 rounded-lg hover:bg-rose-50 transition cursor-pointer ms-1" title="Delete Order">
                             <i class="fas fa-trash-alt text-xs"></i>
@@ -1400,17 +1710,22 @@ function renderCustomerFilteredOrders() {
 
                 <div class="flex justify-between items-center text-xs">
                     <div>
-                        <div class="font-bold text-slate-900 text-sm">${o.service || 'Document Printing'}</div>
-                        <div class="text-[11px] text-slate-500 pt-0.5">${properPaper} • <span class="font-bold text-fuchsia-600">${properQty}</span> • <span class="font-semibold text-slate-600">${o.file || 'Document.pdf'}</span></div>
+                        <div class="font-bold text-black text-sm">${o.service || 'Document Printing'}</div>
+                        <div class="text-[11px] text-slate-800 pt-0.5">${properPaper} • <span class="font-bold text-fuchsia-600">${properQty}</span> • <span class="font-semibold text-black">${o.file || 'Document.pdf'}</span></div>
+                        ${o.gcashRef ? `
+                            <div class="mt-1 inline-flex items-center gap-1.5 px-2 py-0.5 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-800 text-[10px] font-mono font-bold">
+                                <i class="fas fa-receipt text-emerald-600"></i> Ref: ${escapeHtml(o.gcashRef)}
+                            </div>
+                        ` : ''}
                     </div>
                 </div>
 
                 ${(o.customerNote || o.note) ? `
-                    <div class="bg-amber-50/70 border border-amber-200/80 rounded-xl p-3 text-xs text-slate-800">
+                    <div class="bg-amber-50/70 border border-amber-200/80 rounded-xl p-3 text-xs text-black">
                         <div class="font-bold text-amber-800 uppercase tracking-wider text-[10px] flex items-center gap-1.5 mb-1">
                             <i class="fas fa-sticky-note text-amber-600"></i> Special Instructions:
                         </div>
-                        <p class="whitespace-pre-wrap font-medium text-[11px] text-slate-700 leading-relaxed">${escapeHtml(o.customerNote || o.note)}</p>
+                        <p class="whitespace-pre-wrap font-medium text-[11px] text-black leading-relaxed">${escapeHtml(o.customerNote || o.note)}</p>
                     </div>
                 ` : ''}
 
@@ -1432,20 +1747,20 @@ function renderCustomerFilteredOrders() {
         for (let i = 1; i <= totalPages; i++) {
             const isActive = i === currentCustPage;
             paginationBtns += `
-                <button onclick="changeCustPage(${i})" class="w-8 h-8 rounded-xl text-xs font-bold transition ${isActive ? 'bg-blue-600 text-white' : 'bg-slate-100 hover:bg-slate-200 text-slate-700'}">${i}</button>
+                <button onclick="changeCustPage(${i})" class="w-8 h-8 rounded-xl text-xs font-bold transition ${isActive ? 'bg-emerald-600 text-white' : 'bg-slate-100 hover:bg-slate-200 text-black'}">${i}</button>
             `;
         }
 
         paginationContainer.innerHTML = `
             <span>
-                Showing <strong class="text-slate-800">${startIndex + 1}</strong> to <strong class="text-slate-800">${Math.min(startIndex + custPageSize, filtered.length)}</strong> of <strong class="text-slate-800">${filtered.length}</strong> orders
+                Showing <strong class="text-black">${startIndex + 1}</strong> to <strong class="text-black">${Math.min(startIndex + custPageSize, filtered.length)}</strong> of <strong class="text-black">${filtered.length}</strong> orders
             </span>
             <div class="flex items-center gap-1.5">
-                <button onclick="changeCustPage(${currentCustPage - 1})" ${currentCustPage === 1 ? 'disabled' : ''} class="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 disabled:opacity-40 disabled:hover:bg-slate-100 text-slate-700 font-bold transition text-xs">
+                <button onclick="changeCustPage(${currentCustPage - 1})" ${currentCustPage === 1 ? 'disabled' : ''} class="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 disabled:opacity-40 disabled:hover:bg-slate-100 text-black font-bold transition text-xs">
                     <i class="fas fa-chevron-left text-[10px] mr-1"></i> Prev
                 </button>
                 ${paginationBtns}
-                <button onclick="changeCustPage(${currentCustPage + 1})" ${currentCustPage === totalPages ? 'disabled' : ''} class="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 disabled:opacity-40 disabled:hover:bg-slate-100 text-slate-700 font-bold transition text-xs">
+                <button onclick="changeCustPage(${currentCustPage + 1})" ${currentCustPage === totalPages ? 'disabled' : ''} class="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 disabled:opacity-40 disabled:hover:bg-slate-100 text-black font-bold transition text-xs">
                     Next <i class="fas fa-chevron-right text-[10px] ml-1"></i>
                 </button>
             </div>
@@ -1489,7 +1804,7 @@ function fetchCustomerChatMessages(scrollToBottom = false) {
     loadCustomerMessages(scrollToBottom || true);
     customerChatPollingTimer = setInterval(() => {
         loadCustomerMessages(false);
-    }, 2500);
+    }, 5000);
 }
 
 function loadCustomerMessages(scrollToBottom = false) {
@@ -1517,12 +1832,12 @@ function loadCustomerMessages(scrollToBottom = false) {
 
             if (msgs.length === 0) {
                 thread.innerHTML = `
-                    <div class="text-center text-slate-400 py-16 text-xs flex flex-col items-center gap-2">
-                        <div class="w-12 h-12 rounded-full bg-blue-50 text-blue-500 flex items-center justify-center text-xl shadow-xs">
+                    <div class="text-center text-slate-700 py-16 text-xs flex flex-col items-center gap-2">
+                        <div class="w-12 h-12 rounded-full bg-emerald-50 text-emerald-500 flex items-center justify-center text-xl shadow-xs">
                             💬
                         </div>
-                        <span class="font-bold text-slate-600">Mag-iwan ng mensahe para sa aming staff!</span>
-                        <span class="text-slate-400 text-[11px] max-w-xs">I-type ang inyong katanungan patungkol sa inyong print job, sizes, o payment methods.</span>
+                        <span class="font-bold text-black">Mag-iwan ng mensahe para sa aming staff!</span>
+                        <span class="text-slate-700 text-[11px] max-w-xs">I-type ang inyong katanungan patungkol sa inyong print job, sizes, o payment methods.</span>
                     </div>
                 `;
                 return;
@@ -1536,7 +1851,7 @@ function loadCustomerMessages(scrollToBottom = false) {
                 return `
                     <div class="flex items-end gap-2 ${isCust ? 'justify-end' : 'justify-start'} group">
                         ${!isCust ? `
-                            <div class="w-7 h-7 rounded-full bg-blue-600 text-white font-bold text-[10px] flex items-center justify-center flex-shrink-0 shadow-2xs">
+                            <div class="w-7 h-7 rounded-full bg-emerald-600 text-white font-bold text-[10px] flex items-center justify-center flex-shrink-0 shadow-2xs">
                                 KZ
                             </div>
                         ` : ''}
@@ -1544,16 +1859,16 @@ function loadCustomerMessages(scrollToBottom = false) {
                         <div class="max-w-[80%] sm:max-w-[70%] flex flex-col ${isCust ? 'items-end' : 'items-start'}">
                             <div class="p-3 text-xs leading-relaxed whitespace-pre-wrap break-words shadow-2xs ${
                                 isCust
-                                    ? 'bg-blue-600 text-white rounded-2xl rounded-br-xs'
-                                    : 'bg-[#0f172a] border border-slate-700/80 text-slate-100 rounded-2xl rounded-bl-xs'
+                                    ? 'bg-emerald-600 text-white font-medium rounded-2xl rounded-br-xs shadow-xs'
+                                    : 'bg-white border border-slate-200 text-black font-medium rounded-2xl rounded-bl-xs shadow-2xs'
                             }">
                                 ${escapeHtml(m.message || m.text || '')}
                             </div>
-                            <div class="flex items-center gap-1.5 px-1 pt-0.5 text-[10px] text-slate-400">
+                            <div class="flex items-center gap-1.5 px-1 pt-0.5 text-[10px] text-slate-700">
                                 <span>${timeText}</span>
                                 ${isCust ? `
                                     <span>•</span>
-                                    <span class="${isSeen ? 'text-blue-600 font-bold' : 'text-slate-400'}">
+                                    <span class="${isSeen ? 'text-emerald-600 font-bold' : 'text-slate-700'}">
                                         ${isSeen ? 'Seen' : 'Delivered'}
                                     </span>
                                 ` : ''}
@@ -1600,13 +1915,13 @@ function sendCustomerChatMessage() {
         tempBubble.className = 'flex items-end justify-end gap-2 group';
         tempBubble.innerHTML = `
             <div class="max-w-[80%] sm:max-w-[70%] flex flex-col items-end">
-                <div class="p-3 text-xs leading-relaxed whitespace-pre-wrap break-words shadow-2xs bg-blue-600 text-white rounded-2xl rounded-br-xs">
+                <div class="p-3 text-xs leading-relaxed whitespace-pre-wrap break-words shadow-xs bg-emerald-600 text-white font-medium rounded-2xl rounded-br-xs">
                     ${escapeHtml(text)}
                 </div>
-                <div class="flex items-center gap-1.5 px-1 pt-0.5 text-[10px] text-slate-400">
+                <div class="flex items-center gap-1.5 px-1 pt-0.5 text-[10px] text-slate-700">
                     <span>Just now</span>
                     <span>•</span>
-                    <span class="text-blue-400">Sending...</span>
+                    <span class="text-emerald-400">Sending...</span>
                 </div>
             </div>
         `;
@@ -1634,9 +1949,9 @@ function sendCustomerChatMessage() {
         if (data && data.success) {
             const tempEl = document.getElementById(tempMsgId);
             if (tempEl) {
-                const span = tempEl.querySelector('.text-blue-400');
+                const span = tempEl.querySelector('.text-emerald-400');
                 if (span) {
-                    span.className = 'text-slate-400';
+                    span.className = 'text-slate-700';
                     span.textContent = 'Delivered';
                 }
             }
@@ -1672,5 +1987,6 @@ function simulateRfidTapAction() {
         }
     });
 }
+
 </script>
 {% endblock %}
