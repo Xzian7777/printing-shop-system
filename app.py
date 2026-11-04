@@ -5,7 +5,7 @@ from firebase_config import (
     get_customers, create_customer, get_customer_profile, save_customer_profile,
     create_firebase_customer, delete_firebase_customer,
     update_firebase_password, get_firebase_user_by_email,
-    get_store_products, save_store_products, get_inventory,
+    get_store_products, save_store_products, delete_store_product, get_inventory,
     get_sample_products, save_sample_product, delete_sample_product,
     get_services, save_service, delete_service,
     get_gcash_settings, save_gcash_settings,
@@ -2044,16 +2044,16 @@ def delete_store_product_endpoint(product_id):
     try:
         current_products = get_store_products()
         target_prod = None
-        new_list = []
         for p in current_products:
             if str(p.get('id')) == str(product_id):
                 target_prod = p
-            else:
-                new_list.append(p)
-        
+                break
+
         if target_prod:
             archive_item('store_product', product_id, target_prod, 'admin_store')
-        save_store_products(new_list)
+
+        # Delete document from active store collections so it does not reappear on refresh
+        delete_store_product(product_id)
         return jsonify({'success': True, 'message': 'In-store product moved to Archive successfully.'}), 200
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
