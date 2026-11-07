@@ -1,0 +1,12 @@
+...............ssss.............sss...ssss...sssssss.s........s.......sssss.......firebase_config.py:1114: DeprecationWarning: Message.token is deprecated. Use Message.fid instead.
+  msg = messaging.Message(
+...........
+----------------------------------------------------------------------
+Ran 93 tests in 2.127s
+
+OK (skipped=25)
+Error archiving: Item is missing or already archived.
+Error updating order status: Invalid status transition
+Error saving products: Product has been archived. Refresh inventory.
+Error updating order status: Invalid status transition
+Push send warning: RuntimeError

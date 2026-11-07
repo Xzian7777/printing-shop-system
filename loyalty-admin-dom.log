@@ -1,0 +1,237 @@
+<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>body{width:320px;font-family:Arial;margin:8px;background:#f7fcf9}*{box-sizing:border-box}.loyalty-panel,.loyalty-selector{color:#172d22;background:#fff;border:1px solid #b9e6cb;border-radius:16px;padding:18px;text-align:left;margin:12px 0}
+.loyalty-panel h2{font-size:20px;font-weight:800}.loyalty-panel h3{font-size:16px;font-weight:700;margin:16px 0 10px}.loyalty-panel p,.loyalty-selector p{font-size:13px;line-height:1.6;color:#486354}
+.loyalty-heading,.loyalty-actions{display:flex;gap:10px;justify-content:space-between;align-items:center;flex-wrap:wrap}.loyalty-panel button,.loyalty-selector button{border:1px solid #b9e6cb;border-radius:10px;padding:9px 13px;color:#14532d;background:#f0fdf4;font-weight:700;cursor:pointer}.loyalty-panel button:disabled{opacity:.5;cursor:wait}
+.loyalty-panel label,.loyalty-selector label{display:block;font-size:13px;font-weight:600;margin:9px 0}.loyalty-panel input:not([type=checkbox]),.loyalty-panel select,.loyalty-panel textarea,.loyalty-selector input[type=number]{display:block;width:100%;padding:10px;border:1px solid #b9ccbf;border-radius:9px;background:#fff;color:#172d22;margin-top:5px;box-sizing:border-box}
+.loyalty-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(220px,100%),1fr));gap:12px}.loyalty-card{border:1px solid #d5e6dc;border-radius:12px;padding:14px;overflow-wrap:anywhere}.loyalty-card strong{font-size:15px}.loyalty-panel .loyalty-check{display:flex;gap:8px;align-items:center}.loyalty-panel form{background:#f7fcf9;padding:14px;border-radius:12px;margin:12px 0}.loyalty-panel [hidden]{display:none!important}#loyaltyError{color:#be123c}.loyalty-summary{font-size:24px;font-weight:800;color:#15803d}.loyalty-selector{background:#f0fdf4;font-size:13px}.loyalty-selector strong{display:block;color:#14532d;margin-top:5px}.loyalty-history-row{border-bottom:1px solid #e2e8e5;padding:10px 0;font-size:13px}
+</style></head><body data-loyalty-account="test"><section id="loyaltyPanel" class="loyalty-panel" data-admin="true">
+  <div class="loyalty-heading"><div><h2>Rewards Management</h2><p>Earn 1 point per paid completed order · up to 50% points discount</p></div><button type="button" onclick="Loyalty.loadPanel()">Refresh</button></div>
+  <p id="loyaltyError" role="alert"></p>
+  <div id="loyaltyBalance"></div>
+  <div id="loyaltyPending"></div>
+  
+  <form id="loyaltyRateForm"><label>Peso value of one point <input id="loyaltyRate" type="number" min="0.01" max="1000" step="0.01" required=""></label><button>Save conversion</button></form>
+  <button type="button" onclick="Loyalty.editReward()">Add reward</button>
+  <form id="loyaltyRewardForm">
+    <h3>Reward details</h3><input id="rewardId" type="hidden" value="">
+    <label>Catalog product or service <select id="rewardCatalog" required="" onchange="Loyalty.packageFields()"><option value="product/p1">Notebook (product)</option></select></label>
+    <label>Reward name <input id="rewardName" maxlength="100" required=""></label>
+    <label>Description <textarea id="rewardDescription" maxlength="500" rows="3"></textarea></label>
+    <div class="loyalty-grid"><label>Points cost <input id="rewardCost" type="number" min="1" max="1000000" step="1" required=""></label><label>Quantity <input id="rewardQuantity" type="number" min="1" max="100000" step="1" value="1" required=""></label><label>Pages per service package <input id="rewardPages" type="number" min="1" max="5000" step="1" value="1" required=""></label></div>
+    <div id="rewardRequirements"></div>
+    <label class="loyalty-check"><input id="rewardActive" type="checkbox" checked="">Available for redemption</label>
+    <div class="loyalty-actions"><button type="submit">Save reward</button><button type="button" onclick="document.getElementById('loyaltyRewardForm').hidden=true">Cancel</button></div>
+  </form>
+  
+  <h3>Rewards catalog</h3><div id="loyaltyRewards" class="loyalty-grid"><article class="loyalty-card"><strong>Free notebook</strong><p>One notebook from our store supplies.</p><p>1 unit(s) · 25 points</p><button type="button">Edit reward</button></article></div>
+  
+</section><pre style="font-size:9px;white-space:pre-wrap;overflow-wrap:anywhere" id="qa">{"overflow":false,"cards":1,"error":""}</pre><script>window.fetch=async()=>({ok:true,status:200,json:async()=>({"success": true, "uid": "u1", "balance": 120, "reserved": 20, "available": 100, "pointValueCents": 100, "events": [{"type": "earn", "points": 1, "orderId": "PRNT-123456", "createdAt": "Nov 8, 2026"}], "rewards": [{"id": "r1", "name": "Free notebook", "description": "One notebook from our store supplies.", "kind": "product", "catalogId": "p1", "pointsCost": 25, "quantity": 1, "active": true, "updatedAt": "v1"}], "settings": {"pointValueCents": 100}, "products": [{"id": "p1", "name": "Notebook", "price": 19}], "services": []})});</script><script>const Loyalty = {
+    account: null, rewards: [], catalog: [], selectors: new Map(),
+    pendingKey: 'kcz-loyalty-' + (document.body.dataset.loyaltyAccount || 'guest'),
+    id() { return crypto.randomUUID().replaceAll('-', ''); },
+    text(value) { return String(value ?? '').replace(/[&<>"']/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char])); },
+    money(value) { return new Intl.NumberFormat('en-PH', {style:'currency',currency:'PHP'}).format(Number(value || 0)); },
+    async api(path, data, method = 'POST') {
+        const response = await fetch(path, data === undefined ? {} : {method, headers:{'Content-Type':'application/json'}, body:JSON.stringify(data)});
+        const result = await response.json();
+        if (!response.ok || !result.success) throw Error(result.message || 'The shop server is unavailable.');
+        return result;
+    },
+    async balance() {
+        this.account = await this.api('/api/loyalty/me');
+        for (const selector of this.selectors.values()) selector.update();
+        for (const id of ['rfidPointsText', 'headerRfidPoints']) {
+            const element = document.getElementById(id);
+            if (element) element.textContent = `${this.account.available} PTS`;
+        }
+        return this.account;
+    },
+    selector(element, subtotal) {
+        element.className = 'loyalty-selector';
+        element.innerHTML = '<label><input type="checkbox" data-enable> Use Points</label><p data-balance>Loading points…</p><input type="number" min="0" step="1" value="0" data-points aria-label="Points to use" disabled><p data-breakdown></p><strong data-payable></strong>';
+        const state = {points:0, discount:0, update: () => {
+            const total = Math.max(0, Number(subtotal()) || 0);
+            const rate = this.account?.pointValueCents || 100;
+            const maximum = Math.max(0, Math.min(this.account?.available || 0, Math.floor(Math.round(total*100)/(2*rate))));
+            const enabled = element.querySelector('[data-enable]');
+            const input = element.querySelector('[data-points]');
+            enabled.disabled = !this.account || maximum === 0;
+            input.disabled = !enabled.checked || enabled.disabled;
+            input.max = maximum;
+            input.value = Math.min(maximum, Math.max(0, Math.floor(Number(input.value)||0)));
+            state.points = enabled.checked && !enabled.disabled ? Number(input.value) : 0;
+            state.discount = state.points*rate/100;
+            element.querySelector('[data-balance]').textContent = this.account ? `${this.account.available} available · maximum ${maximum} points` : 'Points unavailable. Refresh after checking the server connection.';
+            element.querySelector('[data-breakdown]').textContent = `Subtotal ${this.money(total)} · Discount ${this.money(state.discount)} · Remaining points ${(this.account?.available||0)-state.points}`;
+            element.querySelector('[data-payable]').textContent = `To pay ${this.money(total-state.discount)}`;
+        }};
+        element.addEventListener('input', state.update);
+        this.selectors.set(element.id, state); state.update();
+        return state;
+    },
+    async submitOrder(payload, selectorId) {
+        const selector = this.selectors.get(selectorId);
+        selector?.update();
+        payload.pointsUsed = selector?.points || 0;
+        if (!payload.pointsUsed && !payload.rewardId) return fetch('/api/orders', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload)});
+        const previous = localStorage.getItem(this.pendingKey);
+        if (previous) throw Error('A previous checkout needs confirmation. Open My Rewards and retry it first.');
+        payload.submissionId ||= this.id();
+        payload.expectedDiscount = selector?.discount || 0;
+        localStorage.setItem(this.pendingKey, JSON.stringify(payload));
+        return this.sendPending(payload);
+    },
+    async sendPending(payload) {
+        const response = await fetch('/api/loyalty/orders', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload)});
+        const result = await response.clone().json();
+        if (result.success || [400,409].includes(response.status)) localStorage.removeItem(this.pendingKey);
+        return response;
+    },
+    async retry() {
+        try {
+            const payload = JSON.parse(localStorage.getItem(this.pendingKey) || 'null');
+            if (!payload) return;
+            const response = await this.sendPending(payload);
+            const result = await response.json();
+            if (!response.ok || !result.success) throw Error(result.message || 'Retry the same request.');
+            alert(`Order ${result.orderId} confirmed.`); await this.loadPanel();
+        } catch (error) { this.error(error.message); }
+    },
+    error(message = '') { const node = document.getElementById('loyaltyError'); if (node) node.textContent = message; },
+    async loadPanel() {
+        const panel = document.getElementById('loyaltyPanel');
+        if (!panel) return;
+        this.error();
+        try {
+            const admin = panel.dataset.admin === 'true';
+            const data = await this.api(admin ? '/api/admin/loyalty/rewards' : '/api/loyalty/rewards');
+            this.rewards = data.rewards;
+            if (admin) {
+                const settings = await this.api('/api/admin/loyalty/settings');
+                document.getElementById('loyaltyRate').value = settings.settings.pointValueCents/100;
+            } else {
+                const account = await this.balance();
+                document.getElementById('loyaltyBalance').innerHTML = `<div class="loyalty-summary">${account.available} available points</div><p>${account.reserved} reserved · ${account.balance} total</p>`;
+                document.getElementById('loyaltyPending').innerHTML = localStorage.getItem(this.pendingKey) ? '<p>A saved checkout needs confirmation.</p><button type="button" onclick="Loyalty.retry()">Retry saved checkout</button>' : '';
+                document.getElementById('loyaltyHistory').innerHTML = account.events.map(event => `<div class="loyalty-history-row"><strong>${this.text(event.type)} · ${event.points} point(s)</strong><p>${this.text(event.orderId)} · ${this.text(event.createdAt)}</p></div>`).join('') || '<p>No points history yet.</p>';
+            }
+            const grid = document.getElementById('loyaltyRewards');
+            grid.innerHTML = '';
+            for (const reward of this.rewards) {
+                const card = document.createElement('article'); card.className = 'loyalty-card';
+                card.innerHTML = `<strong>${this.text(reward.name)}</strong><p>${this.text(reward.description)}</p><p>${reward.quantity} unit(s) · ${reward.pointsCost} points${reward.active ? '' : ' · Disabled'}</p>`;
+                const button = document.createElement('button'); button.type = 'button'; button.textContent = admin ? 'Edit reward' : 'Redeem reward';
+                button.onclick = () => admin ? this.editReward(reward) : this.claim(reward, button);
+                card.append(button); grid.append(card);
+            }
+            if (!this.rewards.length) grid.textContent = 'No rewards available yet.';
+        } catch (error) { this.error(error.message); }
+    },
+    async claim(reward, button) {
+        if (!confirm(`Reserve ${reward.pointsCost} points for ${reward.name}? This creates a separate reward order.`)) return;
+        button.disabled = true;
+        try {
+            const payload = {submissionId:this.id(), rewardId:reward.id, rewardVersion:reward.updatedAt, pointsUsed:0};
+            if (reward.kind === 'service') {
+                const file = await new Promise(resolve => {
+                    const input = document.createElement('input'); input.type = 'file';
+                    input.onchange = () => resolve(input.files?.[0]); input.oncancel = () => resolve(null); input.click();
+                });
+                if (!file) return;
+                const form = new FormData(); form.append('file', file);
+                const response = await fetch('/api/upload', {method:'POST', body:form});
+                const uploaded = await response.json();
+                if (!response.ok || !uploaded.success) throw Error(uploaded.message || 'Upload failed.');
+                const first = uploaded.files?.[0] || uploaded;
+                Object.assign(payload, {file:file.name, fileUrl:first.fileUrl, storagePath:first.storagePath});
+            }
+            const response = await this.submitOrder(payload);
+            const result = await response.json();
+            if (!response.ok || !result.success) throw Error(result.message || 'Unable to redeem.');
+            alert(`Reward order ${result.orderId} submitted.`); await this.loadPanel();
+        } catch (error) { this.error(error.message); }
+        finally { button.disabled = false; }
+    },
+    async editReward(reward) {
+        try {
+            const data = await this.api('/api/admin/loyalty/catalog');
+            this.catalog = [...data.products.map(row => ({...row,kind:'product'})), ...data.services.map(row => ({...row,kind:'service'}))];
+            document.getElementById('loyaltyRewardForm').hidden = false;
+            const select = document.getElementById('rewardCatalog'); select.innerHTML = '';
+            for (const row of this.catalog) { const option = document.createElement('option'); option.value = `${row.kind}/${row.id}`; option.textContent = `${row.name} (${row.kind})`; select.append(option); }
+            document.getElementById('rewardId').value = reward?.id || '';
+            for (const [id, value] of Object.entries({rewardName:reward?.name || '', rewardDescription:reward?.description || '', rewardCost:reward?.pointsCost || '', rewardQuantity:reward?.quantity || 1, rewardPages:reward?.pages || 1})) document.getElementById(id).value = value;
+            document.getElementById('rewardActive').checked = reward ? reward.active : true;
+            if (reward) select.value = `${reward.kind}/${reward.catalogId}`;
+            this.packageFields(reward);
+        } catch (error) { this.error(error.message); }
+    },
+    packageFields(reward) {
+        const key = document.getElementById('rewardCatalog').value;
+        const service = this.catalog.find(row => `${row.kind}/${row.id}` === key);
+        const container = document.getElementById('rewardRequirements'); container.replaceChildren();
+        if (service?.kind !== 'service') return;
+        if (service.id === 'tarpaulins') {
+            const dimensions = (reward?.specifications?.dimensions || '').replaceAll('ft','').split('x');
+            container.innerHTML = `<label>Width in feet<input data-width type="number" min="0.01" max="100" step="0.01" value="${this.text(dimensions[0]?.trim())}" required></label><label>Height in feet<input data-height type="number" min="0.01" max="100" step="0.01" value="${this.text(dimensions[1]?.trim())}" required></label>`;
+        }
+        for (const req of service.requirements || []) {
+            const label = document.createElement('label'); label.textContent = req.label;
+            const options = Array.isArray(req.options) ? req.options : String(req.options || '').split(',').filter(Boolean);
+            const input = document.createElement(options.length ? 'select' : 'input');
+            input.dataset.requirement = req.label; input.required = req.required !== false;
+            if (options.length) {
+                input.multiple = req.type === 'checkboxes';
+                for (const value of options) { const option = document.createElement('option'); option.value = value; option.textContent = value; input.append(option); }
+                const value = reward?.requirements?.[req.label];
+                for (const option of input.options) option.selected = Array.isArray(value) ? value.includes(option.value) : value === option.value;
+            } else {
+                input.type = req.type === 'number' ? 'number' : 'text'; input.maxLength = 150;
+                if (input.type === 'number') { input.min=1; input.max=100000; input.step=1; }
+                input.value = reward?.requirements?.[req.label] || '';
+            }
+            label.append(input); container.append(label);
+        }
+    },
+    async saveReward(event) {
+        event.preventDefault(); this.error();
+        const form = event.currentTarget, button = form.querySelector('button[type=submit]'); button.disabled = true;
+        try {
+            const key = document.getElementById('rewardCatalog').value, split = key.indexOf('/');
+            const requirements = {};
+            for (const input of form.querySelectorAll('[data-requirement]')) requirements[input.dataset.requirement] = input.multiple ? [...input.selectedOptions].map(option => option.value) : input.value;
+            const specifications = {};
+            if (form.querySelector('[data-width]')) specifications.dimensions = `${form.querySelector('[data-width]').value}ft x ${form.querySelector('[data-height]').value}ft`;
+            const payload = {kind:key.slice(0,split), catalogId:key.slice(split+1), name:document.getElementById('rewardName').value, description:document.getElementById('rewardDescription').value,
+                pointsCost:document.getElementById('rewardCost').value, quantity:document.getElementById('rewardQuantity').value, pages:document.getElementById('rewardPages').value,
+                active:document.getElementById('rewardActive').checked, requirements, specifications};
+            const id = document.getElementById('rewardId').value;
+            await this.api('/api/admin/loyalty/rewards' + (id ? `/${id}` : ''), payload, id ? 'PUT' : 'POST');
+            form.hidden = true; await this.loadPanel();
+        } catch (error) { this.error(error.message); }
+        finally { button.disabled = false; }
+    },
+};
+document.addEventListener('DOMContentLoaded', () => {
+    const order = document.getElementById('orderPoints'), store = document.getElementById('storePoints');
+    if (order) {
+        const source = document.getElementById('custCalculatedTotal');
+        const state = Loyalty.selector(order, () => Number(source.textContent.replace(/[^0-9.]/g,'')));
+        new MutationObserver(state.update).observe(source, {childList:true,subtree:true,characterData:true});
+    }
+    if (store) {
+        const source = document.getElementById('cartSubtotalAmount');
+        const state = Loyalty.selector(store, () => Number(source.textContent.replace(/[^0-9.]/g,'')));
+        new MutationObserver(state.update).observe(source, {childList:true,subtree:true,characterData:true});
+    }
+    if (order || store) Loyalty.balance().catch(() => {});
+    Loyalty.loadPanel();
+    if (document.getElementById('headerRfidPoints')) Loyalty.balance().catch(() => {});
+    if (order || store || document.getElementById('headerRfidPoints')) setInterval(() => Loyalty.balance().catch(() => {}), 30000);
+    document.getElementById('loyaltyRewardForm')?.addEventListener('submit', event => Loyalty.saveReward(event));
+    document.getElementById('loyaltyRateForm')?.addEventListener('submit', async event => {
+        event.preventDefault();
+        try { await Loyalty.api('/api/admin/loyalty/settings', {pointValue:document.getElementById('loyaltyRate').value}, 'PUT'); await Loyalty.loadPanel(); }
+        catch (error) { Loyalty.error(error.message); }
+    });
+});
+</script><script>setTimeout(async()=>{if(document.getElementById('loyaltyRewardForm')) await Loyalty.editReward();document.getElementById('qa').textContent=JSON.stringify({overflow:document.documentElement.scrollWidth>innerWidth,cards:document.querySelectorAll('.loyalty-card').length,error:document.getElementById('loyaltyError').textContent});},500);</script></body></html>

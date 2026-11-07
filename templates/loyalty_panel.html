@@ -1,0 +1,22 @@
+<section id="loyaltyPanel" class="loyalty-panel" data-admin="{{ 'true' if session.get('role') == 'admin' else 'false' }}">
+  <div class="loyalty-heading"><div><h2>{{ 'Rewards Management' if session.get('role') == 'admin' else 'My Rewards' }}</h2><p>Earn 1 point per paid completed order · up to 50% points discount</p></div><button type="button" onclick="Loyalty.loadPanel()">Refresh</button></div>
+  <p id="loyaltyError" role="alert"></p>
+  <div id="loyaltyBalance"></div>
+  <div id="loyaltyPending"></div>
+  {% if session.get('role') == 'admin' %}
+  <form id="loyaltyRateForm"><label>Peso value of one point <input id="loyaltyRate" type="number" min="0.01" max="1000" step="0.01" required></label><button>Save conversion</button></form>
+  <button type="button" onclick="Loyalty.editReward()">Add reward</button>
+  <form id="loyaltyRewardForm" hidden>
+    <h3>Reward details</h3><input id="rewardId" type="hidden">
+    <label>Catalog product or service <select id="rewardCatalog" required onchange="Loyalty.packageFields()"></select></label>
+    <label>Reward name <input id="rewardName" maxlength="100" required></label>
+    <label>Description <textarea id="rewardDescription" maxlength="500" rows="3"></textarea></label>
+    <div class="loyalty-grid"><label>Points cost <input id="rewardCost" type="number" min="1" max="1000000" step="1" required></label><label>Quantity <input id="rewardQuantity" type="number" min="1" max="100000" step="1" value="1" required></label><label>Pages per service package <input id="rewardPages" type="number" min="1" max="5000" step="1" value="1" required></label></div>
+    <div id="rewardRequirements"></div>
+    <label class="loyalty-check"><input id="rewardActive" type="checkbox" checked>Available for redemption</label>
+    <div class="loyalty-actions"><button type="submit">Save reward</button><button type="button" onclick="document.getElementById('loyaltyRewardForm').hidden=true">Cancel</button></div>
+  </form>
+  {% endif %}
+  <h3>Rewards catalog</h3><div id="loyaltyRewards" class="loyalty-grid"></div>
+  {% if session.get('role') != 'admin' %}<h3>Points history</h3><div id="loyaltyHistory"></div>{% endif %}
+</section>

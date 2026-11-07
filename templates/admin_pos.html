@@ -1,0 +1,34 @@
+<section id="adminTabSection-pos" class="admin-tab-content hidden pos-screen">
+  <div class="pos-heading"><div><h2>Point of Sale</h2><p>Counter sales · products and printing services</p></div><button type="button" onclick="Pos.load()">Refresh catalog</button></div>
+  <p id="posError" class="pos-error" role="alert"></p>
+  <div class="pos-layout">
+    <div class="pos-panel">
+      <div class="pos-search"><input id="posSearch" type="search" placeholder="Search products or services" oninput="Pos.renderCatalog()"><select id="posCategory" onchange="Pos.renderCatalog()"><option value="all">All items</option><option value="product">Store products</option><option value="service">Printing services</option></select></div>
+      <div id="posCatalog" class="pos-catalog"><p>Open POS to load the catalog.</p></div>
+    </div>
+    <div class="pos-panel">
+      <form id="posSaleForm" onsubmit="event.preventDefault(); Pos.submit()">
+        <fieldset id="posFields">
+          <div class="loyalty-selector">
+            <label>Customer account search <input id="posCustomerSearch" placeholder="Name, email or RFID"></label>
+            <button type="button" onclick="Pos.searchCustomer()">Search account</button>
+            <select id="posCustomerSelect" onchange="Pos.linkCustomer(this.value)"><option value="">Guest · no points</option></select>
+            <p id="posCustomerNotice">Guest purchases earn no points.</p>
+            <label>Free reward claim <select id="posReward" onchange="Pos.selectReward(this.value)"><option value="">Regular purchase</option></select></label>
+          </div>
+          <label>Buyer name <input id="posBuyer" maxlength="100" placeholder="Walk-in Customer"></label>
+          <div id="posItems" class="pos-items"></div>
+          <p class="pos-help">For services, enter the agreed unit price and job details before completing the sale.</p>
+          <div class="pos-total"><span>Total</span><strong id="posTotal">₱0.00</strong></div>
+          <div id="posPoints"></div>
+          <label>Payment method <select id="posPayment" onchange="Pos.paymentChanged()"><option>Cash</option><option>GCash</option></select></label>
+          <div id="posCashFields"><label>Cash received <input id="posCash" type="number" min="0" max="5000000" step="0.01" inputmode="decimal" oninput="Pos.renderTotal()"></label><div class="pos-total"><span>Change</span><strong id="posChange">₱0.00</strong></div></div>
+          <div id="posGcashFields" hidden><label>GCash reference number <input id="posReference" inputmode="numeric" maxlength="16" pattern="[0-9]{8,16}" oninput="this.value=this.value.replace(/[^0-9]/g,'')"></label><label class="pos-confirm"><input id="posConfirmed" type="checkbox">GCash payment received</label></div>
+        </fieldset>
+        <button id="posComplete" type="submit" class="pos-primary">Complete sale</button>
+      </form>
+      <div id="posReceipt" hidden></div>
+    </div>
+  </div>
+  <div class="pos-panel"><h3>Recent counter sales</h3><div id="posHistory" class="pos-history"></div></div>
+</section>

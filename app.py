@@ -1,3 +1,6 @@
+import uuid
+from catalog_rules import validate_requirements
+from payment_rules import validate_payment, validate_merchant, validate_receipt
 from flask import Flask, render_template, request, jsonify, session, redirect, url_for
 from functools import wraps
 from firebase_config import (
@@ -34,6 +37,16 @@ app = Flask(__name__)
 app.secret_key = "printingshop_secret_key"
 # Allow up to 30 MB per request (25 MB combined upload limit + multipart overhead)
 app.config['MAX_CONTENT_LENGTH'] = 30 * 1024 * 1024
+
+from loyalty_api import register_loyalty_routes
+
+
+@app.before_request
+def ensure_push_delivery():
+    from push_worker import start_push_worker
+    start_push_worker(db, send_fcm_push_notification)
+
+register_loyalty_routes(app)
 
 # ---------------------------------------------------------------------------
 # ADMIN ACCOUNT CREDENTIALS
@@ -1015,7 +1028,10 @@ def handle_users():
                             "email": c.get('email', 'N/A'),
                             "phone": c.get('contact') or c.get('phone', 'N/A'),
                             "dateJoined": c.get('regDate') or c.get('created_at') or 'Oct 01, 2026',
-                            "role": c.get('role', 'customer')
+                            "role": c.get('role', 'customer'),
+                            "rfidUid": c.get("rfidUid", ""),
+                            "points": c.get("points", c.get("loyaltyPoints", 0)),
+                            "lastTap": c.get("lastTap", "")
                         })
             elif isinstance(customers, list):
                 for idx, c in enumerate(customers):
@@ -1027,7 +1043,10 @@ def handle_users():
                             "email": c.get('email', 'N/A'),
                             "phone": c.get('contact') or c.get('phone', 'N/A'),
                             "dateJoined": c.get('regDate') or c.get('created_at') or 'Oct 01, 2026',
-                            "role": c.get('role', 'customer')
+                            "role": c.get('role', 'customer'),
+                            "rfidUid": c.get("rfidUid", ""),
+                            "points": c.get("points", c.get("loyaltyPoints", 0)),
+                            "lastTap": c.get("lastTap", "")
                         })
                         
             return jsonify(users_list), 200
@@ -1049,7 +1068,9 @@ def handle_users():
             if not email.endswith('@gmail.com'):
                 return jsonify({"success": False, "message": "Only @gmail.com accounts are allowed."}), 400
 
-            user_id = f"CUST-{random.randint(100, 999)}"
+            if any(c.get('email', '').strip().lower() == email for c in get_customers()):
+                return jsonify({'success': False, 'message': 'A customer with this email already exists.'}), 409
+            user_id = f"CUST-{uuid.uuid4().hex[:12]}"
             new_customer = {
                 "id": user_id,
                 "fullName": full_name,
@@ -1067,9 +1088,12 @@ def handle_users():
             # Save in Firestore
             try:
                 if db:
-                    db.collection('customers').document(user_id).set(new_customer)
+                    from firebase_config import sync_customer_profile
+                    sync_customer_profile(user_id, new_customer)
+                else:
+                    return jsonify({'success': False, 'message': 'Database not connected.'}), 503
             except Exception as dbe:
-                print(f"Firestore Create Customer Warning: {dbe}")
+                return jsonify({"success": False, "message": "Customer save failed. Please retry."}), 500
 
             return jsonify({
                 "success": True,
@@ -1119,13 +1143,15 @@ def handle_single_user(user_id):
                 # Direct document update
                 doc_ref = db.collection('customers').document(user_id)
                 if doc_ref.get().exists:
-                    doc_ref.update(update_data)
+                    from firebase_config import sync_customer_profile
+                    sync_customer_profile(user_id, {**doc_ref.get().to_dict(), **update_data})
                     updated = True
                 else:
                     # Query by 'id' field
                     docs = db.collection('customers').where('id', '==', user_id).stream()
                     for doc in docs:
-                        doc.reference.update(update_data)
+                        from firebase_config import sync_customer_profile
+                        sync_customer_profile(doc.id, {**doc.to_dict(), **update_data})
                         updated = True
 
             return jsonify({
@@ -1160,21 +1186,8 @@ def handle_single_user(user_id):
             user_data['id'] = user_id
 
             # 2. Archive the user to System Archives
-            archive_item('user', user_id, user_data, 'admin_users')
-
-            # 3. Remove from Firestore after archiving
-            try:
-                if db:
-                    doc_ref = db.collection('customers').document(user_id)
-                    if doc_ref.get().exists:
-                        doc_ref.delete()
-                    else:
-                        customers_ref = db.collection('customers')
-                        docs = customers_ref.where('id', '==', user_id).stream()
-                        for d in docs:
-                            d.reference.delete()
-            except Exception as db_err:
-                print(f"DB Archive-Delete Error: {db_err}")
+            if not archive_item('user', user_id, user_data, 'admin_users'):
+                return jsonify({'success': False, 'message': 'Archive failed; no records were removed.'}), 409
 
             return jsonify({"success": True, "status": "success", "message": f"User {user_id} has been moved to the System Archive."}), 200
         except Exception as e:
@@ -1202,7 +1215,7 @@ def handle_store_products():
             data = request.json or {}
             products_list = data.get('products', [])
             success = save_store_products(products_list)
-            return jsonify({"success": success, "message": "Store inventory updated successfully!"}), 200
+            return jsonify({"success": success, "message": "Store inventory updated successfully!" if success else "Inventory update failed; refresh and retry."}), 200 if success else 409
         except Exception as e:
             return jsonify({"success": False, "error": str(e)}), 500
 
@@ -1251,8 +1264,8 @@ def handle_single_sample(sample_id):
             if not sample_data:
                 sample_data = {'id': sample_id, 'title': sample_id}
 
-            archive_item('sample_product', sample_id, sample_data, 'admin_samples')
-            delete_sample_product(sample_id)
+            if not archive_item('sample_product', sample_id, sample_data, 'admin_samples'):
+                return jsonify({'success': False, 'message': 'Archive failed; no records were removed.'}), 409
             return jsonify({'success': True, 'message': 'Sample moved to Archive successfully.'}), 200
         elif request.method == 'PUT':
             data = request.json or {}
@@ -1305,8 +1318,8 @@ def handle_single_service(service_id):
             if not service_data:
                 service_data = {'id': service_id, 'name': service_id}
 
-            archive_item('service', service_id, service_data, 'admin_services')
-            delete_service(service_id)
+            if not archive_item('service', service_id, service_data, 'admin_services'):
+                return jsonify({'success': False, 'message': 'Archive failed; no records were removed.'}), 409
             return jsonify({'success': True, 'message': 'Printing service moved to Archive successfully.'}), 200
         elif request.method == 'PUT':
             data = request.json or {}
@@ -1479,6 +1492,34 @@ def upload_order_file_endpoint():
 # ORDERS & ANALYTICS ENDPOINTS
 # ---------------------------------------------------------------------------
 
+@app.route('/api/pos/sales', methods=['GET', 'POST'])
+def pos_sales():
+    if not session.get('username'):
+        return jsonify(success=False, message='Sign in first.'), 401
+    if session.get('role') != 'admin':
+        return jsonify(success=False, message='Admin access required.'), 403
+    if db is None:
+        return jsonify(success=False, message='POS requires an online connection.'), 503
+    try:
+        if request.method == 'GET':
+            from firebase_admin import firestore
+            snapshots = db.collection('pos_sales').order_by('recordedAt', direction=firestore.Query.DESCENDING).limit(20).stream()
+            return jsonify(success=True, sales=[{k: v for k, v in d.to_dict().items() if k != 'recordedAt'} for d in snapshots])
+        from pos_backend import complete_sale
+        data = request.get_json(silent=True)
+        if not isinstance(data, dict):
+            return jsonify(success=False, message='Invalid sale data.'), 400
+        sale = complete_sale(db, data, session.get('uid') or session.get('email') or 'admin')
+        sale.pop('recordedAt', None)
+        return jsonify(success=True, sale=sale)
+    except (ValueError, TypeError) as error:
+        return jsonify(success=False, message=str(error)), 409
+    except PermissionError as error:
+        return jsonify(success=False, message=str(error)), 403
+    except Exception:
+        app.logger.exception('POS operation failed')
+        return jsonify(success=False, message='Connection interrupted. Retry this same sale to confirm its receipt.'), 503
+
 @app.route('/api/orders', methods=['GET', 'POST'])
 @login_required
 def handle_orders():
@@ -1514,10 +1555,20 @@ def handle_orders():
             except (ValueError, TypeError):
                 return jsonify({"success": False, "message": "May maling numeric values sa quantity, pages, o total."}), 400
 
-            order_id = f"PRNT-{datetime.datetime.now().strftime('%M%S%f')[:6]}"
+            order_id = f"PRNT-{uuid.uuid4().hex[:20]}"
             cust_name = session.get('username') or data.get('customer') or 'Customer'
             if '@' in cust_name: cust_name = cust_name.split('@')[0]
             cust_email = session.get('email') or data.get('email') or f"{cust_name}@gmail.com"
+
+            service_id = str(data.get('serviceId') or '')
+            if service_id:
+                matched_service = next((svc for svc in get_services() if svc['id'] == service_id), None)
+                if not matched_service:
+                    return jsonify({'success': False, 'message': 'Service is unavailable. Refresh the service list.'}), 400
+                try:
+                    validate_requirements(matched_service, data.get('customRequirements') or {})
+                except ValueError as validation_error:
+                    return jsonify({'success': False, 'message': str(validation_error)}), 400
 
             # Customer Note / Special Instructions (Optional, max 500 chars)
             customer_note = str(data.get('customerNote') if data.get('customerNote') is not None else (data.get('note') or '')).strip()
@@ -1529,21 +1580,29 @@ def handle_orders():
             gcash_ref = str(data.get('gcashRef') or data.get('referenceNumber') or '').strip()
             gcash_receipt_url = str(data.get('gcashReceiptUrl') or '').strip()
 
-            if 'gcash' in payment_method.lower():
-                clean_ref = re.sub(r'\D', '', gcash_ref)
-                if len(clean_ref) < 8 or len(clean_ref) > 16:
-                    return jsonify({
-                        "success": False,
-                        "message": "Pakilagay ang wastong GCash Reference Number (karaniwang 13 digits, hal. 1029384756123)."
-                    }), 400
-                gcash_ref = clean_ref
+            merchant_account = ''
+            try:
+                payment_method, gcash_ref = validate_payment(payment_method, gcash_ref)
+                if 'gcash' in payment_method.lower():
+                    merchant_account = validate_merchant(get_gcash_settings(), str(data.get('merchantAccountNumber') or ''))
+                    if data.get('paperSize') == 'Store Supply' or data.get('items'):
+                        gcash_receipt_url = validate_receipt(gcash_receipt_url)
+                else:
+                    gcash_receipt_url = ''
+            except ValueError as error:
+                return jsonify({'success': False, 'message': str(error)}), 400
 
             new_order = {
                 "id": order_id,
-                "customerId": data.get('customerId', 'CUST-101'),
+                "customerId": session.get("uid") or cust_email,
                 "customer": cust_name,
                 "email": cust_email,
+                "serviceId": service_id,
                 "service": data.get('service') or 'Document Printing (Full Color)',
+                "customRequirements": data.get("customRequirements") or {},
+                "details": data.get("details") or data.get("customRequirements") or {},
+                "items": data.get("items") or [],
+                "stockDeducted": False,
                 "quantity": qty_val,
                 "copies": qty_val,
                 "pages": pages_val,
@@ -1553,6 +1612,7 @@ def handle_orders():
                 "payment": payment_method,
                 "gcashRef": gcash_ref,
                 "gcashReceiptUrl": gcash_receipt_url,
+                "merchantAccountNumber": merchant_account,
                 "total": total_amount,
                 "status": "Order Submitted",
                 "file": file_name,
@@ -1563,7 +1623,8 @@ def handle_orders():
                 "timestamp": datetime.datetime.now().isoformat()
             }
             formatted_new_order = format_proper_order_info(new_order)
-            create_order(formatted_new_order)
+            if not create_order(formatted_new_order):
+                return jsonify({'success': False, 'message': 'Order could not be saved. Please retry.'}), 503
             return jsonify({"success": True, "orderId": order_id, "message": "Order submitted successfully!"}), 200
         except Exception as e:
             return jsonify({"success": False, "error": str(e)}), 500
@@ -1581,6 +1642,31 @@ def handle_orders():
             return jsonify(formatted_orders), 200
         except Exception as e:
             return jsonify({"success": False, "error": str(e)}), 500
+
+@app.route('/api/orders/<order_id>/cancel', methods=['POST'])
+def cancel_order_endpoint(order_id):
+    if not session.get('username'):
+        return jsonify(success=False, message='Sign in first.'), 401
+    if db is None:
+        return jsonify(success=False, message='Cancellation requires an online connection.'), 503
+    from order_cancellation import cancel_customer_order
+    data = request.get_json(silent=True) or {}
+    if not isinstance(data, dict):
+        return jsonify(success=False, message='Invalid cancellation request.'), 400
+    try:
+        order = cancel_customer_order(db, order_id, session.get('uid'), session.get('email'), data.get('reason', ''))
+        return jsonify(success=True, order=order)
+    except FileNotFoundError as error:
+        return jsonify(success=False, message=str(error)), 404
+    except PermissionError as error:
+        return jsonify(success=False, message=str(error)), 403
+    except TypeError as error:
+        return jsonify(success=False, message=str(error)), 400
+    except ValueError as error:
+        return jsonify(success=False, message=str(error)), 409
+    except Exception:
+        app.logger.exception('Order cancellation failed')
+        return jsonify(success=False, message='Unable to confirm cancellation. Reconnect and retry this order.'), 503
 
 @app.route('/api/orders/<order_id>/file', methods=['GET'])
 @admin_required
@@ -1646,22 +1732,29 @@ def get_analytics():
             service = o.get('service') or 'Document Printing'
             cust = o.get('customer') or o.get('email')
 
+            if str(status).lower() == 'cancelled':
+                price = 0.0
             total_sales += price
-            total_pages += (copies * pages_per_copy)
+            if o.get('source') != 'POS' and str(status).lower() != 'cancelled':
+                total_pages += (copies * pages_per_copy)
             if cust: customers.add(str(cust).lower().strip())
 
             clean_status = "Order Submitted"
             s_lower = str(status).lower()
-            if 'reject' in s_lower: clean_status = "Rejected"
+            if s_lower == 'cancelled': clean_status = "Cancelled"
+            elif 'reject' in s_lower: clean_status = "Rejected"
             elif 'complete' in s_lower: clean_status = "Completed"
             elif 'ready' in s_lower or 'pickup' in s_lower: clean_status = "Ready for Pickup"
-            elif 'print' in s_lower: clean_status = "Printing"
+            elif 'print' in s_lower or 'prepar' in s_lower: clean_status = "Printing"
             elif 'approve' in s_lower: clean_status = "Approved"
 
             status_counts[clean_status] = status_counts.get(clean_status, 0) + 1
             service_breakdown[service] = service_breakdown.get(service, 0) + 1
 
-            if any(k in service.lower() for k in ['store', 'supply', 'in-store', 'notebook', 'pen']):
+            if o.get('source') == 'POS':
+                store_rev += float(o.get('productTotal') or 0)
+                print_rev += float(o.get('serviceTotal') or 0)
+            elif any(k in service.lower() for k in ['store', 'supply', 'in-store', 'notebook', 'pen']):
                 store_rev += price
             else:
                 print_rev += price
@@ -1846,8 +1939,10 @@ def handle_rfid_tap():
     try:
         data = request.json or {}
         card_uid = data.get('rfidCardUid', 'CARD-8842-PH')
-        earned_points = 20
-        log_rfid_tap(card_uid, earned_points)
+        earned_points = 0
+        success = log_rfid_tap(card_uid, earned_points)
+        if not success:
+            return jsonify({'success': False, 'message': 'Card is not assigned or tap failed.'}), 400
         return jsonify({"success": True, "earnedPoints": earned_points, "message": f"RFID Card {card_uid} successfully logged."}), 200
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
@@ -1858,13 +1953,26 @@ def handle_rfid_tap():
 # IN-APP NOTIFICATIONS API
 # ---------------------------------------------------------------------------
 
+def _notification_identity():
+    email = str(session.get('email') or '').strip().lower()
+    uid = session.get('uid') or email
+    if email and (session.get('notification_email') != email or not session.get('notification_uid')):
+        user = get_firebase_user_by_email(email)
+        if user:
+            session['notification_uid'] = user.uid
+            session['notification_email'] = email
+    if session.get('notification_email') == email:
+        uid = session.get('notification_uid') or uid
+    recipient = 'ADMIN' if session.get('role') == 'admin' else (session.get('uid') or uid)
+    return recipient, email, uid
+
+
 @app.route('/api/notifications', methods=['GET'])
 @login_required
 def get_user_notifications():
     try:
-        user_id = session.get('uid') or session.get('email')
-        role = session.get('role', 'customer')
-        notifs = get_notifications(user_id if role != 'admin' else 'ADMIN') or []
+        user_id, email, state_uid = _notification_identity()
+        notifs = get_notifications(user_id, email, state_uid) or []
         # Sort newest first
         notifs.sort(key=lambda x: str(x.get('timestamp') or x.get('createdAt') or ''), reverse=True)
         return jsonify({'success': True, 'notifications': notifs}), 200
@@ -1875,9 +1983,9 @@ def get_user_notifications():
 @login_required
 def read_all_notifications():
     try:
-        user_id = session.get('uid') or session.get('email')
-        role = session.get('role', 'customer')
-        mark_all_notifications_read(user_id if role != 'admin' else 'ADMIN')
+        user_id, email, state_uid = _notification_identity()
+        if not mark_all_notifications_read(user_id, email, state_uid):
+            return jsonify({'success': False, 'error': 'Unable to save notification state.'}), 500
         return jsonify({'success': True}), 200
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
@@ -1886,9 +1994,9 @@ def read_all_notifications():
 @login_required
 def clear_all_notifications():
     try:
-        user_id = session.get('uid') or session.get('email')
-        role = session.get('role', 'customer')
-        delete_all_notifications(user_id if role != 'admin' else 'ADMIN')
+        user_id, email, state_uid = _notification_identity()
+        if not delete_all_notifications(user_id, email, state_uid):
+            return jsonify({'success': False, 'error': 'Unable to clear notifications.'}), 500
         return jsonify({'success': True}), 200
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
@@ -1992,6 +2100,7 @@ def test_push_endpoint():
             body="Live notifications are active on this device!",
             click_url=f"/admin?tab=liveChat" if role == 'admin' else "/customer?tab=chat"
         )
+        result.pop('delivered_tokens', None)
         return jsonify({"success": True, "result": result}), 200
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
@@ -2049,16 +2158,16 @@ def delete_store_product_endpoint(product_id):
                 target_prod = p
                 break
 
-        if target_prod:
-            archive_item('store_product', product_id, target_prod, 'admin_store')
-
-        # Delete document from active store collections so it does not reappear on refresh
-        delete_store_product(product_id)
+        if not target_prod or not archive_item('store_product', product_id, target_prod, 'admin_store'):
+            return jsonify({'success': False, 'message': 'Product is missing or archive failed.'}), 409
         return jsonify({'success': True, 'message': 'In-store product moved to Archive successfully.'}), 200
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
 
 if __name__ == '__main__':
+    if os.environ.get('WERKZEUG_RUN_MAIN') == 'true':
+        from push_worker import start_push_worker
+        start_push_worker(db, send_fcm_push_notification)
     print("=" * 60)
     print("🚀 Kez C-Em Zek Backend Running on http://127.0.0.1:5000")
     print("=" * 60)

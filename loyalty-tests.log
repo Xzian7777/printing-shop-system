@@ -1,0 +1,30 @@
+........EF.....ssss......sssssss.s........s.......sssss.......firebase_config.py:1110: DeprecationWarning: Message.token is deprecated. Use Message.fid instead.
+  msg = messaging.Message(
+...........
+======================================================================
+ERROR: test_rfid_preserves_legacy_balance_when_web_profile_has_no_balance (test_admin_sync.AdminSyncTests.test_rfid_preserves_legacy_balance_when_web_profile_has_no_balance)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\omarm\Documents\printing-shop-system-main\tests\test_admin_sync.py", line 205, in test_rfid_preserves_legacy_balance_when_web_profile_has_no_balance
+    self.assertEqual(self.db.records['customers/c1']['points'], 100)
+                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^
+KeyError: 'points'
+
+======================================================================
+FAIL: test_rfid_updates_both_profiles_and_shared_log (test_admin_sync.AdminSyncTests.test_rfid_updates_both_profiles_and_shared_log)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\omarm\Documents\printing-shop-system-main\tests\test_admin_sync.py", line 196, in test_rfid_updates_both_profiles_and_shared_log
+    self.assertEqual(self.db.records['customers/c1']['points'], 40)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 20 != 40
+
+----------------------------------------------------------------------
+Ran 73 tests in 1.922s
+
+FAILED (failures=1, errors=1, skipped=18)
+Error archiving: Item is missing or already archived.
+Error updating order status: Invalid status transition
+Error saving products: Product has been archived. Refresh inventory.
+Error updating order status: Invalid status transition
+Push send warning: RuntimeError

@@ -13,8 +13,9 @@
   
   <!-- Custom Stylesheet -->
   <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v=1.3">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/loyalty.css') }}">
 </head>
-<body class="bg-slate-50 text-slate-800 font-sans min-h-screen relative overflow-x-hidden selection:bg-emerald-600 selection:text-white">
+<body data-loyalty-account="{{ session.get('email', 'guest') }}" class="bg-slate-50 text-slate-800 font-sans min-h-screen relative overflow-x-hidden selection:bg-emerald-600 selection:text-white">
 
   {% if session.get('username') %}
   <!-- ================= MOBILE HEADER TOPBAR (Visible only on mobile/tablet) ================= -->
@@ -204,17 +205,16 @@
             </button>
 
             <!-- Dropdown Menu (Opens above) -->
-            <div id="notifMenu" class="hidden absolute left-0 bottom-full mb-2 w-80 bg-white rounded-2xl shadow-2xl border border-slate-200 z-50 p-4 text-slate-800">
-              <div class="flex items-center justify-between pb-3 border-b border-slate-100">
-                <span class="font-bold text-sm text-slate-900">Notifications</span>
-                <div class="flex gap-2 text-xs">
-                  <button onclick="markAllNotifsRead()" class="text-emerald-600 hover:underline font-medium">Mark read</button>
-                  <span class="text-slate-300">|</span>
-                  <button onclick="deleteAllNotifs()" class="text-slate-400 hover:text-rose-500 font-medium">Clear all</button>
+            <div id="notifMenu" class="hidden absolute left-0 bottom-full mb-2 notification-menu">
+              <div class="notification-header">
+                <span class="notification-heading">Notifications</span>
+                <div class="notification-actions">
+                  <button type="button" onclick="markAllNotifsRead()" class="notification-read">Mark read</button>
+                  <button type="button" onclick="deleteAllNotifs()" class="notification-clear">Clear all</button>
                 </div>
               </div>
-              <div id="notifList" class="max-h-64 overflow-y-auto divide-y divide-white/5 py-1 text-sm text-slate-300">
-                <p class="text-center text-black py-4 text-xs">No notifications yet.</p>
+              <div id="notifList" class="notification-list">
+                <p class="notification-empty">No notifications yet.</p>
               </div>
             </div>
           </div>
@@ -326,7 +326,7 @@
 
         <div>
           <h4 class="font-bold text-slate-800 text-sm mb-1">3. Cancellation & Non-Refund Policy</h4>
-          <p class="leading-relaxed">Kapag ang order ay pumasok na sa status na <strong class="text-slate-800">'Printing'</strong>, hindi na ito pwedeng kanselahin o i-refund dahil sa ginamit na custom printing materials.</p>
+          <p class="leading-relaxed">Puwede lamang kanselahin ang order bago ang admin approval. Kapag approved na, hindi na puwedeng i-cancel.</p>
         </div>
 
         <div>
@@ -488,25 +488,30 @@
           }
 
           if (notifs.length === 0) {
-            list.innerHTML = '<p class="text-center text-black py-4 text-xs">No notifications yet.</p>';
+            list.innerHTML = '<p class="notification-empty">No notifications yet.</p>';
             return;
           }
 
-          list.innerHTML = notifs.map(n => {
+          list.replaceChildren(...notifs.map(n => {
             const isUnread = (n.status || '').toLowerCase() === 'unread';
-            const link = n.link || '#';
-            return `
-              <div class="p-2.5 rounded-xl transition ${isUnread ? 'bg-white/5 font-semibold' : 'opacity-80'} hover:bg-white/10">
-                <a href="${link}" class="block">
-                  <div class="flex items-center justify-between text-xs mb-1">
-                    <span class="text-blue-400 font-bold">${n.title || 'System Alert'}</span>
-                    ${isUnread ? '<span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span>' : ''}
-                  </div>
-                  <p class="text-[11px] text-slate-300 leading-snug">${n.message || ''}</p>
-                </a>
-              </div>
-            `;
-          }).join('');
+            const item = document.createElement('a');
+            item.className = `notification-item${isUnread ? ' notification-unread' : ''}`;
+            item.href = n.link || '#';
+            const title = document.createElement('span');
+            title.className = 'notification-title';
+            title.textContent = n.title || 'System Alert';
+            const message = document.createElement('p');
+            message.className = 'notification-message';
+            message.textContent = n.message || '';
+            item.append(title, message);
+            if (isUnread) {
+              const dot = document.createElement('span');
+              dot.className = 'notification-unread-dot';
+              dot.setAttribute('aria-label', 'Unread');
+              item.append(dot);
+            }
+            return item;
+          }));
         })
         .catch(() => {});
     }
@@ -541,5 +546,6 @@
     });
   </script>
 
+<script src="{{ url_for('static', filename='js/loyalty.js') }}"></script>
 </body>
 </html>

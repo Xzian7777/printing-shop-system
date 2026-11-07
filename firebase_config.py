@@ -3,6 +3,10 @@ from firebase_admin import credentials, firestore, auth, messaging
 import datetime
 import uuid
 import re
+from inventory_rules import stock_plan, valid_transition
+from catalog_rules import validate_service
+from payment_rules import shared_qr_settings
+from pathlib import Path
 
 # Initialize Firebase Admin SDK
 try:
@@ -59,6 +63,8 @@ def create_order(order_data):
             create_notification({
                 'id': notif_id,
                 'userId': 'ADMIN',
+                'type': 'new_order', 'orderId': doc_id,
+                'createdAt': firestore.SERVER_TIMESTAMP,
                 'title': f'New Order: {doc_id}',
                 'message': f'{cust_name} placed an order for {svc_name}.',
                 'status': 'Unread',
@@ -94,23 +100,34 @@ def update_order_status(order_id, new_status):
             return False
 
         order_data = order_doc.to_dict()
-        # Validate status transition according to workflow
-        current_status = order_data.get('status')
-        allowed_flow = {
-            "Order Submitted": ["Approved"],
-            "Approved": ["Printing", "Preparing"],
-            "Printing": ["Ready for Pickup"],
-            "Preparing": ["Ready for Pickup"],
-            "Ready for Pickup": ["Completed"]
-        }
-        if new_status == "Rejected":
-            valid = True
-        else:
-            valid = new_status in allowed_flow.get(current_status, [])
-        if not valid:
-            print(f"❌ Invalid status transition from {current_status} to {new_status}.")
-            return False
-        order_ref.update({'status': new_status})
+        @firestore.transactional
+        def apply_status(transaction):
+            snapshot = order_ref.get(transaction=transaction)
+            current = snapshot.to_dict() or {}
+            if not valid_transition(current.get('status'), new_status):
+                raise ValueError('Invalid status transition')
+            deduct = new_status == 'Approved' and not current.get('stockDeducted')
+            restore = new_status.startswith('Rejected') and current.get('stockDeducted') is True
+            plan = {}
+            if deduct or restore:
+                products = {d.id: d.to_dict() for d in _legacy_products().stream(transaction=transaction)}
+                products.update({d.id: d.to_dict() for d in db.collection('products').stream(transaction=transaction)})
+                plan = stock_plan(current, products, restore=restore)
+            for product_id, stock in plan.items():
+                transaction.set(db.collection('products').document(product_id), {**products[product_id], 'stock': stock}, merge=True)
+                transaction.set(_legacy_products().document(product_id), {**products[product_id], 'stock': stock}, merge=True)
+            updates = {'status': new_status}
+            if new_status == 'Approved':
+                updates['approvedAt'] = firestore.SERVER_TIMESTAMP
+            if deduct or restore:
+                updates['stockDeducted'] = bool(deduct)
+            transaction.update(order_ref, updates)
+            transaction.set(db.collection('push_jobs').document(), {
+                'type': 'order_status', 'orderId': order_id,
+                'status': new_status, 'state': 'pending',
+                'createdAt': firestore.SERVER_TIMESTAMP,
+            })
+        apply_status(db.transaction())
 
         # Notify Customer about status change
         try:
@@ -120,40 +137,18 @@ def update_order_status(order_id, new_status):
             notif_id = f"notif_{int(datetime.datetime.now().timestamp()*1000)}"
             create_notification({
                 'id': notif_id,
-                'userId': c_uid or 'ALL',
+                'userId': c_uid or c_email,
+                'recipientEmail': str(c_email or '').strip().lower(),
+                'type': 'order_status', 'orderId': order_id,
+                'createdAt': firestore.SERVER_TIMESTAMP,
                 'title': f'Order Status: {new_status}',
                 'message': f'Ang iyong {svc} ({order_id}) ay nasa status na: {new_status}.',
                 'status': 'Unread',
                 'link': '/customer?tab=myOrders',
                 'timestamp': datetime.datetime.now().isoformat()
             })
-            if c_email:
-                send_fcm_push_notification(
-                    recipient_role='customer',
-                    recipient_email=c_email,
-                    title=f'Order {new_status}: {order_id}',
-                    body=f'Your {svc} order is now {new_status}!',
-                    click_url='/customer?tab=myOrders'
-                )
         except Exception as e_status_notif:
             print(f"Non-fatal status update notification error: {e_status_notif}")
-
-        if new_status in ['Approved', 'Completed']:
-            service_desc = str(order_data.get('service', '')).lower()
-            order_qty = int(order_data.get('quantity') or order_data.get('copies') or 1)
-
-            products_ref = db.collection('artifacts').document('printcraft-pro').collection('public').document('data').collection('store_products')
-            products_docs = products_ref.get()
-
-            for doc in products_docs:
-                pdata = doc.to_dict()
-                pname = str(pdata.get('name', '')).strip().lower()
-
-                if pname and (pname in service_desc or service_desc in pname):
-                    current_stock = int(pdata.get('stock', 0))
-                    new_stock = max(0, current_stock - order_qty)
-                    products_ref.document(doc.id).update({'stock': new_stock})
-                    print(f"✅ FIRESTORE STOCK DEDUCTED: {pname} -> {new_stock} (-{order_qty})")
 
         return True
     except Exception as e:
@@ -165,23 +160,31 @@ def update_order_status(order_id, new_status):
 # ---------------------------------------------------------------------------
 def get_customers():
     try:
-        if db is None:
-            return []
-        docs = db.collection('customers').get()
-        customers = []
-        for doc in docs:
-            c_data = doc.to_dict()
-            if 'id' not in c_data or not c_data['id']:
-                c_data['id'] = doc.id
-            customers.append(c_data)
-        return customers
+        if db is None: return []
+        profiles = {}
+        for collection in ['users', 'customers']:
+            for doc in db.collection(collection).stream():
+                data = doc.to_dict() or {}
+                key = str(data.get('email') or f'{collection}/{doc.id}').strip().lower()
+                old = profiles.get(key, {})
+                archived = old.get('archived') or old.get('isArchived') or data.get('archived') or data.get('isArchived') or False
+                profiles[key] = {**old, **data, 'id': doc.id, 'archived': archived, 'isArchived': archived}
+        balances = {doc.id: doc.to_dict() for doc in db.collection('loyalty_accounts').stream()}
+        for profile in profiles.values():
+            balance = balances.get(profile.get('loyaltyUid') or profile.get('uid') or profile.get('id'))
+            if balance:
+                profile['points'] = int(balance.get('balance', 0)) - int(balance.get('reserved', 0))
+                profile['loyaltyPoints'] = profile['points']
+                profile['reservedPoints'] = int(balance.get('reserved', 0))
+        return [p for p in profiles.values() if not p.get('archived') and not p.get('isArchived')]
     except Exception as e:
-        print(f"Error fetching customers from Firestore: {e}")
+        print(f'Error fetching customers: {e}')
         return []
+
 
 def create_customer(customer_data):
     try:
-        db.collection('customers').document(customer_data['id']).set(customer_data)
+        sync_customer_profile(customer_data['id'], customer_data)
         return True
     except Exception as e:
         print(f"Error creating customer: {e}")
@@ -245,57 +248,56 @@ def save_customer_profile(username, profile_data):
 # STORE PRODUCTS MANAGEMENT (FIRESTORE DOCUMENTS SYNC)
 # ---------------------------------------------------------------------------
 
+
 def get_store_products():
     try:
-        if db is not None:
-            products = []
-            
-            docs = db.collection('products').stream()
-            for doc in docs:
-                p_data = doc.to_dict()
-                if 'id' not in p_data or not p_data['id']:
-                    p_data['id'] = doc.id
-                products.append(p_data)
-
-            if not products:
-                docs = db.collection('artifacts') \
-                          .document('printcraft-pro') \
-                          .collection('public') \
-                          .document('data') \
-                          .collection('store_products') \
-                          .stream()
-                for doc in docs:
-                    p_data = doc.to_dict()
-                    if 'id' not in p_data or not p_data['id']:
-                        p_data['id'] = doc.id
-                    products.append(p_data)
-
-            return products
-        return []
+        if db is None: return []
+        records = {d.id: d.to_dict() for d in _legacy_products().stream()}
+        records.update({d.id: d.to_dict() for d in db.collection('products').stream()})
+        return [dict(data, id=key) for key, data in records.items() if data.get('archived') is not True]
     except Exception as e:
-        print(f"Error fetching store products: {e}")
-        return []
+        print(f'Error fetching store products: {e}')
+        raise
+
 
 def save_store_products(products_list):
     try:
-        if db is not None:
-            for prod in products_list:
-                prod_id = str(prod.get('id', f"p-{int(datetime.datetime.now().timestamp())}"))
-                db.collection('products').document(prod_id).set(prod, merge=True)
-                
-                db.collection('artifacts') \
-                  .document('printcraft-pro') \
-                  .collection('public') \
-                  .document('data') \
-                  .collection('store_products') \
-                  .document(prod_id) \
-                  .set(prod, merge=True)
-            print("✅ Store products synced to Firestore!")
-            return True
-        return False
+        if db is None: return False
+        @firestore.transactional
+        def apply(transaction):
+            pending = []
+            for product in products_list:
+                product_id = str(product.get('id') or uuid.uuid4().hex)
+                ref = db.collection('products').document(product_id)
+                current = ref.get(transaction=transaction)
+                if not current.exists: current = _legacy_products().document(product_id).get(transaction=transaction)
+                archived = db.collection('archives').document('store_product_' + product_id).get(transaction=transaction)
+                if archived.exists or (current.exists and current.to_dict().get('archived') is True):
+                    raise ValueError('Product has been archived. Refresh inventory.')
+                payload = dict(product, id=product_id)
+                expected_stock = payload.pop('expectedStock', None)
+                if expected_stock is not None and (not current.exists or current.to_dict().get('stock') != expected_stock):
+                    raise ValueError('Stock changed. Refresh inventory.')
+                delta = payload.pop('stockDelta', None)
+                if delta is not None:
+                    if not current.exists: raise ValueError('Product not found.')
+                    payload['stock'] = int(current.to_dict().get('stock') or 0) + int(delta)
+                stock = int(payload.get('stock') or 0)
+                price = float(payload.get('price') or 0)
+                if stock < 0 or stock > 100000 or not (0 <= price <= 5000000):
+                    raise ValueError('Invalid stock or price.')
+                if 'stock' in payload: payload['stock'] = stock
+                if 'price' in payload: payload['price'] = price
+                pending.append((ref, product_id, payload))
+            for ref, product_id, payload in pending:
+                transaction.set(ref, payload, merge=True)
+                transaction.set(_legacy_products().document(product_id), payload, merge=True)
+        apply(db.transaction())
+        return True
     except Exception as e:
-        print(f"Error saving store products: {e}")
+        print(f'Error saving products: {e}')
         return False
+
 
 def delete_store_product(prod_id):
     try:
@@ -388,17 +390,19 @@ DEFAULT_SAMPLE_PRODUCTS = [
 def get_sample_products():
     try:
         if db is not None:
-            docs = db.collection('sample_products').stream()
+            docs = list(db.collection('sample_products').stream())
             samples = []
             for doc in docs:
                 data = doc.to_dict()
+                if data.get('archived') is True: continue
                 if 'id' not in data or not data['id']:
                     data['id'] = doc.id
                 samples.append(data)
-            if samples:
+            if docs:
                 return samples
 
-            # Seed default samples if collection is empty
+            if list(db.collection('archives').where('itemType', '==', 'sample_product').stream()): return []
+            # Seed default samples only for a catalog with no archive history
             for s in DEFAULT_SAMPLE_PRODUCTS:
                 db.collection('sample_products').document(s['id']).set(s)
             return DEFAULT_SAMPLE_PRODUCTS
@@ -413,7 +417,14 @@ def save_sample_product(sample_data):
             s_id = str(sample_data.get('id') or f"sample-{int(datetime.datetime.now().timestamp())}")
             sample_data['id'] = s_id
             sample_data['updatedAt'] = datetime.datetime.now().isoformat()
-            db.collection('sample_products').document(s_id).set(sample_data, merge=True)
+            if not sample_data.get('title'): raise ValueError('Sample title is required.')
+            ref = db.collection('sample_products').document(s_id)
+            @firestore.transactional
+            def save(transaction):
+                old = ref.get(transaction=transaction)
+                if old.exists and old.to_dict().get('archived') is True: raise ValueError('Sample has been archived.')
+                transaction.set(ref, sample_data, merge=True)
+            save(db.transaction())
             return sample_data
         return sample_data
     except Exception as e:
@@ -451,16 +462,18 @@ DEFAULT_SERVICES = [
 def get_services():
     try:
         if db is not None:
-            docs = db.collection('services').order_by('sortOrder').stream()
+            docs = list(db.collection('services').stream())
             services = []
             for doc in docs:
                 data = doc.to_dict()
+                if data.get('archived') is True: continue
                 if 'id' not in data or not data['id']:
                     data['id'] = doc.id
                 services.append(data)
-            if services:
-                return services
-            # Seed defaults if collection is empty
+            if docs:
+                return sorted(services, key=lambda x: x.get('sortOrder', 0))
+            if list(db.collection('archives').where('itemType', '==', 'service').stream()): return []
+            # Seed defaults only for a catalog with no archive history
             for s in DEFAULT_SERVICES:
                 db.collection('services').document(s['id']).set(s)
             return DEFAULT_SERVICES
@@ -474,8 +487,15 @@ def save_service(service_data):
         if db is not None:
             s_id = str(service_data.get('id') or f"service-{int(datetime.datetime.now().timestamp())}")
             service_data['id'] = s_id
+            service_data = validate_service(service_data)
             service_data['updatedAt'] = datetime.datetime.now().isoformat()
-            db.collection('services').document(s_id).set(service_data, merge=True)
+            ref = db.collection('services').document(s_id)
+            @firestore.transactional
+            def save(transaction):
+                old = ref.get(transaction=transaction)
+                if old.exists and old.to_dict().get('archived') is True: raise ValueError('Service has been archived.')
+                transaction.set(ref, service_data, merge=True)
+            save(db.transaction())
             return service_data
         return service_data
     except Exception as e:
@@ -492,11 +512,42 @@ def delete_service(service_id):
         print(f"Error deleting service: {e}")
         return False
 
-def log_rfid_tap(tap_data):
+def sync_customer_profile(customer_id, data):
+    targets = _item_refs('user', str(customer_id), data)
+    name = data.get('fullName') or data.get('full_name') or data.get('name')
+    payload = dict(data)
+    if name: payload.update(fullName=name, full_name=name, name=name)
+    batch = db.batch()
+    for target in targets:
+        safe = {k: v for k, v in payload.items() if target.parent.id != 'users' or k not in ('password', 'passwordHash')}
+        batch.set(target, safe, merge=True)
+    batch.commit()
+
+
+def log_rfid_tap(card_uid, earned_points=0):
+    earned_points = 0
     try:
-        db.collection('rfid_logs').document(tap_data['id']).set(tap_data)
+        matches = list(db.collection('customers').where('rfidUid', '==', card_uid).stream())
+        if not matches: matches = list(db.collection('users').where('rfidUid', '==', card_uid).stream())
+        if not matches: return False
+        customer = matches[0]
+        targets = _item_refs('user', customer.id, customer.to_dict())
+        @firestore.transactional
+        def apply(transaction):
+            data = customer.reference.get(transaction=transaction).to_dict()
+            profiles = [r.get(transaction=transaction).to_dict() or {} for r in targets]
+            if any(p.get('archived') is True for p in profiles): raise ValueError('Customer is archived.')
+            now = datetime.datetime.now(datetime.timezone.utc).isoformat()
+            for target in targets:
+                transaction.set(target, {'lastTap': now}, merge=True)
+            ref = db.collection('rfid_logs').document()
+            transaction.set(ref, {'id': ref.id, 'cardUid': card_uid,
+                'customerName': data.get('fullName') or data.get('name'),
+                'pointsAdded': earned_points, 'timestamp': now})
+        apply(db.transaction())
         return True
-    except Exception:
+    except Exception as e:
+        print(f'RFID tap failed: {e}')
         return False
 
 # ===========================================================================
@@ -518,17 +569,25 @@ def get_gcash_settings():
                 data = doc.to_dict() or {}
                 # merge with default fallback
                 merged = {**DEFAULT_GCASH_SETTINGS, **data}
-                return merged
+                shared = shared_qr_settings(merged, Path(__file__).parent / 'static/images')
+                changes = {key: shared[key] for key in ('qrImageData', 'qrImageSource') if data.get(key) != shared[key]}
+                if changes:
+                    try:
+                        doc.reference.set(changes, merge=True)
+                    except Exception:
+                        pass  # Merchant details are still available during a temporary sync failure.
+                return shared
             # seed default if not exists
             db.collection('settings').document('gcash_config').set(DEFAULT_GCASH_SETTINGS)
             return DEFAULT_GCASH_SETTINGS
-        return DEFAULT_GCASH_SETTINGS
+        return {**DEFAULT_GCASH_SETTINGS, 'isActive': False, 'accountName': '', 'accountNumber': '', 'qrUrl': ''}
     except Exception as e:
         print(f"Error fetching gcash_settings: {e}")
-        return DEFAULT_GCASH_SETTINGS
+        return {**DEFAULT_GCASH_SETTINGS, 'isActive': False, 'accountName': '', 'accountNumber': '', 'qrUrl': ''}
 
 def save_gcash_settings(settings_data):
     try:
+        settings_data = shared_qr_settings(settings_data, Path(__file__).parent / 'static/images')
         if db is not None:
             settings_data['updatedAt'] = datetime.datetime.now().isoformat()
             db.collection('settings').document('gcash_config').set(settings_data, merge=True)
@@ -538,12 +597,43 @@ def save_gcash_settings(settings_data):
         print(f"Error saving gcash_settings: {e}")
         return None
 
-def get_notifications(user_id):
+def get_notifications(user_id, email=None, state_user_id=None):
+    state_uid = state_user_id or user_id
+    email = str(email or '').strip().lower()
+    audience = {user_id, state_uid, 'ALL'}
+    if email:
+        audience.add(email)
+    states = {doc.id: doc.to_dict() for doc in
+              db.collection('notification_states').document(state_uid).collection('items').get()}
+    result = []
+    for doc in db.collection('notifications').get():
+        data = doc.to_dict() or {}
+        addressed = data.get('userId') in audience or (
+            email and str(data.get('recipientEmail') or '').strip().lower() == email)
+        state = states.get(doc.id) or {}
+        if addressed and not state.get('dismissed'):
+            read = state.get('read') or str(data.get('status', '')).lower() == 'read'
+            result.append({**data, 'id': doc.id, 'status': 'Read' if read else 'Unread'})
+    return result
+
+
+def _save_notification_states(user_id, email=None, state_user_id=None, dismiss=False):
     try:
-        docs = db.collection('notifications').get()
-        return [doc.to_dict() for doc in docs if doc.to_dict().get('userId') in [user_id, 'ALL', 'ADMIN']]
-    except Exception:
-        return []
+        items = get_notifications(user_id, email, state_user_id)
+        states = db.collection('notification_states').document(state_user_id or user_id).collection('items')
+        for start in range(0, len(items), 400):
+            batch = db.batch()
+            for item in items[start:start + 400]:
+                data = {'read': True, 'updatedAt': firestore.SERVER_TIMESTAMP}
+                if dismiss:
+                    data['dismissed'] = True
+                batch.set(states.document(item['id']), data, merge=True)
+            batch.commit()
+        return True
+    except Exception as error:
+        print(f'Error saving notification state: {error}')
+        return False
+
 
 def create_notification(notif_data):
     try:
@@ -552,15 +642,9 @@ def create_notification(notif_data):
     except Exception:
         return False
 
-def mark_all_notifications_read(user_id):
-    try:
-        docs = db.collection('notifications').get()
-        for doc in docs:
-            if doc.to_dict().get('userId') in [user_id, 'ALL', 'ADMIN']:
-                db.collection('notifications').document(doc.id).update({'status': 'Read'})
-        return True
-    except Exception:
-        return False
+def mark_all_notifications_read(user_id, email=None, state_user_id=None):
+    return _save_notification_states(user_id, email, state_user_id)
+
 
 def delete_notification(notif_id):
     try:
@@ -569,15 +653,9 @@ def delete_notification(notif_id):
     except Exception:
         return False
 
-def delete_all_notifications(user_id):
-    try:
-        docs = db.collection('notifications').get()
-        for doc in docs:
-            if doc.to_dict().get('userId') in [user_id, 'ALL', 'ADMIN']:
-                db.collection('notifications').document(doc.id).delete()
-        return True
-    except Exception:
-        return False
+def delete_all_notifications(user_id, email=None, state_user_id=None):
+    return _save_notification_states(user_id, email, state_user_id, dismiss=True)
+
 
 def get_analytics_summary():
     orders = get_orders()
@@ -812,7 +890,8 @@ def send_chat_message(conv_id, sender_email, sender_role, sender_name, message_t
         }
 
         # Save message in subcollection
-        conv_ref.collection('messages').document(msg_id).set(msg_data)
+        batch = db.batch()
+        batch.set(conv_ref.collection('messages').document(msg_id), msg_data)
 
         # Update conversation preview and timestamp to move it to the top
         conv_update = {
@@ -829,53 +908,26 @@ def send_chat_message(conv_id, sender_email, sender_role, sender_name, message_t
             current_unread = (conv_doc.to_dict() or {}).get('unreadCountCustomer', 0) if conv_doc.exists else 0
             conv_update['unreadCountCustomer'] = current_unread + 1
 
-        conv_ref.set(conv_update, merge=True)
-
-        # Trigger background Push Notification to counter-party
-        try:
-            conv_data = conv_doc.to_dict() if conv_doc and conv_doc.exists else {}
-            customer_email = conv_data.get('customerEmail') or (sender_email if sender_role == 'customer' else '')
-            customer_name = conv_data.get('customerName') or sender_name or 'Customer'
-
-            snippet = message_text.strip()
-            if len(snippet) > 85:
-                snippet = snippet[:82] + "..."
-
-            if sender_role == 'customer':
-                # Customer sent a message -> notify Admin / Staff
-                notif_title = f"New message from {customer_name}"
-                notif_url = f"/admin?tab=liveChat&convId={conv_id}"
-                send_fcm_push_notification(
-                    recipient_role='admin',
-                    recipient_email=None,
-                    title=notif_title,
-                    body=snippet,
-                    click_url=notif_url,
-                    data_payload={
-                        'conversation_id': conv_id,
-                        'sender_role': 'customer',
-                        'sender_email': sender_email,
-                        'customer_name': customer_name
-                    }
-                )
-            elif sender_role in ['admin', 'staff']:
-                # Admin/Staff replied -> notify the Customer
-                notif_title = "New reply from Kez C-Em Zek"
-                notif_url = "/customer?tab=chat"
-                send_fcm_push_notification(
-                    recipient_role='customer',
-                    recipient_email=customer_email,
-                    title=notif_title,
-                    body=snippet,
-                    click_url=notif_url,
-                    data_payload={
-                        'conversation_id': conv_id,
-                        'sender_role': 'admin',
-                        'sender_email': sender_email
-                    }
-                )
-        except Exception as notif_err:
-            print(f"Non-fatal push notification trigger error: {notif_err}")
+        batch.set(conv_ref, conv_update, merge=True)
+        batch.set(db.collection('push_jobs').document(f'chat_{msg_id}'), {
+            'type': 'chat', 'conversationId': conv_id, 'messageId': msg_id,
+            'state': 'pending', 'createdAt': firestore.SERVER_TIMESTAMP,
+        })
+        customer_email = str((conv_doc.to_dict() or {}).get('customerEmail') or '').strip().lower()
+        recipient = 'ADMIN' if sender_role == 'customer' else customer_email
+        if recipient:
+            notification = {
+                'id': f'chat_{msg_id}', 'userId': recipient,
+                'title': f'New message from {sender_name or "Customer"}' if sender_role == 'customer' else 'New reply from KCZ Printing',
+                'message': message_text[:300], 'type': 'chat',
+                'conversationId': conv_id, 'messageId': msg_id, 'status': 'Unread',
+                'link': f'/admin?tab=liveChat&convId={conv_id}' if sender_role == 'customer' else '/customer?tab=chat',
+                'createdAt': firestore.SERVER_TIMESTAMP, 'timestamp': now_iso,
+            }
+            if sender_role != 'customer':
+                notification['recipientEmail'] = customer_email
+            batch.set(db.collection('notifications').document(f'chat_{msg_id}'), notification)
+        batch.commit()
 
         return msg_data
     except Exception as e:
@@ -1018,7 +1070,7 @@ def send_fcm_push_notification(recipient_role, recipient_email, title, body, cli
         for d in docs:
             tdata = d.to_dict()
             tok = tdata.get('token')
-            if tok and tok not in active_tokens:
+            if tok and tok not in active_tokens and tok not in (data_payload or {}).get('_exclude_tokens', []):
                 active_tokens.append(tok)
                 doc_refs_by_token[tok] = d.reference
 
@@ -1032,9 +1084,12 @@ def send_fcm_push_notification(recipient_role, recipient_email, title, body, cli
             'body': body or '',
             'timestamp': str(int(datetime.datetime.now().timestamp()))
         }
+        if recipient_email:
+            payload_data['recipient_email'] = recipient_email.strip().lower()
         if data_payload and isinstance(data_payload, dict):
             for k, v in data_payload.items():
-                payload_data[str(k)] = str(v)
+                if not str(k).startswith('_'):
+                    payload_data[str(k)] = str(v)
 
         webpush_config = messaging.WebpushConfig(
             notification=messaging.WebpushNotification(
@@ -1046,12 +1101,12 @@ def send_fcm_push_notification(recipient_role, recipient_email, title, body, cli
                 renotify=True,
                 data=payload_data
             ),
-            fcm_options=messaging.WebpushFCMOptions(
-                link=click_url or '/'
-            )
+            fcm_options=(messaging.WebpushFCMOptions(link=click_url)
+                         if click_url and click_url.startswith('https://') else None)
         )
 
         sent_count = 0
+        failed_tokens = []
         invalid_tokens = []
 
         for token in active_tokens:
@@ -1063,6 +1118,16 @@ def send_fcm_push_notification(recipient_role, recipient_email, title, body, cli
                     ),
                     data=payload_data,
                     webpush=webpush_config,
+                    android=messaging.AndroidConfig(
+                        priority='high',
+                        ttl=datetime.timedelta(hours=24),
+                        notification=messaging.AndroidNotification(
+                            channel_id='kcz_chat_channel',
+                            icon='ic_notification',
+                            color='#15803D',
+                            tag=payload_data.get('event_id'),
+                        ),
+                    ),
                     token=token
                 )
                 messaging.send(msg)
@@ -1070,11 +1135,8 @@ def send_fcm_push_notification(recipient_role, recipient_email, title, body, cli
             except messaging.UnregisteredError:
                 invalid_tokens.append(token)
             except Exception as token_err:
-                err_str = str(token_err).lower()
-                if 'unregistered' in err_str or 'invalid' in err_str or 'not found' in err_str:
-                    invalid_tokens.append(token)
-                else:
-                    print(f"Push send warning for token: {token_err}")
+                failed_tokens.append(token)
+                print(f"Push send warning: {type(token_err).__name__}")
 
         # Clean up expired or unregistered tokens
         for inv_tok in invalid_tokens:
@@ -1086,8 +1148,10 @@ def send_fcm_push_notification(recipient_role, recipient_email, title, body, cli
                 pass
 
         return {
-            "success": True,
+            "success": not failed_tokens,
             "sent_count": sent_count,
+            "delivered_tokens": [t for t in active_tokens if t not in invalid_tokens and t not in failed_tokens],
+            "failed_count": len(failed_tokens),
             "invalid_cleaned": len(invalid_tokens)
         }
     except Exception as e:
@@ -1100,29 +1164,34 @@ def send_fcm_push_notification(recipient_role, recipient_email, title, body, cli
 # ---------------------------------------------------------------------------
 
 def archive_item(item_type, item_id, item_data=None, original_source=None):
-    """
-    Archives an item into the Firestore archives collection.
-    item_type can be: user, service, store_product, sample_product
-    """
     try:
-        if db is not None:
-            import datetime
-            archived_id = f"{item_type}_{item_id}"
-            payload = {
-                'id': archived_id,
-                'originalId': str(item_id),
-                'itemType': item_type,
-                'data': item_data or {},
-                'source': original_source or 'admin',
-                'archivedAt': datetime.datetime.now().isoformat()
-            }
-            db.collection('archives').document(archived_id).set(payload, merge=True)
-            print(f"✓ Archived {item_type} ({item_id}) successfully!")
-            return True
-        return False
+        if db is None: return False
+        item_id = str(item_id)
+        targets = _item_refs(item_type, item_id, item_data or {})
+        @firestore.transactional
+        def apply(transaction):
+            records = [r.get(transaction=transaction) for r in targets]
+            existing = [d for d in records if d.exists]
+            if not existing or existing[0].to_dict().get('archived') is True:
+                raise ValueError('Item is missing or already archived.')
+            data = {**(item_data or {}), **existing[0].to_dict(), 'id': item_id}
+            archive_id = f'{item_type}_{item_id}'
+            transaction.set(db.collection('archives').document(archive_id), {
+                'id': archive_id, 'originalId': item_id, 'itemType': item_type,
+                'data': data, 'source': original_source or 'admin',
+                'originalPaths': [r.path for r in targets],
+                'archivedAt': datetime.datetime.now(datetime.timezone.utc).isoformat()
+            })
+            for target in targets:
+                safe = {k: v for k, v in data.items() if target.parent.id != 'users' or k not in ('password', 'passwordHash')}
+                transaction.set(target, {**safe, 'archived': True, 'isArchived': True,
+                                        'archivedAt': firestore.SERVER_TIMESTAMP}, merge=True)
+        apply(db.transaction())
+        return True
     except Exception as e:
-        print(f"Error archiving item: {e}")
+        print(f'Error archiving: {e}')
         return False
+
 
 def get_archived_items(item_type=None):
     """
@@ -1147,53 +1216,85 @@ def get_archived_items(item_type=None):
         print(f"Error fetching archives: {e}")
         return []
 
+def _legacy_products():
+    return db.collection('artifacts').document('printcraft-pro').collection('public').document('data').collection('store_products')
+
+
+def _item_refs(item_type, item_id, data):
+    if item_type == 'store_product':
+        return [db.collection('products').document(item_id), _legacy_products().document(item_id)]
+    if item_type == 'sample_product':
+        return [db.collection('sample_products').document(item_id), db.collection('sample_works').document(item_id)]
+    if item_type == 'service':
+        return [db.collection('services').document(item_id)]
+    if item_type != 'user':
+        raise ValueError('Unknown archive type')
+    refs = {}
+    email = str(data.get('email') or '').strip().lower()
+    if not email:
+        for source in ['customers', 'users']:
+            candidate = db.collection(source).document(item_id).get()
+            if candidate.exists:
+                email = str(candidate.to_dict().get('email') or '').strip().lower()
+                if email: break
+    for collection in ['customers', 'users']:
+        direct = db.collection(collection).document(item_id)
+        if direct.get().exists: refs[direct.path] = direct
+        if email:
+            for doc in db.collection(collection).where('email', '==', email).stream():
+                refs[doc.reference.path] = doc.reference
+    customer_id = str(data.get('customerId') or data.get('id') or item_id)
+    refs.setdefault('customers/' + customer_id, db.collection('customers').document(customer_id))
+    if not any(r.parent.id == 'users' for r in refs.values()):
+        uid = str(data.get('uid') or item_id)
+        refs['users/' + uid] = db.collection('users').document(uid)
+    return list(refs.values())
+
+
+def _finish_archive(archive_doc_id, restore):
+    if db is None: return False, 'Database not connected.'
+    ref = db.collection('archives').document(archive_doc_id)
+    snapshot = ref.get()
+    if not snapshot.exists: return False, 'Archived item not found.'
+    item = snapshot.to_dict()
+    orig_id = str(item['originalId'])
+    data = dict(item.get('data') or {})
+    targets = {r.path: r for r in _item_refs(item['itemType'], orig_id, data)}
+    for path in item.get('originalPaths', []): targets[path] = db.document(path)
+    @firestore.transactional
+    def apply(transaction):
+        current = ref.get(transaction=transaction)
+        records = [r.get(transaction=transaction) for r in targets.values()]
+        if not current.exists: raise ValueError('Archive was already restored or deleted.')
+        def compatible_user(d):
+            return restore and item['itemType'] == 'user' and data.get('email') and d.to_dict().get('email') == data.get('email')
+        if any(d.exists and d.to_dict().get('archived') is not True and not compatible_user(d) for d in records):
+            raise ValueError('An active record already exists. Refresh before continuing.')
+        payload = dict(current.to_dict().get('data') or {}, id=orig_id, archived=False, isArchived=False)
+        if item['itemType'] == 'store_product':
+            source = next((d for d in records if d.exists and d.reference.parent.id == 'products'), next((d for d in records if d.exists), None))
+            if source is not None:
+                payload = {**payload, **source.to_dict(), 'id': orig_id, 'archived': False, 'isArchived': False}
+        payload.pop('archivedAt', None)
+        for target, before in zip(targets.values(), records):
+            if restore and before.exists and before.to_dict().get('archived') is not True and compatible_user(before):
+                transaction.set(target, {'archived': False, 'isArchived': False, 'archivedAt': firestore.DELETE_FIELD}, merge=True)
+            elif restore:
+                safe = {k: v for k, v in payload.items() if target.parent.id != 'users' or k not in ('password', 'passwordHash')}
+                transaction.set(target, safe)
+            else: transaction.delete(target)
+        transaction.delete(ref)
+    apply(db.transaction())
+    return True, 'Item restored successfully!' if restore else 'Item permanently deleted.'
+
+
 def restore_archived_item(archive_doc_id):
-    """
-    Restores an archived item back to its original collection and deletes it from archives.
-    """
-    try:
-        if db is not None:
-            doc_ref = db.collection('archives').document(archive_doc_id)
-            doc = doc_ref.get()
-            if not doc.exists:
-                return False, "Archived item not found."
-            
-            item = doc.to_dict()
-            item_type = item.get('itemType')
-            orig_id = item.get('originalId')
-            data = item.get('data') or {}
+    try: return _finish_archive(archive_doc_id, True)
+    except Exception as e: return False, str(e)
 
-            if item_type == 'user':
-                db.collection('customers').document(str(orig_id)).set(data, merge=True)
-            elif item_type == 'service':
-                save_service(data)
-            elif item_type == 'store_product':
-                current_products = get_store_products()
-                exists = any(str(p.get('id')) == str(orig_id) for p in current_products)
-                if not exists:
-                    current_products.append(data)
-                    save_store_products(current_products)
-            elif item_type == 'sample_product':
-                save_sample_product(data)
-            else:
-                return False, f"Unknown item type: {item_type}"
-
-            doc_ref.delete()
-            return True, f"Item ({orig_id}) restored successfully!"
-        return False, "Database not connected."
-    except Exception as e:
-        print(f"Error restoring archived item: {e}")
-        return False, str(e)
 
 def permanently_delete_archived_item(archive_doc_id):
-    """
-    Permanently deletes an item from the archives collection.
-    """
-    try:
-        if db is not None:
-            db.collection('archives').document(archive_doc_id).delete()
-            return True
-        return False
+    try: return _finish_archive(archive_doc_id, False)[0]
     except Exception as e:
-        print(f"Error permanently deleting archive: {e}")
+        print(f'Error deleting archive: {e}')
         return False

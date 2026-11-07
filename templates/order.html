@@ -259,8 +259,9 @@
                     <span class="text-[10px] font-mono text-emerald-800 bg-emerald-50 border border-emerald-100 px-2 py-0.5 rounded-full font-bold">Live Breakdown</span>
                 </div>
                 <div>
-                    <span class="text-xs text-slate-800 font-medium">Estimated Total:</span>
+                    <span class="text-xs text-slate-800 font-medium">Subtotal:</span>
                     <div class="text-3xl sm:text-4xl font-black text-emerald-600 font-mono tracking-tight mt-1" id="custCalculatedTotal">₱ 30.00</div>
+                    <div id="orderPoints"></div>
                 </div>
                 <div class="p-3.5 bg-slate-50 rounded-2xl border border-slate-200 space-y-2 text-xs">
                     <div class="flex justify-between items-center">
@@ -1184,6 +1185,12 @@ function onServiceChange() {
                         ${opts.map(o => `<option value="${escapeHtml(o)}">${escapeHtml(o)}</option>`).join('')}
                     </select>
                 `;
+            } else if (req.type === 'radio' || req.type === 'checkboxes') {
+                const options = Array.isArray(req.options) ? req.options : String(req.options || '').split(/[,/]+/);
+                const inputType = req.type === 'radio' ? 'radio' : 'checkbox';
+                reqFieldsHtml += `<div class="cust-custom-req-group space-y-2 p-3 bg-slate-50 border border-slate-200 rounded-xl" data-req-label="${escapeHtml(reqLabel)}" data-req-required="${isReq}">
+                    ${options.map((option, index) => `<label class="flex items-center gap-2 text-xs text-black"><input type="${inputType}" name="${reqId}" value="${escapeHtml(String(option).trim())}">${escapeHtml(String(option).trim())}</label>`).join('')}
+                </div>`;
             } else if (req.type === 'number') {
                 reqFieldsHtml += `
                     <input type="number" id="${reqId}" data-req-label="${reqLabel}" data-req-required="${isReq}" min="1" max="100000" oninput="validateNumberInput(this)" placeholder="Enter ${reqLabel} (Max: 100,000)..." class="cust-custom-req-input w-full bg-slate-50 border border-slate-200 p-2.5 rounded-xl font-medium focus:outline-none focus:border-emerald-600 text-xs">
@@ -1392,6 +1399,13 @@ function submitOrderToBackend() {
         }
     });
 
+    document.querySelectorAll('.cust-custom-req-group').forEach(group => {
+        const label = group.getAttribute('data-req-label') || 'Requirement';
+        const selected = Array.from(group.querySelectorAll('input:checked')).map(input => input.value);
+        if (group.getAttribute('data-req-required') === 'true' && !selected.length) missingReqField = label;
+        if (selected.length) customRequirementsData[label] = selected;
+    });
+
     if (missingReqField) {
         alert(`⚠️ Please provide a value for: "${missingReqField}"`);
         return;
@@ -1408,6 +1422,7 @@ function submitOrderToBackend() {
         customerId: "CUST-101",
         customer: loggedUser.email.split('@')[0],
         email: loggedUser.email,
+        serviceId: serviceSelect.value,
         service: serviceName,
         pages: pagesVal,
         copies: qtyVal,
@@ -1418,17 +1433,22 @@ function submitOrderToBackend() {
         totalAmount: totalAmount,
         file: fileName,
         payment: paymentMethod,
+        customRequirements: customRequirementsData,
+        details: {...customRequirementsData, size:document.getElementById('specSize')?.value || '',
+            dimensions:`${document.getElementById('specWidth')?.value || ''}ft x ${document.getElementById('specHeight')?.value || ''}ft`},
+        paperStock:document.getElementById('custStockSelect')?.value || 'short',
+        width:document.getElementById('specWidth')?.value,
+        height:document.getElementById('specHeight')?.value,
+        merchantAccountNumber:(document.getElementById('gcashShopNumberText')?.textContent || '').replace(/\s/g, ''),
+        fileUrl:_uploadedFile?.fileUrl || '',
+        storagePath:_uploadedFile?.storagePath || '',
         gcashRef: gcashRefVal,
         gcashReceiptUrl: _uploadedGcashReceiptDataUrl,
         orderDate: `${dateStr} • ${timeStr}`,
         customerNote: customerNote
     };
 
-    fetch('/api/orders', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(orderData)
-    })
+    Loyalty.submitOrder(orderData, 'orderPoints')
     .then(res => {
         if (res.status === 401) {
             alert("Unauthorized! Mag-login muna bago mag-submit ng order.");

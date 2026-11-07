@@ -5,3 +5,5 @@ __pycache__/
 .env.*
 firebase-service-account.json
 serviceAccountKey.json
+
+/loyalty-backups/

@@ -129,8 +129,8 @@
                 <div class="grid grid-cols-2 gap-4">
                     <div class="space-y-1">
                         <label class="block font-bold text-black">Price (₱)</label>
-                        <input type="number" id="newProdPrice" value="30.00" min="0.01" max="999999" step="0.25" onkeydown="return !['e', 'E', '+', '-'].includes(event.key)" oninput="if(this.value.length > 8) this.value = this.value.slice(0, 8); if(parseFloat(this.value) < 0) this.value = 0;" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs text-black focus:outline-none focus:border-blue-600 font-medium">
-                        <span class="text-[10px] text-slate-700">Hal. 30.00 (Max: ₱999,999)</span>
+                        <input type="number" id="newProdPrice" value="30.00" min="0.01" max="5000000" step="0.01" onkeydown="return !['e', 'E', '+', '-'].includes(event.key)" oninput="if(/[eE+-]/.test(this.value)) this.value = ''; if(this.value.length > 10) this.value = this.value.slice(0, 10);" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs text-black focus:outline-none focus:border-blue-600 font-medium">
+                        <span class="text-[10px] text-slate-700">Hal. 30.00 (Max: ₱5,000,000)</span>
                     </div>
                     <div class="space-y-1">
                         <label class="block font-bold text-black">Initial Stock (pcs)</label>
@@ -204,8 +204,8 @@
                 <div class="grid grid-cols-2 gap-4">
                     <div class="space-y-1">
                         <label class="block font-bold text-black">Price (₱)</label>
-                        <input type="number" id="editProdPrice" min="0.01" max="999999" step="0.25" onkeydown="return !['e', 'E', '+', '-'].includes(event.key)" oninput="if(this.value.length > 8) this.value = this.value.slice(0, 8); if(parseFloat(this.value) < 0) this.value = 0;" placeholder="0.00" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs text-black focus:outline-none focus:border-blue-600 font-medium">
-                        <span class="text-[10px] text-slate-700">Hal. 19.00 (Max: ₱999,999)</span>
+                        <input type="number" id="editProdPrice" min="0.01" max="5000000" step="0.01" onkeydown="return !['e', 'E', '+', '-'].includes(event.key)" oninput="if(/[eE+-]/.test(this.value)) this.value = ''; if(this.value.length > 10) this.value = this.value.slice(0, 10);" placeholder="0.00" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs text-black focus:outline-none focus:border-blue-600 font-medium">
+                        <span class="text-[10px] text-slate-700">Hal. 19.00 (Max: ₱5,000,000)</span>
                     </div>
                     <div class="space-y-1">
                         <label class="block font-bold text-black">Stock (pcs)</label>
@@ -318,27 +318,46 @@
         </div>
 
         <!-- Checkout Controls -->
-        <div class="p-6 border-t border-slate-200 bg-slate-50 space-y-4">
+        <div class="p-6 border-t border-slate-200 bg-slate-50 space-y-4 store-checkout-controls">
+            <div id="storePoints"></div>
             <div class="space-y-1.5 text-xs">
                 <label class="block font-semibold text-black">Payment Option</label>
                 <div class="grid grid-cols-2 gap-2">
                     <label class="border border-slate-200 bg-white p-2.5 rounded-xl flex items-center gap-2 cursor-pointer text-[11px] font-bold">
-                        <input type="radio" name="storePaymentMethod" value="GCash" checked class="text-blue-600">
+                        <input type="radio" name="storePaymentMethod" value="GCash" checked onchange="updateStorePaymentControls()" class="text-blue-600">
                         <span>📲 GCash</span>
                     </label>
                     <label class="border border-slate-200 bg-white p-2.5 rounded-xl flex items-center gap-2 cursor-pointer text-[11px] font-bold">
-                        <input type="radio" name="storePaymentMethod" value="Cash on Pickup" class="text-blue-600">
+                        <input type="radio" name="storePaymentMethod" value="Cash on Pickup" onchange="updateStorePaymentControls()" class="text-blue-600">
                         <span>💵 Cash Pickup</span>
                     </label>
                 </div>
             </div>
 
+            <div id="storeGcashPanel" class="store-gcash-panel space-y-3">
+                <p id="storeGcashStatus" class="text-sm text-slate-700" role="status">Loading GCash details…</p>
+                <div class="store-merchant-details">
+                    <span class="text-xs text-slate-600">Send payment to</span>
+                    <strong id="storeGcashAccountName"></strong>
+                    <span id="storeGcashAccountNumber" class="font-mono font-bold"></span>
+                    <img id="storeGcashQr" hidden alt="Merchant GCash payment QR" class="w-40 max-w-full mx-auto rounded-xl">
+                </div>
+                <label class="block text-sm font-semibold" for="storeGcashReference">GCash Reference Number</label>
+                <input id="storeGcashReference" type="text" inputmode="numeric" maxlength="16" autocomplete="off" oninput="this.value=this.value.replace(/[^0-9]/g,'');document.getElementById('storePaymentError').textContent=''" placeholder="8–16 digits, usually 13" class="store-payment-input">
+                <label class="block text-sm font-semibold" for="storeReceiptFile">Receipt image (optional)</label>
+                <input id="storeReceiptFile" type="file" accept="image/png,image/jpeg" onchange="selectStoreReceipt(this)" class="block w-full text-sm">
+                <p class="text-xs text-slate-600">PNG or JPG, up to 10 MB. Images are resized for the order record.</p>
+                <p id="storeReceiptStatus" class="text-xs break-words" role="status"></p>
+                <img id="storeReceiptPreview" hidden alt="Selected GCash receipt" class="max-h-40 max-w-full rounded-lg">
+                <button type="button" onclick="clearStoreReceipt()" class="text-sm font-semibold text-emerald-800">Remove receipt</button>
+            </div>
+            <p id="storePaymentError" class="text-sm text-rose-800" role="alert"></p>
             <div class="flex justify-between items-baseline pt-2">
                 <span class="text-xs font-bold text-slate-800 uppercase">Subtotal</span>
                 <span id="cartSubtotalAmount" class="text-2xl font-extrabold font-mono text-amber-600">₱0.00</span>
             </div>
 
-            <button onclick="submitStoreCheckout()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs py-3.5 rounded-xl transition shadow-md cursor-pointer flex items-center justify-center gap-2">
+            <button id="storeCheckoutButton" onclick="submitStoreCheckout()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs py-3.5 rounded-xl transition shadow-md cursor-pointer flex items-center justify-center gap-2">
                 <span>Confirm & Place Store Order</span>
                 <i class="fas fa-arrow-right text-xs"></i>
             </button>
@@ -347,7 +366,7 @@
 
     <!-- SHOPEE-STYLE PRODUCT DETAIL QUICK VIEW MODAL -->
     <div id="productDetailModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 hidden flex items-center justify-center p-4 sm:p-6 overflow-y-auto" onclick="if(event.target===this) closeProductDetailModal()">
-        <div class="bg-white rounded-3xl max-w-2xl w-full shadow-2xl border border-slate-100 overflow-hidden transform transition-all my-8 animate-in fade-in zoom-in-95 duration-200">
+        <div class="product-detail-panel bg-white rounded-3xl max-w-2xl w-full shadow-2xl border border-slate-100 overflow-hidden transform transition-all my-8 animate-in fade-in zoom-in-95 duration-200">
             <!-- Modal Header / Close -->
             <div class="flex justify-between items-center px-6 py-4 border-b border-slate-100 bg-slate-50/50">
                 <span class="text-xs font-extrabold uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
@@ -407,17 +426,22 @@
                         </div>
 
                         <!-- Quantity Stepper (Shopee Style) -->
-                        <div class="pt-3 border-t border-slate-100 flex items-center justify-between">
+                        <div class="product-detail-quantity pt-3 border-t border-slate-100 flex items-center justify-between">
                             <span class="text-xs font-bold text-black">Quantity:</span>
                             <div class="flex items-center gap-2">
                                 <div class="flex items-center border border-slate-200 rounded-xl bg-slate-50 p-1">
                                     <button type="button" onclick="changeDetailModalQty(-1)" class="w-8 h-8 bg-white hover:bg-slate-100 text-black rounded-lg text-sm font-bold transition flex items-center justify-center cursor-pointer shadow-2xs">−</button>
-                                    <input type="number" id="detailModalQtyInput" value="1" min="1" onchange="validateDetailModalQty()" class="w-14 text-center text-sm font-extrabold font-mono bg-transparent focus:outline-none focus:bg-white focus:rounded-md py-1 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none">
+                                    <input type="number" id="detailModalQtyInput" value="1" min="1" step="1" onkeydown="return !['e', 'E', '+', '-', '.'].includes(event.key)" oninput="validateDetailModalQty(false)" onchange="validateDetailModalQty()" class="w-14 text-center text-sm font-extrabold font-mono bg-transparent focus:outline-none focus:bg-white focus:rounded-md py-1 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none">
                                     <button type="button" onclick="changeDetailModalQty(1)" class="w-8 h-8 bg-white hover:bg-slate-100 text-black rounded-lg text-sm font-bold transition flex items-center justify-center cursor-pointer shadow-2xs">+</button>
                                 </div>
                                 <span class="text-[11px] text-slate-700 font-medium" id="detailModalMaxStockHint">(Max: 0 pcs)</span>
                             </div>
                         </div>
+                    </div>
+
+                    <div class="product-detail-total" aria-live="polite">
+                        <span>Total price</span>
+                        <strong id="detailModalTotalPrice">₱0.00</strong>
                     </div>
 
                     <!-- Action Buttons -->
@@ -449,6 +473,18 @@ function escapeHtml(str) {
         .replace(/'/g, '&#039;');
 }
 
+function validStorePrice(value) {
+    if ((typeof value !== 'number' && typeof value !== 'string') || String(value).trim() === '') return false;
+    const price = Number(value);
+    return Number.isFinite(price) && price >= 0 && price <= 5000000;
+}
+
+function storePriceLabel(value) {
+    return validStorePrice(value)
+        ? new Intl.NumberFormat('en-PH', {style: 'currency', currency: 'PHP'}).format(Number(value))
+        : 'Price unavailable';
+}
+
 let STORE_PRODUCTS = [];
 let cartState = {};
 let currentCategory = 'all';
@@ -462,6 +498,7 @@ let isAdminUser = {{ 'true' if session.get('role') == 'admin' else 'false' }};
 
 let activeRestockProdId = null;
 let pendingDeleteProdId = null;
+let editedProductSnapshot = null;
 
 document.addEventListener('DOMContentLoaded', () => {
     if (isAdminUser) {
@@ -473,6 +510,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     fetchStoreProductsFromBackend();
+    setInterval(fetchStoreProductsFromBackend, 15000);
 });
 
 function openLoginPromptModal() {
@@ -510,17 +548,18 @@ function fetchStoreProductsFromBackend() {
     });
 }
 
-function saveProductsToBackend() {
+function saveProductsToBackend(product) {
     return fetch('/api/store/products', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ products: STORE_PRODUCTS })
+        body: JSON.stringify({ products: [product] })
     })
-    .then(res => res.json())
+    .then(async res => { const data = await res.json(); if (!res.ok || !data.success) throw new Error(data.message || 'Save failed'); return data; })
     .then(() => {
-        renderStoreProducts();
+        fetchStoreProductsFromBackend();
+        return true;
     })
-    .catch(err => console.error("Error saving products:", err));
+    .catch(err => { alert(err.message); fetchStoreProductsFromBackend(); return false; });
 }
 
 function checkStockAlertsOnLoad() {
@@ -644,7 +683,7 @@ function renderStoreProducts() {
                         </div>
                         <div class="flex justify-between items-center text-xs">
                             <span class="text-slate-800">Price:</span>
-                            <span class="font-mono font-bold text-black">₱${(parseFloat(p.price) && isFinite(p.price) ? Math.min(parseFloat(p.price), 999999).toFixed(2) : '0.00')}</span>
+                            <span class="font-mono font-bold text-black">${storePriceLabel(p.price)}</span>
                         </div>
                         
                         <button onclick="openRestockModal('${p.id}', '${p.name}')" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs py-2.5 rounded-xl transition shadow-2xs cursor-pointer flex items-center justify-center gap-1.5">
@@ -656,13 +695,13 @@ function renderStoreProducts() {
         }
 
         return `
-            <div class="bg-white border ${cardBorder} rounded-2xl p-5 shadow-xs hover:shadow-md transition-all flex flex-col justify-between space-y-4 group">
+            <div role="button" tabindex="0" onclick="openProductDetailModal('${p.id}')" onkeydown="if(event.key === 'Enter' || event.key === ' ') { event.preventDefault(); openProductDetailModal('${p.id}'); }" class="store-product-card bg-white border ${cardBorder} rounded-2xl p-5 shadow-xs hover:shadow-md transition-all flex flex-col justify-between space-y-4 group cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-emerald-600">
                 <div class="space-y-3">
-                    <div onclick="openProductDetailModal('${p.id}')" class="relative h-36 bg-slate-100 rounded-xl overflow-hidden border border-slate-100 cursor-pointer">
+                    <div class="relative h-36 bg-slate-100 rounded-xl overflow-hidden border border-slate-100 cursor-pointer">
                         <img src="${imgUrl}" alt="${p.name}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" onerror="this.src='${defaultImg}'">
                         ${badgeHTML}
                     </div>
-                    <div onclick="openProductDetailModal('${p.id}')" class="cursor-pointer">
+                    <div>
                         <h3 class="font-bold text-sm text-black group-hover:text-blue-600 transition-colors line-clamp-1">${p.name}</h3>
                         <p class="text-[11px] text-slate-800 pt-0.5 leading-relaxed line-clamp-2">${p.desc || ''}</p>
                     </div>
@@ -674,21 +713,10 @@ function renderStoreProducts() {
                     </div>
                     <div class="flex justify-between items-center">
                         <span class="text-xs text-slate-700">Price:</span>
-                        <span class="font-mono font-extrabold text-black text-base">₱${(parseFloat(p.price) && isFinite(p.price) ? Math.min(parseFloat(p.price), 999999).toFixed(2) : '0.00')}</span>
+                        <span class="font-mono font-extrabold text-black text-base">${storePriceLabel(p.price)}</span>
                     </div>
 
-                    <div class="flex gap-2 pt-1">
-                        <button onclick="${isOut ? 'alert(\"Item is currently out of stock.\")' : `addToCartDirect('${p.id}')`}"
-                            class="flex-1 flex items-center justify-center gap-1.5 ${isOut ? 'bg-slate-100 text-slate-700 cursor-not-allowed border border-slate-200' : 'bg-white border border-blue-500 text-blue-600 hover:bg-blue-50 cursor-pointer'} font-bold text-xs py-2.5 rounded-xl transition">
-                            <i class="fas fa-cart-plus text-xs"></i>
-                            ${isOut ? 'Out of Stock' : 'Add to Cart'}
-                        </button>
-                        <button onclick="${isOut ? 'alert(\"Item is currently out of stock.\")' : `buyNow('${p.id}')`}"
-                            class="flex-1 flex items-center justify-center gap-1.5 ${isOut ? 'bg-slate-300 text-slate-800 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700 text-white cursor-pointer'} font-bold text-xs py-2.5 rounded-xl transition shadow-sm">
-                            <i class="fas fa-bolt text-xs"></i>
-                            Buy Now
-                        </button>
-                    </div>
+
                 </div>
             </div>
         `;
@@ -739,16 +767,14 @@ function openEditProductModal(prodId) {
     const p = STORE_PRODUCTS.find(item => String(item.id) === String(prodId));
     if (!p) return;
 
-    let cleanPrice = parseFloat(p.price);
-    if (isNaN(cleanPrice) || cleanPrice < 0 || cleanPrice > 999999) {
-        cleanPrice = 15.00;
-    }
+    const cleanPrice = validStorePrice(p.price) ? Number(p.price).toFixed(2) : '';
 
     let cleanStock = parseInt(p.stock, 10);
     if (isNaN(cleanStock) || cleanStock < 0 || cleanStock > 99999) {
         cleanStock = 12;
     }
 
+    editedProductSnapshot = {...p};
     document.getElementById('editProdId').value = p.id;
     document.getElementById('editProdName').value = p.name || '';
     document.getElementById('editProdCategory').value = p.category || 'notebooks';
@@ -802,6 +828,7 @@ async function executeProductDeletion() {
     try {
         const res = await fetch(`/api/store/products/${prodId}`, { method: 'DELETE' });
         const data = await res.json();
+        if (!res.ok || !data.success) throw new Error(data.message || 'Archive failed');
         STORE_PRODUCTS = STORE_PRODUCTS.filter(p => String(p.id) !== String(prodId));
         closeDeleteConfirmModal();
         renderStoreProducts();
@@ -848,7 +875,7 @@ function closeRestockModal() {
     document.getElementById('restockModalBackdrop').classList.add('hidden');
 }
 
-function submitCustomRestock() {
+async function submitCustomRestock() {
     if (!activeRestockProdId) return;
     const addQty = parseInt(document.getElementById('customRestockQtyInput').value) || 0;
     if (addQty <= 0) {
@@ -859,17 +886,22 @@ function submitCustomRestock() {
     const prod = STORE_PRODUCTS.find(p => String(p.id) === String(activeRestockProdId));
     if (prod) {
         prod.stock += addQty;
-        saveProductsToBackend();
+        if (!await saveProductsToBackend({id: prod.id, stockDelta: addQty})) return;
         closeRestockModal();
         alert(`Successfully restocked +${addQty} pcs to ${prod.name}! (New total stock: ${prod.stock})`);
     }
 }
 
-function submitNewProduct() {
+async function submitNewProduct() {
     const name = document.getElementById('newProdName').value.trim();
     const category = document.getElementById('newProdCategory').value;
     const imageUrl = document.getElementById('newProdImage').value.trim();
-    const price = parseFloat(document.getElementById('newProdPrice').value) || 30.0;
+    const rawPrice = document.getElementById('newProdPrice').value;
+    if (!validStorePrice(rawPrice) || Number(rawPrice) <= 0 || !/^[0-9]{1,7}(\.[0-9]{1,2})?$/.test(rawPrice)) {
+        alert('Enter a price above zero and up to 5,000,000, with at most two decimal places.');
+        return;
+    }
+    const price = Number(rawPrice);
     const stock = parseInt(document.getElementById('newProdStock').value) || 100;
     const desc = document.getElementById('newProdDesc').value.trim() || 'New store supply item.';
 
@@ -889,12 +921,12 @@ function submitNewProduct() {
     };
 
     STORE_PRODUCTS.unshift(newProd);
-    saveProductsToBackend();
+    if (!await saveProductsToBackend(newProd)) return;
     closeAddProductModal();
     alert(`Successfully added new product: ${name}!`);
 }
 
-function submitEditProduct() {
+async function submitEditProduct() {
     const prodId = document.getElementById('editProdId').value;
     const name = document.getElementById('editProdName').value.trim();
     const category = document.getElementById('editProdCategory').value;
@@ -910,17 +942,11 @@ function submitEditProduct() {
 
     // Price validation
     const price = parseFloat(rawPrice);
-    if (isNaN(price) || price <= 0) {
-        alert("⚠️ Ang presyo (Price) ay kailangang mas mataas sa ₱0.00.");
+    if (!validStorePrice(rawPrice) || price <= 0 || !/^[0-9]{1,7}(\.[0-9]{1,2})?$/.test(rawPrice)) {
+        alert("Enter a price above zero and up to ₱5,000,000, with at most two decimal places.");
         document.getElementById('editProdPrice').focus();
         return;
     }
-    if (price > 999999) {
-        alert("⚠️ Ang maximum na pinapayagang presyo ay ₱999,999.00.");
-        document.getElementById('editProdPrice').focus();
-        return;
-    }
-
     // Stock validation
     const stock = parseInt(rawStock, 10);
     if (isNaN(stock) || stock < 0) {
@@ -943,7 +969,12 @@ function submitEditProduct() {
         prod.stock = stock;
         prod.desc = desc;
 
-        saveProductsToBackend();
+        const changes = {id: prod.id};
+        for (const key of ['name', 'category', 'imageUrl', 'price', 'stock', 'desc']) {
+            if (prod[key] !== editedProductSnapshot?.[key]) changes[key] = prod[key];
+        }
+        if ('stock' in changes) changes.expectedStock = editedProductSnapshot.stock;
+        if (!await saveProductsToBackend(changes)) return;
         closeEditProductModal();
         renderStoreProducts();
         alert(`✅ Matagumpay na na-update ang "${name}"!`);
@@ -1029,6 +1060,10 @@ function buyNow(prodId) {
     }
 
     const prod = STORE_PRODUCTS.find(p => p.id === prodId);
+    if (prod && !validStorePrice(prod.price)) {
+        alert('The shop needs to update this product price before it can be ordered.');
+        return;
+    }
     if (!prod || prod.stock <= 0) {
         alert('Item is currently out of stock.');
         return;
@@ -1064,6 +1099,7 @@ function openProductDetailModal(prodId) {
     const defaultImg = "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&q=80&w=400";
     const imgUrl = prod.image_url || prod.image || defaultImg;
     const isOut = prod.stock <= 0;
+    const priceValid = validStorePrice(prod.price);
     const isLow = prod.stock > 0 && prod.stock <= 15;
 
     // Fill elements
@@ -1077,7 +1113,7 @@ function openProductDetailModal(prodId) {
     if (nameEl) nameEl.textContent = prod.name;
 
     const priceEl = document.getElementById('detailModalPrice');
-    if (priceEl) priceEl.textContent = `₱${Number(prod.price || 0).toFixed(2)}`;
+    if (priceEl) priceEl.textContent = storePriceLabel(prod.price);
 
     const descEl = document.getElementById('detailModalDesc');
     if (descEl) descEl.textContent = prod.desc || 'Quality school & office supplies item. Guaranteed premium materials and ready for immediate store pick-up.';
@@ -1111,21 +1147,24 @@ function openProductDetailModal(prodId) {
     const qtyInput = document.getElementById('detailModalQtyInput');
     const maxHint = document.getElementById('detailModalMaxStockHint');
     if (qtyInput) {
-        qtyInput.value = isOut ? 0 : 1;
+        qtyInput.value = isOut || !priceValid ? 0 : 1;
         qtyInput.max = prod.stock;
-        qtyInput.disabled = isOut;
+        qtyInput.disabled = isOut || !priceValid;
     }
     if (maxHint) {
         maxHint.textContent = `(Max: ${prod.stock} pcs)`;
     }
 
+    updateDetailModalTotal();
+
     // Configure Add to Cart button
     const cartBtn = document.getElementById('detailModalAddToCartBtn');
     if (cartBtn) {
-        if (isOut) {
+        cartBtn.disabled = isOut || !priceValid;
+        if (isOut || !priceValid) {
             cartBtn.className = "flex-1 flex items-center justify-center gap-2 bg-slate-100 text-slate-700 font-bold text-xs py-3 rounded-2xl cursor-not-allowed border border-slate-200";
             cartBtn.onclick = () => alert("Item is currently out of stock.");
-            cartBtn.innerHTML = `<i class="fas fa-ban text-xs"></i><span>Out of Stock</span>`;
+            cartBtn.innerHTML = `<i class="fas fa-ban text-xs"></i><span>${isOut ? 'Out of Stock' : 'Price unavailable'}</span>`;
         } else {
             cartBtn.className = "flex-1 flex items-center justify-center gap-2 bg-blue-50 hover:bg-blue-100 text-blue-600 border border-blue-200 font-bold text-xs py-3 rounded-2xl transition cursor-pointer";
             cartBtn.onclick = () => submitModalAddToCart();
@@ -1136,7 +1175,8 @@ function openProductDetailModal(prodId) {
     // Configure Buy Now button
     const buyBtn = document.getElementById('detailModalBuyNowBtn');
     if (buyBtn) {
-        if (isOut) {
+        buyBtn.disabled = isOut || !priceValid;
+        if (isOut || !priceValid) {
             buyBtn.className = "flex-1 flex items-center justify-center gap-2 bg-slate-200 text-slate-700 font-bold text-xs py-3 rounded-2xl cursor-not-allowed";
             buyBtn.onclick = () => alert("Item is currently out of stock.");
         } else {
@@ -1157,7 +1197,7 @@ function openProductDetailModal(prodId) {
 function changeDetailModalQty(delta) {
     if (!currentDetailProdId) return;
     const prod = STORE_PRODUCTS.find(p => p.id === currentDetailProdId);
-    if (!prod || prod.stock <= 0) return;
+    if (!prod || prod.stock <= 0 || !validStorePrice(prod.price)) return;
 
     const input = document.getElementById('detailModalQtyInput');
     if (!input) return;
@@ -1172,9 +1212,22 @@ function changeDetailModalQty(delta) {
     }
 
     input.value = next;
+    updateDetailModalTotal();
 }
 
-function validateDetailModalQty() {
+function updateDetailModalTotal() {
+    const prod = STORE_PRODUCTS.find(p => p.id === currentDetailProdId);
+    const input = document.getElementById('detailModalQtyInput');
+    const total = document.getElementById('detailModalTotalPrice');
+    if (!total) return;
+    if (!prod || !validStorePrice(prod.price)) { total.textContent = '—'; return; }
+    const quantity = Math.max(0, Math.min(Number(input?.value) || 0, Number(prod?.stock) || 0));
+    total.textContent = new Intl.NumberFormat('en-PH', {
+        style: 'currency', currency: 'PHP', minimumFractionDigits: 2
+    }).format((Number(prod?.price) || 0) * quantity);
+}
+
+function validateDetailModalQty(finalize = true) {
     if (!currentDetailProdId) return;
     const prod = STORE_PRODUCTS.find(p => p.id === currentDetailProdId);
     if (!prod) return;
@@ -1182,14 +1235,15 @@ function validateDetailModalQty() {
     const input = document.getElementById('detailModalQtyInput');
     if (!input) return;
 
-    let val = parseInt(input.value) || 1;
-
-    if (val < 1) {
-        input.value = 1;
-    } else if (val > prod.stock) {
-        alert(`Paalala: ${prod.stock} pcs lang ang available sa stock.`);
-        input.value = prod.stock;
+    const raw = input.value;
+    if (!finalize && raw === '') {
+        updateDetailModalTotal();
+        return;
     }
+    const value = /^\d+$/.test(raw) ? Number(raw) : 1;
+    const stock = Math.max(0, Math.floor(Number(prod.stock) || 0));
+    input.value = stock > 0 ? Math.max(1, Math.min(value, stock)) : 0;
+    updateDetailModalTotal();
 }
 
 function submitModalAddToCart() {
@@ -1199,12 +1253,17 @@ function submitModalAddToCart() {
     }
     if (!currentDetailProdId) return;
     const prod = STORE_PRODUCTS.find(p => p.id === currentDetailProdId);
+    if (prod && !validStorePrice(prod.price)) {
+        alert('The shop needs to update this product price before it can be ordered.');
+        return;
+    }
     if (!prod || prod.stock <= 0) {
         alert('Item is currently out of stock.');
         return;
     }
 
     const input = document.getElementById('detailModalQtyInput');
+    validateDetailModalQty();
     const qtyToAdd = Math.max(1, parseInt(input?.value) || 1);
 
     const existingQty = cartState[prod.id] ? cartState[prod.id].qty : 0;
@@ -1229,12 +1288,17 @@ function submitModalBuyNow() {
     }
     if (!currentDetailProdId) return;
     const prod = STORE_PRODUCTS.find(p => p.id === currentDetailProdId);
+    if (prod && !validStorePrice(prod.price)) {
+        alert('The shop needs to update this product price before it can be ordered.');
+        return;
+    }
     if (!prod || prod.stock <= 0) {
         alert('Item is currently out of stock.');
         return;
     }
 
     const input = document.getElementById('detailModalQtyInput');
+    validateDetailModalQty();
     const selectedQty = Math.max(1, parseInt(input?.value) || 1);
 
     if (selectedQty > prod.stock) {
@@ -1273,6 +1337,8 @@ function toggleCartDrawer(open) {
     const backdrop = document.getElementById('cartModalBackdrop');
     const drawer = document.getElementById('cartDrawer');
     if (open) {
+        loadStoreGcashSettings();
+        updateStorePaymentControls();
         backdrop.classList.remove('hidden');
         drawer.classList.remove('translate-x-full');
     } else {
@@ -1287,11 +1353,12 @@ function updateCartDrawerUI() {
     const subtotal = document.getElementById('cartSubtotalAmount');
 
     const items = Object.values(cartState);
+    updateStorePaymentControls();
     const totalCount = items.reduce((sum, item) => sum + item.qty, 0);
     const totalPrice = items.reduce((sum, item) => sum + (item.price * item.qty), 0);
 
     if (badge) badge.textContent = totalCount;
-    if (subtotal) subtotal.textContent = `₱${totalPrice.toFixed(2)}`;
+    if (subtotal) subtotal.textContent = items.every(item => validStorePrice(item.price)) ? new Intl.NumberFormat('en-PH', {style:'currency', currency:'PHP'}).format(totalPrice) : '—';
 
     if (items.length === 0) {
         container.innerHTML = `<div class="text-center py-12 text-slate-700 text-xs">Your cart is empty.</div>`;
@@ -1304,11 +1371,11 @@ function updateCartDrawerUI() {
                 <img src="${item.imageUrl || 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=100&q=80'}" class="w-10 h-10 object-cover rounded-lg">
                 <div>
                     <div class="font-bold text-black">${item.name}</div>
-                    <div class="text-[10px] text-slate-700 font-mono">₱${item.price.toFixed(2)} x ${item.qty}</div>
+                    <div class="text-[10px] text-slate-700 font-mono">${storePriceLabel(item.price)} x ${item.qty}</div>
                 </div>
             </div>
             <div class="flex items-center gap-2">
-                <span class="font-mono font-bold text-black">₱${(item.price * item.qty).toFixed(2)}</span>
+                <span class="font-mono font-bold text-black">${validStorePrice(item.price) ? new Intl.NumberFormat('en-PH', {style:'currency',currency:'PHP'}).format(item.price * item.qty) : '—'}</span>
                 <button onclick="updateItemQty('${item.id}', -999)" class="text-rose-500 hover:text-rose-700 p-1 cursor-pointer">
                     <i class="fas fa-trash-alt text-xs"></i>
                 </button>
@@ -1317,68 +1384,6 @@ function updateCartDrawerUI() {
     `).join('');
 }
 
-function submitStoreCheckout() {
-    if (!isLoggedIn) {
-        openLoginPromptModal();
-        return;
-    }
-
-    const items = Object.values(cartState);
-    if (items.length === 0) {
-        alert("Pumili muna ng items sa store bago mag-checkout.");
-        return;
-    }
-
-    const payMethod = document.querySelector('input[name="storePaymentMethod"]:checked')?.value || "GCash";
-    const totalPrice = items.reduce((sum, item) => sum + (item.price * item.qty), 0);
-    const itemNames = items.map(i => `${i.name} (${i.qty}x)`).join(', ');
-
-    const loggedUser = JSON.parse(localStorage.getItem('kcz_logged_user') || '{"email":"customer@kezcemzek.com"}');
-
-    const now = new Date();
-    const dateStr = now.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-    const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
-    const fullOrderTime = `${dateStr} • ${timeStr}`;
-
-    const orderData = {
-        customerId: "CUST-101",
-        customer: loggedUser.email.split('@')[0],
-        service: `In-Store: ${itemNames}`,
-        pages: 1,
-        copies: items.reduce((sum, i) => sum + i.qty, 0),
-        paperSize: "Store Supply",
-        colorMode: "N/A",
-        sides: "N/A",
-        total: totalPrice,
-        file: "Store_Receipt.pdf",
-        payment: payMethod,
-        orderDate: fullOrderTime
-    };
-
-    fetch('/api/orders', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(orderData)
-    })
-    .then(res => {
-        if (!res.ok) throw new Error("Server response error");
-        return res.json();
-    })
-    .then(data => {
-        if (data && data.success) {
-            cartState = {};
-            updateCartDrawerUI();
-            toggleCartDrawer(false);
-            alert("🎉 Store Order placed successfully! Check 'My Orders' and Admin Queue.");
-            window.location.href = "/customer?tab=myOrders";
-        } else {
-            alert("Error submitting store order.");
-        }
-    })
-    .catch(err => {
-        console.error("Store Order Error:", err);
-        alert("Connection error when placing store order. Please try again.");
-    });
-}
 </script>
+<script src="{{ url_for('static', filename='js/store-payment.js') }}"></script>
 {% endblock %}

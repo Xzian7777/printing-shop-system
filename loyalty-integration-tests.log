@@ -1,0 +1,21 @@
+test_service_price_uses_catalog_and_validated_package (test_loyalty.LoyaltyRulesTests.test_service_price_uses_catalog_and_validated_package) ... ok
+test_whole_points_balance_and_half_subtotal_cap (test_loyalty.LoyaltyRulesTests.test_whole_points_balance_and_half_subtotal_cap) ... ok
+test_approved_order_cannot_be_customer_cancelled (test_loyalty.LoyaltyTransactionTests.test_approved_order_cannot_be_customer_cancelled) ... ok
+test_cancel_release_cannot_be_approved_and_other_customer_cannot_cancel (test_loyalty.LoyaltyTransactionTests.test_cancel_release_cannot_be_approved_and_other_customer_cannot_cancel) ... ok
+test_completed_paid_order_earns_exactly_one_point (test_loyalty.LoyaltyTransactionTests.test_completed_paid_order_earns_exactly_one_point) ... ok
+test_free_product_reward_is_zero_payment_and_earns_nothing (test_loyalty.LoyaltyTransactionTests.test_free_product_reward_is_zero_payment_and_earns_nothing) ... ok
+test_invalid_price_rate_reward_and_out_of_stock_fail_before_reservation (test_loyalty.LoyaltyTransactionTests.test_invalid_price_rate_reward_and_out_of_stock_fail_before_reservation) ... ok
+test_pending_reserves_then_approval_spends_and_rejection_returns_once (test_loyalty.LoyaltyTransactionTests.test_pending_reserves_then_approval_spends_and_rejection_returns_once) ... ok
+test_sequential_device_reservations_cannot_overspend (test_loyalty.LoyaltyTransactionTests.test_sequential_device_reservations_cannot_overspend) ... ok
+test_customer_cannot_forge_discount_or_cancel_reserved_points_directly (test_loyalty_access.LoyaltyAccessTests.test_customer_cannot_forge_discount_or_cancel_reserved_points_directly) ... ok
+test_only_owner_or_admin_can_read_balances_and_events (test_loyalty_access.LoyaltyAccessTests.test_only_owner_or_admin_can_read_balances_and_events) ... ok
+test_profile_and_catalog_direct_write_bypasses_are_denied (test_loyalty_access.LoyaltyAccessTests.test_profile_and_catalog_direct_write_bypasses_are_denied) ... ok
+test_approval_competes_with_cancel_on_order_and_balance (test_loyalty_emulator.LoyaltyEmulatorTests.test_approval_competes_with_cancel_on_order_and_balance) ... ok
+test_completion_retries_award_once_and_preserve_amounts (test_loyalty_emulator.LoyaltyEmulatorTests.test_completion_retries_award_once_and_preserve_amounts) ... ok
+test_concurrent_devices_cannot_double_spend (test_loyalty_emulator.LoyaltyEmulatorTests.test_concurrent_devices_cannot_double_spend) ... ok
+test_pos_linked_guest_free_and_same_submission_retries (test_loyalty_emulator.LoyaltyEmulatorTests.test_pos_linked_guest_free_and_same_submission_retries) ... ok
+
+----------------------------------------------------------------------
+Ran 16 tests in 12.137s
+
+OK
