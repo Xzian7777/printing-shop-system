@@ -8,7 +8,7 @@ import tempfile
 import unittest
 import uuid
 from flask import Flask, jsonify, request, session
-from payment_rules import validate_payment, validate_merchant, validate_receipt, shared_qr_settings
+from backend_test_support import validate_payment, validate_merchant, validate_receipt, shared_qr_settings
 
 
 class PaymentRulesTests(unittest.TestCase):

@@ -18,7 +18,7 @@
             </div>
             <div>
                 <h4 class="font-bold text-black text-xs sm:text-sm">Logged in as Staff Admin</h4>
-                <p class="text-[11px] text-black">Naka-login ka bilang Admin. Para mag-manage ng print queue at sales analytics, pumunta sa Admin Dashboard.</p>
+                <p class="text-[11px] text-black">You are signed in as an admin. Open the Admin Dashboard to manage the print queue and sales analytics.</p>
             </div>
         </div>
         <a href="/admin" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-4 py-2.5 rounded-xl shadow-xs transition flex items-center justify-center gap-2 whitespace-nowrap">
@@ -104,7 +104,7 @@
                     <span class="w-2.5 h-2.5 rounded-full bg-emerald-600"></span>
                     My Active Orders & Live Status Tracker
                 </h3>
-                <p class="text-xs text-slate-800 pt-0.5">Subaybayan ang real-time production status ng iyong print jobs step-by-step</p>
+                <p class="text-xs text-slate-800 pt-0.5">Track each stage of your print jobs in real time</p>
             </div>
             
             <div class="flex flex-wrap items-center gap-2 w-full md:w-auto">
@@ -606,7 +606,7 @@ function handleGcashReceiptUpload(event) {
                 } else {
                     if (statusEl) {
                         statusEl.className = "text-[10px] font-medium rounded-lg px-2.5 py-1 bg-amber-50 text-amber-800 flex items-center gap-1.5";
-                        statusEl.innerHTML = `ℹ️ Receipt attached. Kung hindi na-detect ang number, i-type lamang ito nang manu-mano sa field sa itaas.`;
+                        statusEl.innerHTML = `ℹ️ Receipt attached. If the reference number was not detected, enter it manually in the field above.`;
                     }
                 }
             }).catch(() => {
@@ -619,7 +619,7 @@ function handleGcashReceiptUpload(event) {
             // Soft fallback without heavy OCR library
             if (statusEl) {
                 statusEl.className = "text-[10px] font-semibold rounded-lg px-2.5 py-1 bg-emerald-50 text-emerald-700 flex items-center gap-1.5";
-                statusEl.innerHTML = `✅ Receipt image attached. Pakitiyak na tugma ang Reference Number sa text box.`;
+                statusEl.innerHTML = `✅ Receipt image attached. Check that the reference number matches the text field.`;
             }
         }
     };
@@ -1320,32 +1320,32 @@ function submitOrderToBackend() {
     const pagesVal = parseInt(pagesInput?.value) || 1;
 
     if (qtyVal <= 0) {
-        alert("⚠️ Ang Quantity ay dapat mas mataas sa zero (0).");
+        alert("⚠️ Quantity must be greater than zero.");
         qtyInput?.focus();
         return;
     }
     if (qtyVal > 100000) {
-        alert("⚠️ Ang pinakamataas na Quantity ay 100,000 pcs lang po kada order.");
+        alert("⚠️ The maximum quantity per order is 100,000 units.");
         qtyInput?.focus();
         return;
     }
     if (pagesVal <= 0) {
-        alert("⚠️ Ang Number of Pages ay dapat mas mataas sa zero (0).");
+        alert("⚠️ Pages must be greater than zero.");
         pagesInput?.focus();
         return;
     }
     if (pagesVal > 5000) {
-        alert("⚠️ Ang pinakamataas na Pages ay 5,000 pages lang po.");
+        alert("⚠️ The maximum page count is 5,000.");
         pagesInput?.focus();
         return;
     }
     if (widthInput && (parseFloat(widthInput.value) > 100 || parseFloat(widthInput.value) <= 0)) {
-        alert("⚠️ Ang sukat ng lapad (Width) ay dapat nasa pagitan ng 1 hanggang 100 ft.");
+        alert("⚠️ Width must be greater than 0 and at most 100 feet.");
         widthInput.focus();
         return;
     }
     if (heightInput && (parseFloat(heightInput.value) > 100 || parseFloat(heightInput.value) <= 0)) {
-        alert("⚠️ Ang sukat ng taas (Height) ay dapat nasa pagitan ng 1 hanggang 100 ft.");
+        alert("⚠️ Height must be greater than 0 and at most 100 feet.");
         heightInput.focus();
         return;
     }
@@ -1357,11 +1357,11 @@ function submitOrderToBackend() {
     const totalAmount = parseFloat(totalElem.textContent.replace('₱', '').replace(/,/g, '').trim()) || 0.0;
 
     if (totalAmount <= 0) {
-        alert("⚠️ Maling order total. Paki-check ang inyong piniling specifications.");
+        alert("⚠️ Invalid order total. Please check your selected specifications.");
         return;
     }
     if (totalAmount > 5000000) {
-        alert("⚠️ Ang total amount ay lumagpas sa pinakamataas na limitasyon (₱5,000,000). Paki-check ang quantity.");
+        alert("⚠️ The order total exceeds ₱5,000,000. Please check the quantity.");
         return;
     }
 
@@ -1375,7 +1375,7 @@ function submitOrderToBackend() {
         const refInput = document.getElementById('custGcashRefInput');
         gcashRefVal = (refInput ? refInput.value : '').replace(/\D/g, '');
         if (!gcashRefVal || gcashRefVal.length < 8) {
-            alert("⚠️ Kailangan ilagay ang wastong GCash Reference Number (13 digits mula sa GCash receipt) bago mag-submit.");
+            alert("⚠️ Enter a valid GCash reference number from your receipt before submitting (usually 13 digits).");
             if (refInput) {
                 refInput.scrollIntoView({ behavior: 'smooth' });
                 refInput.focus();
@@ -1421,7 +1421,7 @@ function submitOrderToBackend() {
     const noteEl = document.getElementById('custOrderNote');
     const customerNote = noteEl ? noteEl.value.trim() : "";
     if (customerNote.length > 500) {
-        alert("⚠️ Ang special instructions ay hindi pwedeng lumagpas sa 500 characters.");
+        alert("⚠️ Special instructions must not exceed 500 characters.");
         return;
     }
 
@@ -1455,7 +1455,7 @@ function submitOrderToBackend() {
     })
     .then(res => {
         if (res.status === 401) {
-            alert("Unauthorized! Mag-login muna bago mag-submit ng order.");
+            alert("Please sign in before submitting your order.");
             window.location.href = '/login';
             return;
         }
@@ -1703,7 +1703,7 @@ function renderCustomerFilteredOrders() {
                         <div class="text-right">
                             <div class="font-mono font-black text-black text-base">${o.formattedTotal || ('₱ ' + parseFloat(o.total || 0).toFixed(2))}</div>
                         </div>
-                        ${customerCanCancel(o) ? `<button onclick="openCustomerCancellation('${o.id}')" class="text-rose-700 border border-rose-200 bg-rose-50 hover:bg-rose-100 px-3 py-2 rounded-xl text-xs font-bold" title="Cancel Order">Cancel Order</button>` : '<span class="text-xs text-slate-600">Hindi na puwedeng i-cancel dahil approved na.</span>'}
+                        ${customerCanCancel(o) ? `<button onclick="openCustomerCancellation('${o.id}')" class="text-rose-700 border border-rose-200 bg-rose-50 hover:bg-rose-100 px-3 py-2 rounded-xl text-xs font-bold" title="Cancel Order">Cancel Order</button>` : '<span class="text-xs text-slate-600">This order can no longer be cancelled because it has been approved.</span>'}
                     </div>
                 </div>
 
@@ -1828,8 +1828,8 @@ function loadCustomerMessages(scrollToBottom = false) {
                         <div class="w-12 h-12 rounded-full bg-emerald-50 text-emerald-500 flex items-center justify-center text-xl shadow-xs">
                             💬
                         </div>
-                        <span class="font-bold text-black">Mag-iwan ng mensahe para sa aming staff!</span>
-                        <span class="text-slate-700 text-[11px] max-w-xs">I-type ang inyong katanungan patungkol sa inyong print job, sizes, o payment methods.</span>
+                        <span class="font-bold text-black">Leave a message for our staff!</span>
+                        <span class="text-slate-700 text-[11px] max-w-xs">Ask about your print job, sizes, or payment methods.</span>
                     </div>
                 `;
                 return;
@@ -1883,13 +1883,13 @@ function sendCustomerChatMessage() {
     if (customerIsSending) return;
     const input = document.getElementById('custChatInput');
     if (!input || !input.value.trim()) {
-        alert("⚠️ Hindi pwedeng magpadala ng blangkong mensahe.");
+        alert("⚠️ Message cannot be empty.");
         return;
     }
 
     const text = input.value.trim();
     if (text.length > 2000) {
-        alert("⚠️ Masyadong mahaba ang mensahe (maximum 2,000 characters).");
+        alert("⚠️ Message must not exceed 2,000 characters.");
         return;
     }
 
@@ -1957,7 +1957,7 @@ function sendCustomerChatMessage() {
     .catch(err => {
         customerIsSending = false;
         if (statusEl) statusEl.textContent = '';
-        alert("Network error: Hindi maipadala ang mensahe.");
+        alert("A network error prevented the message from being sent.");
         const tempEl = document.getElementById(tempMsgId);
         if (tempEl) tempEl.remove();
     });

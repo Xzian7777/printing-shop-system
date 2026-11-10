@@ -35,3 +35,12 @@ class LoyaltyAccessTests(unittest.TestCase):
         for uid in ['customer1','admin1']:
             self.assertEqual(self.call('PATCH',path,{'fields':{'status':{'stringValue':'Cancelled'}}},access.token(uid)),403)
         self.assertEqual(self.call('PATCH',path,{'fields':{'status':{'stringValue':'Completed'}}},access.token('admin1')),403)
+
+    def test_admin_can_create_zero_balance_mirror_with_mapping(self):
+        key = 'mirror_' + uuid.uuid4().hex
+        fields = {'email': {'stringValue': 'customer1@example.com'}, 'role': {'stringValue': 'customer'},
+                  'points': {'integerValue': '0'}, 'loyaltyPoints': {'integerValue': '0'},
+                  'loyaltyUid': {'stringValue': 'customer1'}}
+        self.assertEqual(self.call('PATCH', '/customers/'+key, {'fields': fields}, access.token('admin1')), 200)
+        self.assertEqual(self.call('PATCH', '/users/customer1-new', {'fields': fields}, access.token('customer1')), 403)
+        self.assertEqual(self.call('PATCH', '/customers/'+key, {'fields': {'points': {'integerValue': '170'}}}, access.token('admin1')), 403)

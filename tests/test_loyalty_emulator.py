@@ -4,8 +4,8 @@ import unittest
 import uuid
 from concurrent.futures import ThreadPoolExecutor
 
-from loyalty_backend import submit_order, apply_order_status, orders_ref
-from pos_backend import complete_sale
+from backend_test_support import submit_order, apply_order_status, orders_ref
+from backend_test_support import complete_sale
 
 
 @unittest.skipUnless(os.getenv('FIRESTORE_EMULATOR_HOST', '').startswith(('127.0.0.1:', 'localhost:')), 'Local Firestore Emulator required')

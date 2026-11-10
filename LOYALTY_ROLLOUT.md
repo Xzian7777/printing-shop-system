@@ -56,4 +56,6 @@ Testing balances were backed up and reset for 16 profile records and 12 loyalty 
 
 The updated Firestore rules were published and the deployed ruleset was verified against the tested local file. Previous published rules are retained in `loyalty-backups/rules-before-loyalty.json`. The local Flask loyalty endpoint is active on port 5000.
 
-The local debug APK includes `API_BASE_URL=http://127.0.0.1:5000`. No Android device was connected during verification. Install the APK and run the USB forwarding command before phone testing.
+The local debug APK includes `API_BASE_URL=http://127.0.0.1:5000`. The final APK was installed successfully on the connected Android phone. USB forwarding for port 5000 was configured. Full customer redemption transactions still require a live customer test.
+
+The final archive/restore compatibility check preserves existing profile loyalty fields and initializes recreated mirrors with zero legacy points. The final verification passed 95 backend/emulator tests and 63 Flutter tests.

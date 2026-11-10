@@ -1,5 +1,5 @@
 import unittest
-from catalog_rules import validate_service, validate_requirements
+from backend_test_support import validate_service, validate_requirements
 
 
 class CatalogRulesTests(unittest.TestCase):

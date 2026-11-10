@@ -6,7 +6,7 @@ import types
 import unittest
 import uuid
 from pathlib import Path
-from inventory_rules import stock_plan, valid_transition
+from backend_test_support import stock_plan, valid_transition
 
 
 class Snapshot:
@@ -74,10 +74,10 @@ class AdminSyncTests(unittest.TestCase):
         self.env = {'db': self.db, 'datetime': datetime, 'uuid': uuid,
                     'stock_plan': stock_plan, 'valid_transition': valid_transition,
                     'firestore': types.SimpleNamespace(transactional=transactional, SERVER_TIMESTAMP='server-time', DELETE_FIELD='__delete_field__')}
-        tree = ast.parse((Path(__file__).parents[1] / 'firebase_config.py').read_text(encoding='utf-8'))
+        tree = ast.parse((Path(__file__).parents[1] / 'app.py').read_text(encoding='utf-8'))
         # Load only function definitions, bypassing SDK initialization entirely.
-        functions = ast.Module(body=[n for n in tree.body if isinstance(n, ast.FunctionDef)], type_ignores=[])
-        exec(compile(functions, 'firebase_config.py', 'exec'), self.env)
+        functions = ast.Module(body=[n for n in tree.body if isinstance(n, ast.FunctionDef) and not any(ast.unparse(d).startswith('app.') for d in n.decorator_list)], type_ignores=[])
+        exec(compile(functions, 'app.py', 'exec'), self.env)
         self.legacy = 'artifacts/printcraft-pro/public/data/store_products/p1'
         self.db.records['products/p1'] = {'id': 'p1', 'name': 'Paper', 'stock': 10, 'price': 3}
         self.db.records[self.legacy] = copy.deepcopy(self.db.records['products/p1'])
@@ -204,6 +204,19 @@ class AdminSyncTests(unittest.TestCase):
         self.assertTrue(self.env['log_rfid_tap']('card1'))
         self.assertNotIn('points', self.db.records['customers/c1'])
         self.assertEqual(self.db.records['users/u1']['points'], 80)
+
+
+class LoyaltyRestoreTests(unittest.TestCase):
+    setUp = AdminSyncTests.setUp
+    def test_restore_preserves_current_mirror_fields_and_zeros_recreated_mirror(self):
+        self.db.records['users/u1'] = {'email': 'a@gmail.com', 'points': 0, 'loyaltyPoints': 0, 'loyaltyUid': 'u1', 'archived': True}
+        self.db.records['archives/user_u1'] = {'originalId': 'u1', 'itemType': 'user', 'data': {
+            'email': 'a@gmail.com', 'uid': 'u1', 'customerId': 'c1', 'points': 170, 'loyaltyPoints': 170}}
+        self.assertTrue(self.env['restore_archived_item']('user_u1')[0])
+        self.assertEqual(self.db.records['users/u1']['points'], 0)
+        self.assertEqual(self.db.records['users/u1']['loyaltyUid'], 'u1')
+        self.assertEqual(self.db.records['customers/c1']['points'], 0)
+        self.assertFalse(self.db.records['users/u1']['archived'])
 
 
 if __name__ == '__main__': unittest.main()

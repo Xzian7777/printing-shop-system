@@ -7,7 +7,7 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
-from loyalty_rules import discount_quote, service_total
+from backend_test_support import discount_quote, service_total
 from test_admin_sync import Database, Collection, Ref, Transaction, transactional
 
 
@@ -41,12 +41,8 @@ class LoyaltyTransactionTests(unittest.TestCase):
         self.patch.start()
         self.addCleanup(self.patch.stop)
         sdk = types.SimpleNamespace(transactional=transactional, SERVER_TIMESTAMP='server-time')
-        self.env = {'firestore': sdk, 'datetime': datetime}
-        source = Path(__file__).parents[1] / 'loyalty_backend.py'
-        tree = ast.parse(source.read_text())
-        imports = [n for n in tree.body if isinstance(n, (ast.Import, ast.ImportFrom)) and not (isinstance(n, ast.ImportFrom) and n.module == 'firebase_admin')]
-        functions = [n for n in tree.body if isinstance(n, ast.FunctionDef)]
-        exec(compile(ast.Module(body=imports+functions, type_ignores=[]), str(source), 'exec'), self.env)
+        from backend_test_support import load_backend
+        self.env = load_backend({'firestore': sdk, 'datetime': datetime}).__dict__
         self.payload = {'submissionId': 'a'*32, 'items': [{'id': 'p1', 'qty': 2}], 'total': 20,
                         'pointsUsed': 10, 'payment': 'Cash on Pickup'}
 

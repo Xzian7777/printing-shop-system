@@ -190,12 +190,12 @@
         Sample Works & Service Outputs
       </h2>
       <p class="text-xs sm:text-sm text-slate-800 mt-2">
-        Silipin ang mga sample print projects, actual outputs, at standard specs para may gabay at pagbabasehan bago mag-place ng inyong order.
+        Browse sample projects, finished prints, and standard specifications before placing your order.
       </p>
 
       <!-- Category Filter Bar -->
       <div class="flex items-center justify-center gap-2 mt-6 flex-wrap text-xs" id="sampleCategoryFilterBar">
-        <button onclick="filterSampleCards('all')" id="sampleFilterBtn-all" class="sample-pill px-4 py-2 rounded-full font-bold bg-emerald-600 text-white shadow-sm transition">Lahat ng Samples</button>
+        <button onclick="filterSampleCards('all')" id="sampleFilterBtn-all" class="sample-pill px-4 py-2 rounded-full font-bold bg-emerald-600 text-white shadow-sm transition">All Samples</button>
         <button onclick="filterSampleCards('Standard Printing')" id="sampleFilterBtn-Standard Printing" class="sample-pill px-4 py-2 rounded-full font-bold bg-white text-black hover:bg-slate-50 border border-slate-200 shadow-2xs transition">Printing & Documents</button>
         <button onclick="filterSampleCards('ID & Badges')" id="sampleFilterBtn-ID & Badges" class="sample-pill px-4 py-2 rounded-full font-bold bg-white text-black hover:bg-slate-50 border border-slate-200 shadow-2xs transition">PVC Cards & IDs</button>
         <button onclick="filterSampleCards('Stickers & Labels')" id="sampleFilterBtn-Stickers & Labels" class="sample-pill px-4 py-2 rounded-full font-bold bg-white text-black hover:bg-slate-50 border border-slate-200 shadow-2xs transition">Stickers & Labels</button>
@@ -209,7 +209,7 @@
     <div id="sampleProductsGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
       <div class="col-span-full text-center py-12 text-slate-700 text-xs">
         <i class="fas fa-circle-notch fa-spin text-emerald-600 text-lg mb-2 block"></i>
-        Naglo-load ng mga sample products at print services...
+        Loading sample products and printing services...
       </div>
     </div>
 
@@ -220,8 +220,8 @@
           <i class="fas fa-lightbulb"></i>
         </div>
         <div class="text-left text-xs">
-          <p class="font-bold text-black">May sariling custom design o specifications?</p>
-          <p class="text-slate-800 text-[11px]">Direktang i-upload ang iyong document file para masimulan agad ang pag-print.</p>
+          <p class="font-bold text-black">Have your own custom design or specifications?</p>
+          <p class="text-slate-800 text-[11px]">Upload your document directly to get your print job started.</p>
         </div>
         <a href="/customer" class="ml-auto bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-xs px-4 py-2.5 rounded-xl transition shadow-md shrink-0 whitespace-nowrap">
           Order Now &rarr;
@@ -278,7 +278,7 @@
         .catch(err => {
           console.error('Failed to load sample products:', err);
           const grid = document.getElementById('sampleProductsGrid');
-          if (grid) grid.innerHTML = '<div class="col-span-full text-center py-8 text-rose-400 text-xs">Hindi ma-load ang samples pansamantala.</div>';
+          if (grid) grid.innerHTML = '<div class="col-span-full text-center py-8 text-rose-400 text-xs">Samples are temporarily unavailable.</div>';
         });
     }
 
@@ -304,7 +304,7 @@
       });
 
       if (filtered.length === 0) {
-        grid.innerHTML = '<div class="col-span-full text-center py-12 text-slate-700 text-xs">Walang sample item sa category na ito.</div>';
+        grid.innerHTML = '<div class="col-span-full text-center py-12 text-slate-700 text-xs">No sample items were found in this category.</div>';
         return;
       }
 

@@ -1,0 +1,516 @@
+[
+  {
+    "rule": "/static/<path:filename>",
+    "methods": [
+      "GET",
+      "HEAD",
+      "OPTIONS"
+    ],
+    "endpoint": "static"
+  },
+  {
+    "rule": "/api/loyalty/me",
+    "methods": [
+      "GET",
+      "HEAD",
+      "OPTIONS"
+    ],
+    "endpoint": "loyalty.me"
+  },
+  {
+    "rule": "/api/loyalty/rewards",
+    "methods": [
+      "GET",
+      "HEAD",
+      "OPTIONS"
+    ],
+    "endpoint": "loyalty.rewards"
+  },
+  {
+    "rule": "/api/loyalty/orders",
+    "methods": [
+      "OPTIONS",
+      "POST"
+    ],
+    "endpoint": "loyalty.order"
+  },
+  {
+    "rule": "/api/admin/loyalty/rewards/<reward_id>",
+    "methods": [
+      "OPTIONS",
+      "PUT"
+    ],
+    "endpoint": "loyalty.manage_rewards"
+  },
+  {
+    "rule": "/api/admin/loyalty/rewards",
+    "methods": [
+      "GET",
+      "HEAD",
+      "OPTIONS",
+      "POST"
+    ],
+    "endpoint": "loyalty.manage_rewards"
+  },
+  {
+    "rule": "/api/admin/loyalty/settings",
+    "methods": [
+      "GET",
+      "HEAD",
+      "OPTIONS",
+      "PUT"
+    ],
+    "endpoint": "loyalty.settings"
+  },
+  {
+    "rule": "/api/admin/loyalty/catalog",
+    "methods": [
+      "GET",
+      "HEAD",
+      "OPTIONS"
+    ],
+    "endpoint": "loyalty.catalog"
+  },
+  {
+    "rule": "/api/admin/loyalty/customers",
+    "methods": [
+      "GET",
+      "HEAD",
+      "OPTIONS"
+    ],
+    "endpoint": "loyalty.customers"
+  },
+  {
+    "rule": "/",
+    "methods": [
+      "GET",
+      "HEAD",
+      "OPTIONS"
+    ],
+    "endpoint": "index"
+  },
+  {
+    "rule": "/login",
+    "methods": [
+      "GET",
+      "HEAD",
+      "OPTIONS",
+      "POST"
+    ],
+    "endpoint": "login"
+  },
+  {
+    "rule": "/logout",
+    "methods": [
+      "GET",
+      "HEAD",
+      "OPTIONS"
+    ],
+    "endpoint": "logout"
+  },
+  {
+    "rule": "/admin",
+    "methods": [
+      "GET",
+      "HEAD",
+      "OPTIONS"
+    ],
+    "endpoint": "admin_dashboard"
+  },
+  {
+    "rule": "/customer",
+    "methods": [
+      "GET",
+      "HEAD",
+      "OPTIONS"
+    ],
+    "endpoint": "customer_dashboard"
+  },
+  {
+    "rule": "/place-order",
+    "methods": [
+      "GET",
+      "HEAD",
+      "OPTIONS"
+    ],
+    "endpoint": "place_order_page"
+  },
+  {
+    "rule": "/order",
+    "methods": [
+      "GET",
+      "HEAD",
+      "OPTIONS"
+    ],
+    "endpoint": "place_order_page"
+  },
+  {
+    "rule": "/store",
+    "methods": [
+      "GET",
+      "HEAD",
+      "OPTIONS"
+    ],
+    "endpoint": "store_page"
+  },
+  {
+    "rule": "/api/login",
+    "methods": [
+      "OPTIONS",
+      "POST"
+    ],
+    "endpoint": "api_login"
+  },
+  {
+    "rule": "/api/google-login",
+    "methods": [
+      "OPTIONS",
+      "POST"
+    ],
+    "endpoint": "api_google_login"
+  },
+  {
+    "rule": "/api/request-signup-otp",
+    "methods": [
+      "OPTIONS",
+      "POST"
+    ],
+    "endpoint": "request_signup_otp"
+  },
+  {
+    "rule": "/api/signup",
+    "methods": [
+      "OPTIONS",
+      "POST"
+    ],
+    "endpoint": "api_signup"
+  },
+  {
+    "rule": "/api/forgot-password",
+    "methods": [
+      "OPTIONS",
+      "POST"
+    ],
+    "endpoint": "forgot_password"
+  },
+  {
+    "rule": "/api/verify-reset-otp",
+    "methods": [
+      "OPTIONS",
+      "POST"
+    ],
+    "endpoint": "verify_reset_otp"
+  },
+  {
+    "rule": "/api/reset-password",
+    "methods": [
+      "OPTIONS",
+      "POST"
+    ],
+    "endpoint": "reset_password"
+  },
+  {
+    "rule": "/api/users",
+    "methods": [
+      "GET",
+      "HEAD",
+      "OPTIONS",
+      "POST"
+    ],
+    "endpoint": "handle_users"
+  },
+  {
+    "rule": "/api/users/<user_id>",
+    "methods": [
+      "DELETE",
+      "GET",
+      "HEAD",
+      "OPTIONS",
+      "PUT"
+    ],
+    "endpoint": "handle_single_user"
+  },
+  {
+    "rule": "/api/store/products",
+    "methods": [
+      "GET",
+      "HEAD",
+      "OPTIONS",
+      "PUT"
+    ],
+    "endpoint": "handle_store_products"
+  },
+  {
+    "rule": "/api/samples",
+    "methods": [
+      "GET",
+      "HEAD",
+      "OPTIONS",
+      "POST"
+    ],
+    "endpoint": "handle_samples"
+  },
+  {
+    "rule": "/api/samples/<sample_id>",
+    "methods": [
+      "DELETE",
+      "OPTIONS",
+      "PUT"
+    ],
+    "endpoint": "handle_single_sample"
+  },
+  {
+    "rule": "/api/services",
+    "methods": [
+      "GET",
+      "HEAD",
+      "OPTIONS",
+      "POST"
+    ],
+    "endpoint": "handle_services"
+  },
+  {
+    "rule": "/api/services/<service_id>",
+    "methods": [
+      "DELETE",
+      "OPTIONS",
+      "PUT"
+    ],
+    "endpoint": "handle_single_service"
+  },
+  {
+    "rule": "/api/settings/gcash",
+    "methods": [
+      "GET",
+      "HEAD",
+      "OPTIONS",
+      "POST"
+    ],
+    "endpoint": "handle_gcash_settings"
+  },
+  {
+    "rule": "/api/settings/gcash/upload-qr",
+    "methods": [
+      "OPTIONS",
+      "POST"
+    ],
+    "endpoint": "upload_gcash_qr_endpoint"
+  },
+  {
+    "rule": "/api/upload",
+    "methods": [
+      "OPTIONS",
+      "POST"
+    ],
+    "endpoint": "upload_order_file_endpoint"
+  },
+  {
+    "rule": "/api/pos/sales",
+    "methods": [
+      "GET",
+      "HEAD",
+      "OPTIONS",
+      "POST"
+    ],
+    "endpoint": "pos_sales"
+  },
+  {
+    "rule": "/api/orders",
+    "methods": [
+      "GET",
+      "HEAD",
+      "OPTIONS",
+      "POST"
+    ],
+    "endpoint": "handle_orders"
+  },
+  {
+    "rule": "/api/orders/<order_id>/cancel",
+    "methods": [
+      "OPTIONS",
+      "POST"
+    ],
+    "endpoint": "cancel_order_endpoint"
+  },
+  {
+    "rule": "/api/orders/<order_id>/file",
+    "methods": [
+      "GET",
+      "HEAD",
+      "OPTIONS"
+    ],
+    "endpoint": "get_order_file_url"
+  },
+  {
+    "rule": "/api/orders/<order_id>/status",
+    "methods": [
+      "OPTIONS",
+      "POST",
+      "PUT"
+    ],
+    "endpoint": "update_status"
+  },
+  {
+    "rule": "/api/analytics",
+    "methods": [
+      "GET",
+      "HEAD",
+      "OPTIONS"
+    ],
+    "endpoint": "get_analytics"
+  },
+  {
+    "rule": "/api/chat/conversations",
+    "methods": [
+      "GET",
+      "HEAD",
+      "OPTIONS"
+    ],
+    "endpoint": "get_conversations_endpoint"
+  },
+  {
+    "rule": "/api/chat/conversations/<conv_id>/messages",
+    "methods": [
+      "GET",
+      "HEAD",
+      "OPTIONS",
+      "POST"
+    ],
+    "endpoint": "conversation_messages_endpoint"
+  },
+  {
+    "rule": "/api/chat/conversations/<conv_id>/read",
+    "methods": [
+      "OPTIONS",
+      "POST"
+    ],
+    "endpoint": "mark_conversation_read_endpoint"
+  },
+  {
+    "rule": "/api/chat/my-conversation",
+    "methods": [
+      "GET",
+      "HEAD",
+      "OPTIONS"
+    ],
+    "endpoint": "get_my_conversation_endpoint"
+  },
+  {
+    "rule": "/api/chat",
+    "methods": [
+      "GET",
+      "HEAD",
+      "OPTIONS",
+      "POST"
+    ],
+    "endpoint": "handle_chat"
+  },
+  {
+    "rule": "/api/rfid/tap",
+    "methods": [
+      "OPTIONS",
+      "POST"
+    ],
+    "endpoint": "handle_rfid_tap"
+  },
+  {
+    "rule": "/api/notifications",
+    "methods": [
+      "GET",
+      "HEAD",
+      "OPTIONS"
+    ],
+    "endpoint": "get_user_notifications"
+  },
+  {
+    "rule": "/api/notifications/read",
+    "methods": [
+      "OPTIONS",
+      "POST"
+    ],
+    "endpoint": "read_all_notifications"
+  },
+  {
+    "rule": "/api/notifications/clear",
+    "methods": [
+      "OPTIONS",
+      "POST"
+    ],
+    "endpoint": "clear_all_notifications"
+  },
+  {
+    "rule": "/firebase-messaging-sw.js",
+    "methods": [
+      "GET",
+      "HEAD",
+      "OPTIONS"
+    ],
+    "endpoint": "service_worker_file"
+  },
+  {
+    "rule": "/api/notifications/public-config",
+    "methods": [
+      "GET",
+      "HEAD",
+      "OPTIONS"
+    ],
+    "endpoint": "get_notification_public_config"
+  },
+  {
+    "rule": "/api/notifications/fcm-token",
+    "methods": [
+      "OPTIONS",
+      "POST"
+    ],
+    "endpoint": "save_fcm_token_endpoint"
+  },
+  {
+    "rule": "/api/notifications/fcm-token",
+    "methods": [
+      "DELETE",
+      "OPTIONS"
+    ],
+    "endpoint": "delete_fcm_token_endpoint"
+  },
+  {
+    "rule": "/api/notifications/test-push",
+    "methods": [
+      "OPTIONS",
+      "POST"
+    ],
+    "endpoint": "test_push_endpoint"
+  },
+  {
+    "rule": "/api/archive",
+    "methods": [
+      "GET",
+      "HEAD",
+      "OPTIONS"
+    ],
+    "endpoint": "get_archives"
+  },
+  {
+    "rule": "/api/archive/<archive_id>/restore",
+    "methods": [
+      "OPTIONS",
+      "POST"
+    ],
+    "endpoint": "restore_archive"
+  },
+  {
+    "rule": "/api/archive/<archive_id>",
+    "methods": [
+      "DELETE",
+      "OPTIONS"
+    ],
+    "endpoint": "delete_archive_permanent"
+  },
+  {
+    "rule": "/api/store/products/<product_id>",
+    "methods": [
+      "DELETE",
+      "OPTIONS"
+    ],
+    "endpoint": "delete_store_product_endpoint"
+  }
+]

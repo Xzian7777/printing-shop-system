@@ -1,0 +1,12 @@
+...........................................................................................app.py:1512: DeprecationWarning: Message.token is deprecated. Use Message.fid instead.
+  msg = messaging.Message(
+...........
+----------------------------------------------------------------------
+Ran 102 tests in 27.982s
+
+OK
+Error archiving: Item is missing or already archived.
+Error updating order status: Invalid status transition
+Error saving products: Product has been archived. Refresh inventory.
+Error updating order status: Invalid status transition
+Push send warning: RuntimeError

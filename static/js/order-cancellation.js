@@ -10,7 +10,7 @@ let cancellationBusy = false;
 function openCustomerCancellation(id) {
     const order = allCustomerOrdersCache.find(o => o.id === id);
     if (!order || !customerCanCancel(order)) {
-        alert('Hindi na puwedeng i-cancel dahil approved na o nagsimula na ang order.');
+        alert('This order cannot be cancelled because it has been approved or processing has started.');
         return;
     }
     cancellationOrderId = id;

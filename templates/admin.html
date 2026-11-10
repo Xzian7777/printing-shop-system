@@ -268,7 +268,7 @@
                             <i class="fab fa-facebook-messenger"></i>
                         </div>
                         <div class="font-bold text-black text-sm">Select a Conversation</div>
-                        <div class="text-slate-800 text-xs max-w-xs leading-relaxed">Piliin ang isang customer mula sa listahan sa kaliwa upang mag-reply at makipag-chat in real time.</div>
+                        <div class="text-slate-800 text-xs max-w-xs leading-relaxed">Select a customer from the list on the left to reply and chat in real time.</div>
                     </div>
                 </div>
 
@@ -488,7 +488,7 @@
                             <h3 class="text-base sm:text-lg font-extrabold text-black tracking-tight">GCash Merchant Payment Settings</h3>
                             <span class="bg-blue-100 text-blue-800 text-[10px] font-bold px-2.5 py-0.5 rounded-full">Customer Checkout</span>
                         </div>
-                        <p class="text-xs text-slate-700">Palitan o i-update ang GCash Account Name, Mobile Number, at QR Code na nakikita ng customer sa Place Order checkout.</p>
+                        <p class="text-xs text-slate-700">Update the GCash account name, mobile number, and QR code shown to customers at checkout.</p>
                     </div>
                 </div>
                 <div class="flex items-center gap-2">
@@ -521,7 +521,7 @@
                             GCash Account Name <span class="text-rose-500">*</span>
                         </label>
                         <input type="text" id="adminGcashAccountName" required placeholder="Hal. XIAN JOHN DAVID DAWINAN" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs font-bold text-black focus:outline-none focus:border-blue-600 focus:bg-white transition uppercase">
-                        <span class="text-[10px] text-slate-600">Pangalan na lalabas sa InstaPay o GCash send money verification.</span>
+                        <span class="text-[10px] text-slate-600">The name shown during InstaPay or GCash payment verification.</span>
                     </div>
 
                     <div>
@@ -531,12 +531,12 @@
                         <div class="relative">
                             <input type="tel" id="adminGcashAccountNumber" required maxlength="11" placeholder="09311508184" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs font-mono font-bold text-black focus:outline-none focus:border-blue-600 focus:bg-white transition">
                         </div>
-                        <span class="text-[10px] text-slate-600">Format: 09XXXXXXXXX (Ito ang kokopyahin ng customer kapag nag-transfer).</span>
+                        <span class="text-[10px] text-slate-600">Format: 09XXXXXXXXX (Customers will use this number for their payment).</span>
                     </div>
 
                     <div class="flex items-center justify-between pt-2 border-t border-slate-100">
                         <div class="text-[11px] text-slate-600">
-                            <i class="fas fa-info-circle text-blue-600 mr-1"></i> Awtomatikong magre-reflect sa customer place order screen.
+                            <i class="fas fa-info-circle text-blue-600 mr-1"></i> Updates appear automatically on the customer checkout screen.
                         </div>
                         <button type="submit" id="btnSaveGcashSettings" class="bg-blue-600 hover:bg-blue-700 text-white font-extrabold text-xs px-5 py-2.5 rounded-xl shadow-xs hover:shadow-md transition flex items-center gap-2 cursor-pointer">
                             <i class="fas fa-save text-xs"></i>
@@ -640,7 +640,7 @@
                         <h2 class="text-xl font-extrabold text-black tracking-tight">Sample Products & Services Showcase</h2>
                         <span id="headerTotalSamplesBadge" class="bg-blue-50 text-blue-700 font-bold text-[11px] px-3 py-0.5 rounded-full border border-blue-200 font-mono">0 Samples</span>
                     </div>
-                    <p class="text-xs text-slate-800">Dito makakapagdagdag o makakapag-manage ng sample prints na makikita ng customers sa kanilang homepage at portal</p>
+                    <p class="text-xs text-slate-800">Add and manage sample prints shown on the customer homepage and portal</p>
                 </div>
             </div>
 
@@ -672,7 +672,7 @@
                 </div>
                 <div>
                     <h3 class="font-black text-black text-sm" id="addEditSampleModalTitle">Add New Sample Product / Service</h3>
-                    <p class="text-[11px] text-slate-800">Lalabas ito sa customer homescreen bilang gabay at sample output</p>
+                    <p class="text-[11px] text-slate-800">Shown on the customer home screen as a sample output</p>
                 </div>
             </div>
             <button onclick="closeAddEditSampleModal()" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-800 flex items-center justify-center transition cursor-pointer">
@@ -731,19 +731,19 @@
             <div class="space-y-1">
                 <label class="block font-bold text-black">Sample Image (URL or Upload Image)</label>
                 <div class="flex gap-2">
-                    <input type="text" id="adminSampleImageUrl" placeholder="https://images.unsplash.com/... o i-upload sa tabi" class="flex-1 bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs text-black focus:outline-none focus:border-blue-600 font-medium">
+                    <input type="text" id="adminSampleImageUrl" placeholder="https://images.unsplash.com/... or upload an image" class="flex-1 bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs text-black focus:outline-none focus:border-blue-600 font-medium">
                     <input type="file" id="adminSampleFileInput" accept="image/*" onchange="handleAdminSampleFileUpload(event)" class="hidden">
                     <label for="adminSampleFileInput" class="bg-blue-50 hover:bg-blue-100 text-blue-700 font-bold px-3.5 py-3 rounded-xl border border-blue-200 cursor-pointer flex items-center justify-center gap-1.5 shrink-0" title="Upload photo from computer">
                         <i class="fas fa-upload"></i>
                         <span>Upload</span>
                     </label>
                 </div>
-                <p class="text-[10px] text-slate-700">Maaaring maglagay ng Image Link o mag-upload direkta mula sa inyong PC.</p>
+                <p class="text-[10px] text-slate-700">Enter an image link or upload an image directly from your computer.</p>
             </div>
 
             <div class="space-y-1">
                 <label class="block font-bold text-black">Short Description / Sample Specs</label>
-                <textarea id="adminSampleDescription" rows="3" placeholder="Detalye tungkol sa sample material, finish, at gamit..." class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs text-black focus:outline-none focus:border-blue-600 font-medium resize-none"></textarea>
+                <textarea id="adminSampleDescription" rows="3" placeholder="Describe the sample material, finish, and intended use..." class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs text-black focus:outline-none focus:border-blue-600 font-medium resize-none"></textarea>
             </div>
 
             <div class="pt-3 border-t border-slate-100 flex items-center justify-end gap-3">
@@ -2582,7 +2582,7 @@ function handleAdminChatKeydown(event) {
 function sendAdminChatMessage() {
     if (adminIsSending) return;
     if (!adminActiveConvId) {
-        alert("Paki-pili muna ang customer mula sa listahan bago mag-reply.");
+        alert("Select a customer from the list before replying.");
         return;
     }
 
@@ -2591,7 +2591,7 @@ function sendAdminChatMessage() {
 
     const text = input.value.trim();
     if (text.length > 2000) {
-        alert("Masyadong mahaba ang mensahe (maximum 2,000 characters).");
+        alert("Message must not exceed 2,000 characters.");
         return;
     }
 
@@ -2667,7 +2667,7 @@ function sendAdminChatMessage() {
     .catch(err => {
         adminIsSending = false;
         if (sendStatusEl) sendStatusEl.textContent = '';
-        alert("Network error: Hindi maipadala ang mensahe.");
+        alert("A network error prevented the message from being sent.");
         const tempEl = document.getElementById(tempMsgId);
         if (tempEl) tempEl.remove();
     });
@@ -2704,7 +2704,7 @@ function fetchAdminSamples() {
     .catch(err => {
         console.error('Failed to load samples in admin:', err);
         const grid = document.getElementById('adminSamplesGrid');
-        if (grid) grid.innerHTML = '<div class="col-span-full text-center py-12 text-rose-500 text-xs font-bold">Hindi ma-load ang sample showcase.</div>';
+        if (grid) grid.innerHTML = '<div class="col-span-full text-center py-12 text-rose-500 text-xs font-bold">Unable to load the sample showcase.</div>';
     });
 }
 
@@ -2733,8 +2733,8 @@ function renderAdminSamples() {
                 <div class="w-12 h-12 rounded-2xl bg-slate-100 text-slate-700 flex items-center justify-center mx-auto text-lg">
                     <i class="fas fa-layer-group"></i>
                 </div>
-                <h4 class="font-black text-black text-sm">Walang Nahanap na Sample Items</h4>
-                <p class="text-xs text-slate-800">Mag-click sa '+ Add New Sample Item' para magdagdag ng mga sample na makikita ng customers.</p>
+                <h4 class="font-black text-black text-sm">No Sample Items Found</h4>
+                <p class="text-xs text-slate-800">Select '+ Add New Sample Item' to add samples for customers to view.</p>
             </div>
         `;
         return;
@@ -2823,13 +2823,13 @@ function handleAdminSampleFileUpload(event) {
     const file = event.target.files[0];
     if (file) {
         if (file.size > 5 * 1024 * 1024) {
-            alert('Masyadong malaki ang image. Maximum 5MB lamang.');
+            alert('The image is too large. The maximum size is 5 MB.');
             return;
         }
         const reader = new FileReader();
         reader.onload = function(e) {
             document.getElementById('adminSampleImageUrl').value = e.target.result;
-            alert('✅ Image successfully loaded at naka-attach na sa sample!');
+            alert('✅ Image loaded and attached to the sample successfully.');
         };
         reader.readAsDataURL(file);
     }
@@ -2872,7 +2872,7 @@ function submitAdminSampleForm(event) {
         if (data.success) {
             closeAddEditSampleModal();
             fetchAdminSamples();
-            alert('✅ Sample product / service na-save nang matagumpay!');
+            alert('✅ Sample product or service saved successfully.');
         } else {
             alert(data.message || 'Failed to save sample.');
         }
@@ -2882,7 +2882,7 @@ function submitAdminSampleForm(event) {
             btn.disabled = false;
             btn.innerHTML = '<i class="fas fa-save text-xs"></i> <span>Save Sample Product</span>';
         }
-        alert('May naganap na error habang sine-save ang sample.');
+        alert('An error occurred while saving the sample.');
     });
 }
 
@@ -3300,7 +3300,7 @@ function saveAdminGcashSettings(event) {
     const accNum = document.getElementById('adminGcashAccountNumber').value.trim();
 
     if (!accName || !accNum) {
-        alert('Pakilagay ang kumpletong GCash Account Name at Number.');
+        alert('Enter the complete GCash account name and number.');
         return;
     }
 
@@ -3332,7 +3332,7 @@ function saveAdminGcashSettings(event) {
                 badge.classList.remove('hidden');
                 setTimeout(() => badge.classList.add('hidden'), 4000);
             }
-            alert('✅ GCash account details successfully updated! Awtomatiko na itong makikita ng customers.');
+            alert('✅ GCash account details updated successfully. Customers will see the updated details automatically.');
         } else {
             alert('❌ ' + (data.message || 'Failed to update GCash settings.'));
         }

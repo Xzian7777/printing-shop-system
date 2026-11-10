@@ -1,11 +1,7 @@
 with open('app.py', 'r', encoding='utf-8') as f:
     app_code = f.read()
 
-# 1. Update imports from firebase_config
-app_code = app_code.replace(
-    '    get_services, save_service, delete_service,',
-    '    get_services, save_service, delete_service,\n    archive_item, get_archived_items, restore_archived_item, permanently_delete_archived_item,'
-)
+# Archive helper functions are defined directly in app.py.
 
 # 2. Update User DELETE endpoint to archive user data before deleting
 old_user_delete = '''    elif request.method == 'DELETE':

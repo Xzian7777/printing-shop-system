@@ -5,7 +5,7 @@ The Flask backend sends FCM notifications for admin chat replies and order appro
 ## Enable the feature
 
 1. In Firebase Console → Firestore Database → Rules, add the `match /push_jobs/{jobId}` block from the mobile project's `firestore.rules` inside `/databases/{database}/documents`, then Publish. Merge this block into the existing deployed rules.
-2. Restart the updated Flask backend and keep it running with network access. The development server starts the sender in its reloader child. WSGI starts it on the first request. A separate always-running process can use `python push_worker.py` with the same server credentials. Concurrent workers coordinate through persisted leases.
+2. Restart the updated Flask backend and keep it running with network access. The development server starts the sender in its reloader child. WSGI starts it on the first request. A separate always-running process can use `python app.py --push-worker` with the same server credentials. Concurrent workers coordinate through persisted leases.
 3. Install the updated APK, sign in, and allow Android notifications. Device registration uses the authenticated email, UID, and profile role. Reopen the app after changing notification permission in Android Settings.
 4. On the website, open a customer conversation and send a test reply. With the phone app closed normally and the phone online, verify the notification arrives and tapping it opens that customer's chat.
 5. Submit a test printing or Store Supplies order. Approve it and move it through production to Ready for Pickup. Verify each update arrives and tapping it opens My Orders. Repeat the admin action from the mobile admin account.

@@ -32,6 +32,6 @@ class LoyaltyRolloutTests(unittest.TestCase):
             self.assertIn('loyalty_accounts/u1/events/old',db.records)
             self.assertEqual(db.records['orders/o1']['status'],'Completed')
             self.assertEqual(db.records['rfid_logs/t1']['pointsAdded'],20)
-            self.assertEqual(json.loads(backup.read_text())['profiles'][0]['points'],20)
+            self.assertEqual(json.loads(backup.read_text(encoding='utf-8'))['profiles'][0]['points'],20)
             with self.assertRaises(ValueError):
                 rollout(db,auth,backup,True)

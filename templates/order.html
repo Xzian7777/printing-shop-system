@@ -118,7 +118,7 @@
                                     <span>GCash Online</span>
                                     <span class="text-[9px] bg-emerald-600 text-white font-bold px-1.5 py-0.2 rounded">Instant</span>
                                 </div>
-                                <div class="text-[11px] text-slate-700 font-normal">Scan QR o Send Money</div>
+                                <div class="text-[11px] text-slate-700 font-normal">Scan QR or Send Money</div>
                             </div>
                         </div>
                         <span class="text-[10px] bg-emerald-600 text-white font-semibold px-2 py-0.5 rounded-full">Scan / Transfer</span>
@@ -129,7 +129,7 @@
                             <input type="radio" name="custPaymentMethod" value="Cash on Pickup" onchange="togglePaymentSelection('cop')" class="text-emerald-600 focus:ring-emerald-500">
                             <div>
                                 <div class="font-bold text-black">Cash on Pickup</div>
-                                <div class="text-[11px] text-slate-700 font-normal">Magbayad sa tindahan pagkuha</div>
+                                <div class="text-[11px] text-slate-700 font-normal">Pay at the shop when you collect your order</div>
                             </div>
                         </div>
                         <span class="text-[10px] bg-slate-100 text-slate-700 font-semibold px-2 py-0.5 rounded-full">Counter</span>
@@ -145,7 +145,7 @@
                             </div>
                             <div>
                                 <h4 class="font-extrabold text-xs text-black uppercase tracking-tight">Kez C-Em Zek Official GCash</h4>
-                                <p class="text-[11px] text-slate-700">I-scan ang QR o i-send ang eksaktong halaga bago mag-submit.</p>
+                                <p class="text-[11px] text-slate-700">Scan the QR code or send the exact amount before submitting.</p>
                             </div>
                         </div>
                         <div>
@@ -165,7 +165,7 @@
                                 </div>
                             </div>
                             <span class="text-[10px] text-slate-700 font-semibold mt-2 flex items-center gap-1">
-                                <i class="fas fa-hand-pointer text-emerald-600"></i> I-tap ang QR para lumaki
+                                <i class="fas fa-hand-pointer text-emerald-600"></i> Tap to enlarge the QR code
                             </span>
                         </div>
 
@@ -186,15 +186,15 @@
                                     </div>
                                 </div>
                                 <div class="flex justify-between items-center text-xs pt-1 border-t border-slate-100">
-                                    <span class="text-slate-700 font-medium">Babayarang Halaga:</span>
+                                    <span class="text-slate-700 font-medium">Amount to Pay</span>
                                     <span class="font-black text-emerald-600 text-base" id="gcashPayAmountDisplay">₱ 30.00</span>
                                 </div>
                             </div>
 
                             <div class="bg-emerald-50/60 p-2.5 rounded-xl border border-emerald-100 text-[11px] text-emerald-900 space-y-1">
-                                <p class="font-bold flex items-center gap-1"><i class="fas fa-info-circle text-emerald-600"></i> Paalala sa Pagbayad:</p>
-                                <p class="text-slate-700">1. Buksan ang inyong GCash app at i-scan ang QR code o i-send sa number sa itaas.</p>
-                                <p class="text-slate-700">2. Ilagay sa ibaba ang <strong>13-digit Reference Number</strong> na makikita sa inyong GCash transaction receipt.</p>
+                                <p class="font-bold flex items-center gap-1"><i class="fas fa-info-circle text-emerald-600"></i> Payment Instructions</p>
+                                <p class="text-slate-700">1. Open GCash and scan the QR code or send payment to the number above.</p>
+                                <p class="text-slate-700">2. Enter the <strong>13-digit Reference Number</strong> from your GCash transaction receipt below.</p>
                             </div>
                         </div>
                     </div>
@@ -220,7 +220,7 @@
                                     <i class="fas fa-check-circle"></i>
                                 </span>
                             </div>
-                            <p class="text-[10px] text-slate-700 mt-1">Karaniwang 13 digits ang Ref No. mula sa GCash confirmation message o resibo.</p>
+                            <p class="text-[10px] text-slate-700 mt-1">The reference number is usually 13 digits and appears on your GCash confirmation or receipt.</p>
                         </div>
 
                         <!-- Optional: Upload Screenshot of GCash Receipt for Auto-Read -->
@@ -230,7 +230,7 @@
                                     <i class="fas fa-receipt text-emerald-600"></i>
                                     <div>
                                         <p class="text-xs font-bold text-black">Upload GCash Receipt Screenshot <span class="text-slate-400 font-normal">(Opsyonal / Mabilis)</span></p>
-                                        <p class="text-[10px] text-slate-700">Kusang babasahin ng system ang reference number mula sa inyong screenshot.</p>
+                                        <p class="text-[10px] text-slate-700">The system will automatically read the reference number from your screenshot.</p>
                                     </div>
                                 </div>
                                 <span id="receiptOcrStatus" class="hidden text-[10px] font-bold px-2 py-0.5 rounded-full"></span>
@@ -273,7 +273,7 @@
                         <strong class="text-black font-black">Tomorrow 4:00 PM</strong>
                     </div>
                 </div>
-                <p class="text-[11px] text-slate-700 leading-relaxed">Maaaring magbayad online gamit ang GCash o piliin ang Cash on Pickup sa shop counter.</p>
+                <p class="text-[11px] text-slate-700 leading-relaxed">Pay online with GCash or choose Cash on Pickup at the shop counter.</p>
                 <button onclick="submitOrderToBackend()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs py-3.5 rounded-2xl transition shadow-md shadow-emerald-600/20 cursor-pointer flex items-center justify-center gap-2">
                     <span>Confirm & Submit Order</span>
                     <i class="fas fa-arrow-right text-xs"></i>
@@ -503,7 +503,7 @@ function handleGcashReceiptUpload(event) {
     if (!file) return;
 
     if (!file.type.startsWith('image/')) {
-        alert("Paki-upload ng imahe (JPEG/PNG) para sa GCash receipt.");
+        alert("Upload a JPEG or PNG image of your GCash receipt.");
         return;
     }
 
@@ -521,7 +521,7 @@ function handleGcashReceiptUpload(event) {
 
         if (statusEl) {
             statusEl.className = "text-[10px] font-semibold rounded-lg px-2.5 py-1 bg-emerald-50 text-emerald-700 flex items-center gap-1";
-            statusEl.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Binabasa ang resibo...`;
+            statusEl.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Reading receipt...`;
             statusEl.classList.remove('hidden');
         }
 
@@ -549,12 +549,12 @@ function performClientReceiptOcr(dataUrl, fileName) {
             handleGcashRefInput(refInput);
             if (statusEl) {
                 statusEl.className = "text-[10px] font-semibold rounded-lg px-2.5 py-1 bg-green-50 text-green-700 flex items-center gap-1";
-                statusEl.innerHTML = `<i class="fas fa-check-circle"></i> Nabasa ang Ref: ${extractedRef}`;
+                statusEl.innerHTML = `<i class="fas fa-check-circle"></i> Reference detected: ${extractedRef}`;
             }
         } else {
             if (statusEl) {
                 statusEl.className = "text-[10px] font-semibold rounded-lg px-2.5 py-1 bg-slate-100 text-slate-700";
-                statusEl.textContent = "Pakilagay manual ang Reference Number sa itaas.";
+                statusEl.textContent = "Enter the reference number manually above.";
             }
         }
     }, 1200);
@@ -592,7 +592,7 @@ async function handleCustomerFileUpload(e) {
     const ext = (file.name.split('.').pop() || '').toLowerCase();
     if (!ALLOWED_EXTS.includes(ext)) {
         _showUploadStatus(
-            `Format na .${ext.toUpperCase()} ay hindi tinatanggap. Paki-upload ng: ${ALLOWED_EXTS.join(', ').toUpperCase()}`,
+            `.${ext.toUpperCase()} files are not supported. Upload one of these formats: ${ALLOWED_EXTS.join(', ').toUpperCase()}`,
             'err'
         );
         e.target.value = '';
@@ -601,7 +601,7 @@ async function handleCustomerFileUpload(e) {
 
     if (file.size > MAX_FILE_MB * 1024 * 1024) {
         _showUploadStatus(
-            `Masyadong malaki ang file (${_formatFileSize(file.size)}). Ang maximum limit ay ${MAX_FILE_MB} MB.`,
+            `The file is too large (${_formatFileSize(file.size)}). The maximum size is ${MAX_FILE_MB} MB.`,
             'err'
         );
         e.target.value = '';
@@ -614,7 +614,7 @@ async function handleCustomerFileUpload(e) {
         badge.classList.remove('hidden');
     }
 
-    _showUploadStatus('Ina-upload ang file sa cloud storage...', 'info');
+    _showUploadStatus('Uploading file to cloud storage...', 'info');
 
     const formData = new FormData();
     formData.append('file', file);
@@ -644,12 +644,12 @@ async function handleCustomerFileUpload(e) {
                         _showUploadStatus(`File uploaded! (${_formatFileSize(file.size)})`, 'ok');
                     } else {
                         _setProgress(0);
-                        _showUploadStatus(res.message || 'Error habang ina-upload ang file.', 'err');
+                        _showUploadStatus(res.message || 'An error occurred while uploading the file.', 'err');
                         _uploadedFile = null;
                     }
                 } catch(err) {
                     _setProgress(0);
-                    _showUploadStatus('Hindi mabasa ang tugon ng server.', 'err');
+                    _showUploadStatus('Unable to read the server response.', 'err');
                     _uploadedFile = null;
                 }
             } else {
@@ -666,7 +666,7 @@ async function handleCustomerFileUpload(e) {
 
         xhr.onerror = function() {
             _setProgress(0);
-            _showUploadStatus('Network error habang nag-a-upload.', 'err');
+            _showUploadStatus('A network error occurred during upload.', 'err');
             _uploadedFile = null;
         };
 
@@ -674,7 +674,7 @@ async function handleCustomerFileUpload(e) {
 
     } catch (err) {
         _setProgress(0);
-        _showUploadStatus('Hindi ma-upload ang file: ' + err.message, 'err');
+        _showUploadStatus('Unable to upload the file. ' + err.message, 'err');
         _uploadedFile = null;
     }
 }
@@ -1315,32 +1315,32 @@ function submitOrderToBackend() {
     const pagesVal = parseInt(pagesInput?.value) || 1;
 
     if (qtyVal <= 0) {
-        alert("⚠️ Ang Quantity ay dapat mas mataas sa zero (0).");
+        alert("⚠️ Quantity must be greater than zero.");
         qtyInput?.focus();
         return;
     }
     if (qtyVal > 100000) {
-        alert("⚠️ Ang pinakamataas na Quantity ay 100,000 pcs lang po kada order.");
+        alert("⚠️ The maximum quantity per order is 100,000 units.");
         qtyInput?.focus();
         return;
     }
     if (pagesVal <= 0) {
-        alert("⚠️ Ang Number of Pages ay dapat mas mataas sa zero (0).");
+        alert("⚠️ Pages must be greater than zero.");
         pagesInput?.focus();
         return;
     }
     if (pagesVal > 5000) {
-        alert("⚠️ Ang pinakamataas na Pages ay 5,000 pages lang po.");
+        alert("⚠️ The maximum page count is 5,000.");
         pagesInput?.focus();
         return;
     }
     if (widthInput && (parseFloat(widthInput.value) > 100 || parseFloat(widthInput.value) <= 0)) {
-        alert("⚠️ Ang sukat ng lapad (Width) ay dapat nasa pagitan ng 1 hanggang 100 ft.");
+        alert("⚠️ Width must be greater than 0 and at most 100 feet.");
         widthInput.focus();
         return;
     }
     if (heightInput && (parseFloat(heightInput.value) > 100 || parseFloat(heightInput.value) <= 0)) {
-        alert("⚠️ Ang sukat ng taas (Height) ay dapat nasa pagitan ng 1 hanggang 100 ft.");
+        alert("⚠️ Height must be greater than 0 and at most 100 feet.");
         heightInput.focus();
         return;
     }
@@ -1352,11 +1352,11 @@ function submitOrderToBackend() {
     const totalAmount = parseFloat(totalElem.textContent.replace('₱', '').replace(/,/g, '').trim()) || 0.0;
 
     if (totalAmount <= 0) {
-        alert("⚠️ Maling order total. Paki-check ang inyong piniling specifications.");
+        alert("⚠️ Invalid order total. Please check your selected specifications.");
         return;
     }
     if (totalAmount > 5000000) {
-        alert("⚠️ Ang total amount ay lumagpas sa pinakamataas na limitasyon (₱5,000,000). Paki-check ang quantity.");
+        alert("⚠️ The order total exceeds ₱5,000,000. Please check the quantity.");
         return;
     }
 
@@ -1369,7 +1369,7 @@ function submitOrderToBackend() {
         const refInput = document.getElementById('custGcashRefInput');
         gcashRefVal = (refInput ? refInput.value : '').replace(/\D/g, '');
         if (!gcashRefVal || gcashRefVal.length < 8) {
-            alert("⚠️ Kailangan ilagay ang wastong GCash Reference Number (13 digits mula sa GCash receipt) bago mag-submit.");
+            alert("⚠️ Enter a valid GCash reference number from your receipt before submitting (usually 13 digits).");
             if (refInput) {
                 refInput.scrollIntoView({ behavior: 'smooth' });
                 refInput.focus();
@@ -1414,7 +1414,7 @@ function submitOrderToBackend() {
     const noteEl = document.getElementById('custOrderNote');
     const customerNote = noteEl ? noteEl.value.trim() : "";
     if (customerNote.length > 500) {
-        alert("⚠️ Ang special instructions ay hindi pwedeng lumagpas sa 500 characters.");
+        alert("⚠️ Special instructions must not exceed 500 characters.");
         return;
     }
 
@@ -1451,7 +1451,7 @@ function submitOrderToBackend() {
     Loyalty.submitOrder(orderData, 'orderPoints')
     .then(res => {
         if (res.status === 401) {
-            alert("Unauthorized! Mag-login muna bago mag-submit ng order.");
+            alert("Please sign in before submitting your order.");
             window.location.href = '/login';
             return;
         }

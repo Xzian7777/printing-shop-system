@@ -21,13 +21,13 @@ def transactional(function):
 class PushDeliveryTests(unittest.TestCase):
     def setUp(self):
         self.db = Database()
-        tree = ast.parse((Path(__file__).parents[1] / 'push_worker.py').read_text())
-        functions = [n for n in tree.body if isinstance(n, ast.FunctionDef)]
+        tree = ast.parse((Path(__file__).parents[1] / 'app.py').read_text(encoding='utf-8'))
+        functions = [n for n in tree.body if isinstance(n, ast.FunctionDef) and not any(ast.unparse(d).startswith('app.') for d in n.decorator_list)]
         for function in functions:
             function.decorator_list = []
         self.env = {'datetime': datetime, 'uuid': uuid, 'log': Mock(),
                     'auth': types.SimpleNamespace(get_user=Mock(), UserNotFoundError=LookupError)}
-        exec(compile(ast.Module(body=functions, type_ignores=[]), 'push_worker.py', 'exec'), self.env)
+        exec(compile(ast.Module(body=functions, type_ignores=[]), 'app.py', 'exec'), self.env)
         for name in ['claim_job', 'finish_job']:
             self.env[name] = transactional(self.env[name])
         self.job = self.db.collection('push_jobs').document('event1')
@@ -135,9 +135,9 @@ class PushPayloadTests(unittest.TestCase):
             ]})
         facade.send = send
         env = {'db': fake_db, 'datetime': datetime, 'messaging': facade}
-        tree = ast.parse((Path(__file__).parents[1] / 'firebase_config.py').read_text(encoding='utf-8'))
+        tree = ast.parse((Path(__file__).parents[1] / 'app.py').read_text(encoding='utf-8'))
         node = next(n for n in tree.body if isinstance(n, ast.FunctionDef) and n.name == 'send_fcm_push_notification')
-        exec(compile(ast.Module(body=[node], type_ignores=[]), 'firebase_config.py', 'exec'), env)
+        exec(compile(ast.Module(body=[node], type_ignores=[]), 'app.py', 'exec'), env)
         result = env['send_fcm_push_notification'](
             'customer', 'owner@example.com', 'Order Ready for Pickup', 'Ready na po.',
             '/customer?tab=myOrders', {'type': 'order_status', 'event_id': 'event1', '_exclude_tokens': ['already-sent']},

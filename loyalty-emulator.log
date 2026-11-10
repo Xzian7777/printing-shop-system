@@ -2,8 +2,8 @@ WARNING: A terminally deprecated method in sun.misc.Unsafe has been called
 WARNING: sun.misc.Unsafe::allocateMemory has been called by io.netty.util.internal.PlatformDependent0$2 (file:/C:/Users/omarm/.cache/firebase/emulators/cloud-firestore-emulator-v1.22.0.jar)
 WARNING: Please consider reporting this to the maintainers of class io.netty.util.internal.PlatformDependent0$2
 WARNING: sun.misc.Unsafe::allocateMemory will be removed in a future release
-Nov 08, 2026 2:30:41 AM com.google.cloud.datastore.emulator.firestore.websocket.WebSocketServer start
-INFO: Started WebSocket server on ws://127.0.0.1:52557
+Nov 10, 2026 11:17:46 PM com.google.cloud.datastore.emulator.firestore.websocket.WebSocketServer start
+INFO: Started WebSocket server on ws://127.0.0.1:64875
 
 API endpoint: http://127.0.0.1:8185
 Database Edition: STANDARD
@@ -20,17 +20,17 @@ If you are running a Firestore in Datastore Mode project, run:
 Note: Support for Datastore Mode is in preview. If you encounter any bugs please file at https://github.com/firebase/firebase-tools/issues.
 Dev App Server is now running.
 
-Nov 08, 2026 2:31:02 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+Nov 10, 2026 11:17:53 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
 INFO: Detected non-HTTP/2 connection.
-Nov 08, 2026 2:31:02 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+Nov 10, 2026 11:17:53 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
 INFO: Detected HTTP/2 connection.
-Nov 08, 2026 2:31:03 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+Nov 10, 2026 11:17:55 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
 INFO: Detected non-HTTP/2 connection.
-Nov 08, 2026 2:31:03 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+Nov 10, 2026 11:17:55 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
 INFO: Detected non-HTTP/2 connection.
-Nov 08, 2026 2:31:03 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+Nov 10, 2026 11:17:55 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
 INFO: Detected non-HTTP/2 connection.
-Nov 08, 2026 2:31:04 AM com.google.cloud.datastore.emulator.impl.util.WrappedStreamObserver onError
+Nov 10, 2026 11:17:55 PM com.google.cloud.datastore.emulator.impl.util.WrappedStreamObserver onError
 WARNING: Operation failed: 
 false for 'create' @ L103, evaluation error at L108:24 for 'create' @ L108, false for 'update' @ L103, evaluation error at L109:24 for 'update' @ L109, false for 'update' @ L103, Null value error. for 'update' @ L109
 com.google.cloud.datastore.core.exception.DatastoreException: 
@@ -96,14 +96,14 @@ Caused by: com.google.firebase.rules.runtime.common.EvaluationException: Error: 
 	at com.google.cloud.datastore.emulator.impl.rules.DefaultEmulatorRulesAuthorizer.withVerboseErrors(DefaultEmulatorRulesAuthorizer.java:321)
 	... 25 more
 
-Nov 08, 2026 2:31:04 AM io.gapi.emulators.netty.HttpHandler$1 onError
+Nov 10, 2026 11:17:55 PM io.gapi.emulators.netty.HttpHandler$1 onError
 INFO: Exception when handling request: PERMISSION_DENIED: 
 false for 'create' @ L103, evaluation error at L108:24 for 'create' @ L108, false for 'update' @ L103, evaluation error at L109:24 for 'update' @ L109, false for 'update' @ L103, Null value error. for 'update' @ L109
-Nov 08, 2026 2:31:04 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+Nov 10, 2026 11:17:55 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
 INFO: Detected non-HTTP/2 connection.
-Nov 08, 2026 2:31:04 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+Nov 10, 2026 11:17:55 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
 INFO: Detected non-HTTP/2 connection.
-Nov 08, 2026 2:31:04 AM com.google.cloud.datastore.emulator.impl.util.WrappedStreamObserver onError
+Nov 10, 2026 11:17:55 PM com.google.cloud.datastore.emulator.impl.util.WrappedStreamObserver onError
 WARNING: Operation failed: 
 false for 'create' @ L103, evaluation error at L108:24 for 'create' @ L108, false for 'update' @ L103, evaluation error at L109:24 for 'update' @ L109, false for 'update' @ L103, false for 'update' @ L109
 com.google.cloud.datastore.core.exception.DatastoreException: 
@@ -137,14 +137,14 @@ false for 'create' @ L103, evaluation error at L108:24 for 'create' @ L108, fals
 	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(Unknown Source)
 	at java.base/java.lang.Thread.run(Unknown Source)
 
-Nov 08, 2026 2:31:04 AM io.gapi.emulators.netty.HttpHandler$1 onError
+Nov 10, 2026 11:17:55 PM io.gapi.emulators.netty.HttpHandler$1 onError
 INFO: Exception when handling request: PERMISSION_DENIED: 
 false for 'create' @ L103, evaluation error at L108:24 for 'create' @ L108, false for 'update' @ L103, evaluation error at L109:24 for 'update' @ L109, false for 'update' @ L103, false for 'update' @ L109
-Nov 08, 2026 2:31:04 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+Nov 10, 2026 11:17:55 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
 INFO: Detected non-HTTP/2 connection.
-Nov 08, 2026 2:31:04 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+Nov 10, 2026 11:17:55 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
 INFO: Detected non-HTTP/2 connection.
-Nov 08, 2026 2:31:04 AM com.google.cloud.datastore.emulator.impl.util.WrappedStreamObserver onError
+Nov 10, 2026 11:17:55 PM com.google.cloud.datastore.emulator.impl.util.WrappedStreamObserver onError
 WARNING: Operation failed: 
 false for 'create' @ L103, evaluation error at L108:24 for 'create' @ L108, false for 'update' @ L103, evaluation error at L109:24 for 'update' @ L109, false for 'update' @ L103, false for 'update' @ L109
 com.google.cloud.datastore.core.exception.DatastoreException: 
@@ -178,14 +178,14 @@ false for 'create' @ L103, evaluation error at L108:24 for 'create' @ L108, fals
 	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(Unknown Source)
 	at java.base/java.lang.Thread.run(Unknown Source)
 
-Nov 08, 2026 2:31:04 AM io.gapi.emulators.netty.HttpHandler$1 onError
+Nov 10, 2026 11:17:55 PM io.gapi.emulators.netty.HttpHandler$1 onError
 INFO: Exception when handling request: PERMISSION_DENIED: 
 false for 'create' @ L103, evaluation error at L108:24 for 'create' @ L108, false for 'update' @ L103, evaluation error at L109:24 for 'update' @ L109, false for 'update' @ L103, false for 'update' @ L109
-Nov 08, 2026 2:31:04 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+Nov 10, 2026 11:17:55 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
 INFO: Detected non-HTTP/2 connection.
-Nov 08, 2026 2:31:04 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+Nov 10, 2026 11:17:55 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
 INFO: Detected non-HTTP/2 connection.
-Nov 08, 2026 2:31:04 AM com.google.cloud.datastore.emulator.impl.util.WrappedStreamObserver onError
+Nov 10, 2026 11:17:55 PM com.google.cloud.datastore.emulator.impl.util.WrappedStreamObserver onError
 WARNING: Operation failed: 
 false for 'create' @ L103, evaluation error at L108:24 for 'create' @ L108, false for 'update' @ L103, evaluation error at L109:24 for 'update' @ L109, false for 'update' @ L103, false for 'update' @ L109
 com.google.cloud.datastore.core.exception.DatastoreException: 
@@ -219,14 +219,14 @@ false for 'create' @ L103, evaluation error at L108:24 for 'create' @ L108, fals
 	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(Unknown Source)
 	at java.base/java.lang.Thread.run(Unknown Source)
 
-Nov 08, 2026 2:31:04 AM io.gapi.emulators.netty.HttpHandler$1 onError
+Nov 10, 2026 11:17:55 PM io.gapi.emulators.netty.HttpHandler$1 onError
 INFO: Exception when handling request: PERMISSION_DENIED: 
 false for 'create' @ L103, evaluation error at L108:24 for 'create' @ L108, false for 'update' @ L103, evaluation error at L109:24 for 'update' @ L109, false for 'update' @ L103, false for 'update' @ L109
-Nov 08, 2026 2:31:04 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+Nov 10, 2026 11:17:55 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
 INFO: Detected non-HTTP/2 connection.
-Nov 08, 2026 2:31:04 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+Nov 10, 2026 11:17:55 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
 INFO: Detected non-HTTP/2 connection.
-Nov 08, 2026 2:31:04 AM com.google.cloud.datastore.emulator.impl.util.WrappedStreamObserver onError
+Nov 10, 2026 11:17:55 PM com.google.cloud.datastore.emulator.impl.util.WrappedStreamObserver onError
 WARNING: Operation failed: 
 false for 'create' @ L103, evaluation error at L108:24 for 'create' @ L108, false for 'update' @ L103, evaluation error at L109:24 for 'update' @ L109, false for 'update' @ L103, false for 'update' @ L109
 com.google.cloud.datastore.core.exception.DatastoreException: 
@@ -260,14 +260,14 @@ false for 'create' @ L103, evaluation error at L108:24 for 'create' @ L108, fals
 	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(Unknown Source)
 	at java.base/java.lang.Thread.run(Unknown Source)
 
-Nov 08, 2026 2:31:04 AM io.gapi.emulators.netty.HttpHandler$1 onError
+Nov 10, 2026 11:17:55 PM io.gapi.emulators.netty.HttpHandler$1 onError
 INFO: Exception when handling request: PERMISSION_DENIED: 
 false for 'create' @ L103, evaluation error at L108:24 for 'create' @ L108, false for 'update' @ L103, evaluation error at L109:24 for 'update' @ L109, false for 'update' @ L103, false for 'update' @ L109
-Nov 08, 2026 2:31:04 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+Nov 10, 2026 11:17:55 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
 INFO: Detected non-HTTP/2 connection.
-Nov 08, 2026 2:31:04 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+Nov 10, 2026 11:17:55 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
 INFO: Detected non-HTTP/2 connection.
-Nov 08, 2026 2:31:04 AM com.google.cloud.datastore.emulator.impl.util.WrappedStreamObserver onError
+Nov 10, 2026 11:17:56 PM com.google.cloud.datastore.emulator.impl.util.WrappedStreamObserver onError
 WARNING: Operation failed: 
 false for 'create' @ L103, evaluation error at L108:24 for 'create' @ L108, false for 'update' @ L103, evaluation error at L109:24 for 'update' @ L109, false for 'update' @ L103, false for 'update' @ L109
 com.google.cloud.datastore.core.exception.DatastoreException: 
@@ -301,14 +301,14 @@ false for 'create' @ L103, evaluation error at L108:24 for 'create' @ L108, fals
 	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(Unknown Source)
 	at java.base/java.lang.Thread.run(Unknown Source)
 
-Nov 08, 2026 2:31:04 AM io.gapi.emulators.netty.HttpHandler$1 onError
+Nov 10, 2026 11:17:56 PM io.gapi.emulators.netty.HttpHandler$1 onError
 INFO: Exception when handling request: PERMISSION_DENIED: 
 false for 'create' @ L103, evaluation error at L108:24 for 'create' @ L108, false for 'update' @ L103, evaluation error at L109:24 for 'update' @ L109, false for 'update' @ L103, false for 'update' @ L109
-Nov 08, 2026 2:31:04 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+Nov 10, 2026 11:17:56 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
 INFO: Detected non-HTTP/2 connection.
-Nov 08, 2026 2:31:04 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+Nov 10, 2026 11:17:56 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
 INFO: Detected non-HTTP/2 connection.
-Nov 08, 2026 2:31:04 AM com.google.cloud.datastore.emulator.impl.util.WrappedStreamObserver onError
+Nov 10, 2026 11:17:56 PM com.google.cloud.datastore.emulator.impl.util.WrappedStreamObserver onError
 WARNING: Operation failed: 
 false for 'create' @ L103, evaluation error at L108:24 for 'create' @ L108, false for 'update' @ L103, evaluation error at L109:24 for 'update' @ L109, false for 'update' @ L103, false for 'update' @ L109
 com.google.cloud.datastore.core.exception.DatastoreException: 
@@ -342,14 +342,14 @@ false for 'create' @ L103, evaluation error at L108:24 for 'create' @ L108, fals
 	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(Unknown Source)
 	at java.base/java.lang.Thread.run(Unknown Source)
 
-Nov 08, 2026 2:31:04 AM io.gapi.emulators.netty.HttpHandler$1 onError
+Nov 10, 2026 11:17:56 PM io.gapi.emulators.netty.HttpHandler$1 onError
 INFO: Exception when handling request: PERMISSION_DENIED: 
 false for 'create' @ L103, evaluation error at L108:24 for 'create' @ L108, false for 'update' @ L103, evaluation error at L109:24 for 'update' @ L109, false for 'update' @ L103, false for 'update' @ L109
-Nov 08, 2026 2:31:04 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+Nov 10, 2026 11:17:56 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
 INFO: Detected non-HTTP/2 connection.
-Nov 08, 2026 2:31:04 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+Nov 10, 2026 11:17:56 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
 INFO: Detected non-HTTP/2 connection.
-Nov 08, 2026 2:31:04 AM com.google.cloud.datastore.emulator.impl.util.WrappedStreamObserver onError
+Nov 10, 2026 11:17:56 PM com.google.cloud.datastore.emulator.impl.util.WrappedStreamObserver onError
 WARNING: Operation failed: 
 false for 'create' @ L103, evaluation error at L108:24 for 'create' @ L108, false for 'update' @ L103, evaluation error at L109:24 for 'update' @ L109, false for 'update' @ L103, false for 'update' @ L109
 com.google.cloud.datastore.core.exception.DatastoreException: 
@@ -383,14 +383,14 @@ false for 'create' @ L103, evaluation error at L108:24 for 'create' @ L108, fals
 	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(Unknown Source)
 	at java.base/java.lang.Thread.run(Unknown Source)
 
-Nov 08, 2026 2:31:04 AM io.gapi.emulators.netty.HttpHandler$1 onError
+Nov 10, 2026 11:17:56 PM io.gapi.emulators.netty.HttpHandler$1 onError
 INFO: Exception when handling request: PERMISSION_DENIED: 
 false for 'create' @ L103, evaluation error at L108:24 for 'create' @ L108, false for 'update' @ L103, evaluation error at L109:24 for 'update' @ L109, false for 'update' @ L103, false for 'update' @ L109
-Nov 08, 2026 2:31:04 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+Nov 10, 2026 11:17:56 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
 INFO: Detected non-HTTP/2 connection.
-Nov 08, 2026 2:31:04 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+Nov 10, 2026 11:17:56 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
 INFO: Detected non-HTTP/2 connection.
-Nov 08, 2026 2:31:04 AM com.google.cloud.datastore.emulator.impl.util.WrappedStreamObserver onError
+Nov 10, 2026 11:17:56 PM com.google.cloud.datastore.emulator.impl.util.WrappedStreamObserver onError
 WARNING: Operation failed: 
 false for 'create' @ L103, evaluation error at L108:24 for 'create' @ L108, false for 'update' @ L103, evaluation error at L109:24 for 'update' @ L109, false for 'update' @ L103, false for 'update' @ L109
 com.google.cloud.datastore.core.exception.DatastoreException: 
@@ -424,18 +424,18 @@ false for 'create' @ L103, evaluation error at L108:24 for 'create' @ L108, fals
 	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(Unknown Source)
 	at java.base/java.lang.Thread.run(Unknown Source)
 
-Nov 08, 2026 2:31:04 AM io.gapi.emulators.netty.HttpHandler$1 onError
+Nov 10, 2026 11:17:56 PM io.gapi.emulators.netty.HttpHandler$1 onError
 INFO: Exception when handling request: PERMISSION_DENIED: 
 false for 'create' @ L103, evaluation error at L108:24 for 'create' @ L108, false for 'update' @ L103, evaluation error at L109:24 for 'update' @ L109, false for 'update' @ L103, false for 'update' @ L109
-Nov 08, 2026 2:31:04 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+Nov 10, 2026 11:17:56 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
 INFO: Detected non-HTTP/2 connection.
-Nov 08, 2026 2:31:04 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+Nov 10, 2026 11:17:56 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
 INFO: Detected non-HTTP/2 connection.
-Nov 08, 2026 2:31:04 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+Nov 10, 2026 11:17:56 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
 INFO: Detected non-HTTP/2 connection.
-Nov 08, 2026 2:31:05 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+Nov 10, 2026 11:17:56 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
 INFO: Detected non-HTTP/2 connection.
-Nov 08, 2026 2:31:05 AM com.google.cloud.datastore.emulator.impl.util.WrappedStreamObserver onError
+Nov 10, 2026 11:17:56 PM com.google.cloud.datastore.emulator.impl.util.WrappedStreamObserver onError
 WARNING: Operation failed: 
 false for 'create' @ L103, evaluation error at L108:24 for 'create' @ L108, false for 'update' @ L103, evaluation error at L109:24 for 'update' @ L109, false for 'update' @ L103, false for 'update' @ L109
 com.google.cloud.datastore.core.exception.DatastoreException: 
@@ -469,12 +469,12 @@ false for 'create' @ L103, evaluation error at L108:24 for 'create' @ L108, fals
 	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(Unknown Source)
 	at java.base/java.lang.Thread.run(Unknown Source)
 
-Nov 08, 2026 2:31:05 AM io.gapi.emulators.netty.HttpHandler$1 onError
+Nov 10, 2026 11:17:56 PM io.gapi.emulators.netty.HttpHandler$1 onError
 INFO: Exception when handling request: PERMISSION_DENIED: 
 false for 'create' @ L103, evaluation error at L108:24 for 'create' @ L108, false for 'update' @ L103, evaluation error at L109:24 for 'update' @ L109, false for 'update' @ L103, false for 'update' @ L109
-Nov 08, 2026 2:31:05 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+Nov 10, 2026 11:17:56 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
 INFO: Detected non-HTTP/2 connection.
-Nov 08, 2026 2:31:05 AM com.google.cloud.datastore.emulator.impl.util.WrappedStreamObserver onError
+Nov 10, 2026 11:17:56 PM com.google.cloud.datastore.emulator.impl.util.WrappedStreamObserver onError
 WARNING: Operation failed: 
 false for 'create' @ L103, evaluation error at L108:24 for 'create' @ L108, false for 'update' @ L103, evaluation error at L109:24 for 'update' @ L109, false for 'update' @ L103, false for 'update' @ L109
 com.google.cloud.datastore.core.exception.DatastoreException: 
@@ -508,12 +508,12 @@ false for 'create' @ L103, evaluation error at L108:24 for 'create' @ L108, fals
 	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(Unknown Source)
 	at java.base/java.lang.Thread.run(Unknown Source)
 
-Nov 08, 2026 2:31:05 AM io.gapi.emulators.netty.HttpHandler$1 onError
+Nov 10, 2026 11:17:56 PM io.gapi.emulators.netty.HttpHandler$1 onError
 INFO: Exception when handling request: PERMISSION_DENIED: 
 false for 'create' @ L103, evaluation error at L108:24 for 'create' @ L108, false for 'update' @ L103, evaluation error at L109:24 for 'update' @ L109, false for 'update' @ L103, false for 'update' @ L109
-Nov 08, 2026 2:31:05 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+Nov 10, 2026 11:17:56 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
 INFO: Detected non-HTTP/2 connection.
-Nov 08, 2026 2:31:05 AM com.google.cloud.datastore.emulator.impl.util.WrappedStreamObserver onError
+Nov 10, 2026 11:17:56 PM com.google.cloud.datastore.emulator.impl.util.WrappedStreamObserver onError
 WARNING: Operation failed: 
 false for 'create' @ L103, evaluation error at L108:24 for 'create' @ L108, false for 'update' @ L103, evaluation error at L109:24 for 'update' @ L109, false for 'update' @ L103, false for 'update' @ L109
 com.google.cloud.datastore.core.exception.DatastoreException: 
@@ -547,12 +547,12 @@ false for 'create' @ L103, evaluation error at L108:24 for 'create' @ L108, fals
 	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(Unknown Source)
 	at java.base/java.lang.Thread.run(Unknown Source)
 
-Nov 08, 2026 2:31:05 AM io.gapi.emulators.netty.HttpHandler$1 onError
+Nov 10, 2026 11:17:56 PM io.gapi.emulators.netty.HttpHandler$1 onError
 INFO: Exception when handling request: PERMISSION_DENIED: 
 false for 'create' @ L103, evaluation error at L108:24 for 'create' @ L108, false for 'update' @ L103, evaluation error at L109:24 for 'update' @ L109, false for 'update' @ L103, false for 'update' @ L109
-Nov 08, 2026 2:31:05 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+Nov 10, 2026 11:17:56 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
 INFO: Detected non-HTTP/2 connection.
-Nov 08, 2026 2:31:05 AM com.google.cloud.datastore.emulator.impl.util.WrappedStreamObserver onError
+Nov 10, 2026 11:17:56 PM com.google.cloud.datastore.emulator.impl.util.WrappedStreamObserver onError
 WARNING: Operation failed: 
 false for 'create' @ L103, evaluation error at L108:24 for 'create' @ L108, false for 'update' @ L103, evaluation error at L109:24 for 'update' @ L109, false for 'update' @ L103, false for 'update' @ L109
 com.google.cloud.datastore.core.exception.DatastoreException: 
@@ -586,12 +586,12 @@ false for 'create' @ L103, evaluation error at L108:24 for 'create' @ L108, fals
 	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(Unknown Source)
 	at java.base/java.lang.Thread.run(Unknown Source)
 
-Nov 08, 2026 2:31:05 AM io.gapi.emulators.netty.HttpHandler$1 onError
+Nov 10, 2026 11:17:56 PM io.gapi.emulators.netty.HttpHandler$1 onError
 INFO: Exception when handling request: PERMISSION_DENIED: 
 false for 'create' @ L103, evaluation error at L108:24 for 'create' @ L108, false for 'update' @ L103, evaluation error at L109:24 for 'update' @ L109, false for 'update' @ L103, false for 'update' @ L109
-Nov 08, 2026 2:31:05 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+Nov 10, 2026 11:17:56 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
 INFO: Detected non-HTTP/2 connection.
-Nov 08, 2026 2:31:05 AM com.google.cloud.datastore.emulator.impl.util.WrappedStreamObserver onError
+Nov 10, 2026 11:17:56 PM com.google.cloud.datastore.emulator.impl.util.WrappedStreamObserver onError
 WARNING: Operation failed: 
 false for 'create' @ L103, evaluation error at L108:24 for 'create' @ L108, false for 'update' @ L103, evaluation error at L109:24 for 'update' @ L109, false for 'update' @ L103, false for 'update' @ L109
 com.google.cloud.datastore.core.exception.DatastoreException: 
@@ -625,12 +625,12 @@ false for 'create' @ L103, evaluation error at L108:24 for 'create' @ L108, fals
 	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(Unknown Source)
 	at java.base/java.lang.Thread.run(Unknown Source)
 
-Nov 08, 2026 2:31:05 AM io.gapi.emulators.netty.HttpHandler$1 onError
+Nov 10, 2026 11:17:56 PM io.gapi.emulators.netty.HttpHandler$1 onError
 INFO: Exception when handling request: PERMISSION_DENIED: 
 false for 'create' @ L103, evaluation error at L108:24 for 'create' @ L108, false for 'update' @ L103, evaluation error at L109:24 for 'update' @ L109, false for 'update' @ L103, false for 'update' @ L109
-Nov 08, 2026 2:31:05 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+Nov 10, 2026 11:17:56 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
 INFO: Detected non-HTTP/2 connection.
-Nov 08, 2026 2:31:05 AM com.google.cloud.datastore.emulator.impl.util.WrappedStreamObserver onError
+Nov 10, 2026 11:17:56 PM com.google.cloud.datastore.emulator.impl.util.WrappedStreamObserver onError
 WARNING: Operation failed: 
 false for 'create' @ L103, evaluation error at L108:24 for 'create' @ L108, false for 'update' @ L103, evaluation error at L109:24 for 'update' @ L109, false for 'update' @ L103, false for 'update' @ L109
 com.google.cloud.datastore.core.exception.DatastoreException: 
@@ -664,12 +664,12 @@ false for 'create' @ L103, evaluation error at L108:24 for 'create' @ L108, fals
 	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(Unknown Source)
 	at java.base/java.lang.Thread.run(Unknown Source)
 
-Nov 08, 2026 2:31:05 AM io.gapi.emulators.netty.HttpHandler$1 onError
+Nov 10, 2026 11:17:56 PM io.gapi.emulators.netty.HttpHandler$1 onError
 INFO: Exception when handling request: PERMISSION_DENIED: 
 false for 'create' @ L103, evaluation error at L108:24 for 'create' @ L108, false for 'update' @ L103, evaluation error at L109:24 for 'update' @ L109, false for 'update' @ L103, false for 'update' @ L109
-Nov 08, 2026 2:31:05 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+Nov 10, 2026 11:17:56 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
 INFO: Detected non-HTTP/2 connection.
-Nov 08, 2026 2:31:05 AM com.google.cloud.datastore.emulator.impl.util.WrappedStreamObserver onError
+Nov 10, 2026 11:17:56 PM com.google.cloud.datastore.emulator.impl.util.WrappedStreamObserver onError
 WARNING: Operation failed: 
 false for 'delete' @ L103, evaluation error at L110:24 for 'delete' @ L110, false for 'delete' @ L103, false for 'delete' @ L110
 com.google.cloud.datastore.core.exception.DatastoreException: 
@@ -704,12 +704,12 @@ false for 'delete' @ L103, evaluation error at L110:24 for 'delete' @ L110, fals
 	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(Unknown Source)
 	at java.base/java.lang.Thread.run(Unknown Source)
 
-Nov 08, 2026 2:31:05 AM io.gapi.emulators.netty.HttpHandler$1 onError
+Nov 10, 2026 11:17:56 PM io.gapi.emulators.netty.HttpHandler$1 onError
 INFO: Exception when handling request: PERMISSION_DENIED: 
 false for 'delete' @ L103, evaluation error at L110:24 for 'delete' @ L110, false for 'delete' @ L103, false for 'delete' @ L110
-Nov 08, 2026 2:31:05 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+Nov 10, 2026 11:17:56 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
 INFO: Detected non-HTTP/2 connection.
-Nov 08, 2026 2:31:05 AM com.google.cloud.datastore.emulator.impl.util.WrappedStreamObserver onError
+Nov 10, 2026 11:17:56 PM com.google.cloud.datastore.emulator.impl.util.WrappedStreamObserver onError
 WARNING: Operation failed: 
 false for 'create' @ L103, evaluation error at L108:24 for 'create' @ L108, false for 'update' @ L103, evaluation error at L109:24 for 'update' @ L109, false for 'update' @ L103, false for 'update' @ L109
 com.google.cloud.datastore.core.exception.DatastoreException: 
@@ -744,14 +744,14 @@ false for 'create' @ L103, evaluation error at L108:24 for 'create' @ L108, fals
 	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(Unknown Source)
 	at java.base/java.lang.Thread.run(Unknown Source)
 
-Nov 08, 2026 2:31:05 AM io.gapi.emulators.netty.HttpHandler$1 onError
+Nov 10, 2026 11:17:56 PM io.gapi.emulators.netty.HttpHandler$1 onError
 INFO: Exception when handling request: PERMISSION_DENIED: 
 false for 'create' @ L103, evaluation error at L108:24 for 'create' @ L108, false for 'update' @ L103, evaluation error at L109:24 for 'update' @ L109, false for 'update' @ L103, false for 'update' @ L109
-Nov 08, 2026 2:31:05 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+Nov 10, 2026 11:17:56 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
 INFO: Detected non-HTTP/2 connection.
-Nov 08, 2026 2:31:05 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+Nov 10, 2026 11:17:56 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
 INFO: Detected non-HTTP/2 connection.
-Nov 08, 2026 2:31:05 AM com.google.cloud.datastore.emulator.impl.util.WrappedStreamObserver onError
+Nov 10, 2026 11:17:56 PM com.google.cloud.datastore.emulator.impl.util.WrappedStreamObserver onError
 WARNING: Operation failed: 
 false for 'create' @ L103, evaluation error at L108:24 for 'create' @ L108, false for 'update' @ L103, evaluation error at L109:24 for 'update' @ L109, false for 'update' @ L103, false for 'update' @ L109
 com.google.cloud.datastore.core.exception.DatastoreException: 
@@ -786,42 +786,128 @@ false for 'create' @ L103, evaluation error at L108:24 for 'create' @ L108, fals
 	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(Unknown Source)
 	at java.base/java.lang.Thread.run(Unknown Source)
 
-Nov 08, 2026 2:31:05 AM io.gapi.emulators.netty.HttpHandler$1 onError
+Nov 10, 2026 11:17:56 PM io.gapi.emulators.netty.HttpHandler$1 onError
 INFO: Exception when handling request: PERMISSION_DENIED: 
 false for 'create' @ L103, evaluation error at L108:24 for 'create' @ L108, false for 'update' @ L103, evaluation error at L109:24 for 'update' @ L109, false for 'update' @ L103, false for 'update' @ L109
-Nov 08, 2026 2:31:05 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+Nov 10, 2026 11:17:56 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
 INFO: Detected non-HTTP/2 connection.
-Nov 08, 2026 2:31:05 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+Nov 10, 2026 11:17:56 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
 INFO: Detected non-HTTP/2 connection.
-Nov 08, 2026 2:31:05 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+Nov 10, 2026 11:17:56 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
 INFO: Detected non-HTTP/2 connection.
-Nov 08, 2026 2:31:05 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+Nov 10, 2026 11:17:56 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
 INFO: Detected non-HTTP/2 connection.
-Nov 08, 2026 2:31:05 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+Nov 10, 2026 11:17:56 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
 INFO: Detected non-HTTP/2 connection.
-Nov 08, 2026 2:31:05 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+Nov 10, 2026 11:17:56 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
 INFO: Detected non-HTTP/2 connection.
-Nov 08, 2026 2:31:05 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+Nov 10, 2026 11:17:56 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
 INFO: Detected non-HTTP/2 connection.
-Nov 08, 2026 2:31:05 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+Nov 10, 2026 11:17:56 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
 INFO: Detected non-HTTP/2 connection.
-Nov 08, 2026 2:31:05 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+Nov 10, 2026 11:17:56 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
 INFO: Detected non-HTTP/2 connection.
-Nov 08, 2026 2:31:05 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+Nov 10, 2026 11:17:56 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
 INFO: Detected non-HTTP/2 connection.
-Nov 08, 2026 2:31:05 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+Nov 10, 2026 11:17:57 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
 INFO: Detected non-HTTP/2 connection.
-Nov 08, 2026 2:31:05 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+Nov 10, 2026 11:17:57 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
 INFO: Detected non-HTTP/2 connection.
-Nov 08, 2026 2:31:05 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+Nov 10, 2026 11:17:57 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
 INFO: Detected non-HTTP/2 connection.
-Nov 08, 2026 2:31:05 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+Nov 10, 2026 11:17:57 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
 INFO: Detected non-HTTP/2 connection.
-Nov 08, 2026 2:31:05 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+Nov 10, 2026 11:17:57 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
 INFO: Detected non-HTTP/2 connection.
-Nov 08, 2026 2:31:05 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+Nov 10, 2026 11:17:57 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
 INFO: Detected non-HTTP/2 connection.
-Nov 08, 2026 2:31:05 AM com.google.cloud.datastore.emulator.impl.util.WrappedStreamObserver onError
+Nov 10, 2026 11:17:57 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected non-HTTP/2 connection.
+Nov 10, 2026 11:17:57 PM com.google.cloud.datastore.emulator.impl.util.WrappedStreamObserver onError
+WARNING: Operation failed: 
+evaluation error at L80:24 for 'create' @ L80, evaluation error at L82:24 for 'update' @ L82, false for 'create' @ L80
+com.google.cloud.datastore.core.exception.DatastoreException: 
+evaluation error at L80:24 for 'create' @ L80, evaluation error at L82:24 for 'update' @ L82, false for 'create' @ L80
+	at com.google.cloud.datastore.core.exception.DatastoreException$Builder.build(DatastoreException.java:152)
+	at com.google.cloud.datastore.emulator.impl.rules.DefaultEmulatorRulesAuthorizer.verboseError(DefaultEmulatorRulesAuthorizer.java:349)
+	at com.google.cloud.datastore.emulator.impl.rules.DefaultEmulatorRulesAuthorizer.withVerboseErrors(DefaultEmulatorRulesAuthorizer.java:326)
+	at com.google.cloud.datastore.emulator.impl.rules.DefaultEmulatorRulesAuthorizer.checkCommit(DefaultEmulatorRulesAuthorizer.java:113)
+	at com.google.cloud.datastore.emulator.impl.firestore.FirestoreEmulatorHelper.commitHelper(FirestoreEmulatorHelper.java:407)
+	at com.google.cloud.datastore.emulator.impl.firestore.FirestoreEmulatorHelper.internalCommit(FirestoreEmulatorHelper.java:348)
+	at com.google.cloud.datastore.emulator.impl.firestore.CloudFirestoreV1.internalCommit(CloudFirestoreV1.java:1336)
+	at com.google.cloud.datastore.emulator.impl.firestore.CloudFirestoreV1.updateDocument(CloudFirestoreV1.java:468)
+	at com.google.cloud.datastore.emulator.impl.firestore.CloudFirestoreV1Router.updateDocument(CloudFirestoreV1Router.java:151)
+	at com.google.cloud.datastore.emulator.firestore.v1.FirestoreV1GrpcAdapter$1.lambda$updateDocument$0(FirestoreV1GrpcAdapter.java:132)
+	at com.google.cloud.datastore.emulator.firestore.v1.FirestoreV1GrpcAdapter.unary(FirestoreV1GrpcAdapter.java:72)
+	at com.google.cloud.datastore.emulator.firestore.v1.FirestoreV1GrpcAdapter$1.updateDocument(FirestoreV1GrpcAdapter.java:132)
+	at com.google.firestore.v1.FirestoreGrpc$MethodHandlers.invoke(FirestoreGrpc.java:1388)
+	at io.grpc.stub.ServerCalls$UnaryServerCallHandler$UnaryServerCallListener.onHalfClose(ServerCalls.java:182)
+	at io.grpc.PartialForwardingServerCallListener.onHalfClose(PartialForwardingServerCallListener.java:35)
+	at io.grpc.ForwardingServerCallListener.onHalfClose(ForwardingServerCallListener.java:23)
+	at io.grpc.ForwardingServerCallListener$SimpleForwardingServerCallListener.onHalfClose(ForwardingServerCallListener.java:40)
+	at io.grpc.Contexts$ContextualizedServerCallListener.onHalfClose(Contexts.java:86)
+	at io.grpc.PartialForwardingServerCallListener.onHalfClose(PartialForwardingServerCallListener.java:35)
+	at io.grpc.ForwardingServerCallListener.onHalfClose(ForwardingServerCallListener.java:23)
+	at io.grpc.ForwardingServerCallListener$SimpleForwardingServerCallListener.onHalfClose(ForwardingServerCallListener.java:40)
+	at io.grpc.Contexts$ContextualizedServerCallListener.onHalfClose(Contexts.java:86)
+	at io.grpc.internal.ServerCallImpl$ServerStreamListenerImpl.halfClosed(ServerCallImpl.java:356)
+	at io.grpc.internal.ServerImpl$JumpToApplicationThreadServerStreamListener$1HalfClosed.runInContext(ServerImpl.java:879)
+	at io.grpc.internal.ContextRunnable.run(ContextRunnable.java:37)
+	at io.grpc.internal.SerializingExecutor.run(SerializingExecutor.java:133)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(Unknown Source)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(Unknown Source)
+	at java.base/java.lang.Thread.run(Unknown Source)
+
+Nov 10, 2026 11:17:57 PM io.gapi.emulators.netty.HttpHandler$1 onError
+INFO: Exception when handling request: PERMISSION_DENIED: 
+evaluation error at L80:24 for 'create' @ L80, evaluation error at L82:24 for 'update' @ L82, false for 'create' @ L80
+Nov 10, 2026 11:17:57 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected non-HTTP/2 connection.
+Nov 10, 2026 11:17:57 PM com.google.cloud.datastore.emulator.impl.util.WrappedStreamObserver onError
+WARNING: Operation failed: 
+false for 'create' @ L89, evaluation error at L90:24 for 'update' @ L90, false for 'update' @ L90
+com.google.cloud.datastore.core.exception.DatastoreException: 
+false for 'create' @ L89, evaluation error at L90:24 for 'update' @ L90, false for 'update' @ L90
+	at com.google.cloud.datastore.core.exception.DatastoreException$Builder.build(DatastoreException.java:152)
+	at com.google.cloud.datastore.emulator.impl.rules.DefaultEmulatorRulesAuthorizer.verboseError(DefaultEmulatorRulesAuthorizer.java:349)
+	at com.google.cloud.datastore.emulator.impl.rules.DefaultEmulatorRulesAuthorizer.withVerboseErrors(DefaultEmulatorRulesAuthorizer.java:326)
+	at com.google.cloud.datastore.emulator.impl.rules.DefaultEmulatorRulesAuthorizer.checkCommit(DefaultEmulatorRulesAuthorizer.java:113)
+	at com.google.cloud.datastore.emulator.impl.firestore.FirestoreEmulatorHelper.commitHelper(FirestoreEmulatorHelper.java:407)
+	at com.google.cloud.datastore.emulator.impl.firestore.FirestoreEmulatorHelper.internalCommit(FirestoreEmulatorHelper.java:348)
+	at com.google.cloud.datastore.emulator.impl.firestore.CloudFirestoreV1.internalCommit(CloudFirestoreV1.java:1336)
+	at com.google.cloud.datastore.emulator.impl.firestore.CloudFirestoreV1.updateDocument(CloudFirestoreV1.java:468)
+	at com.google.cloud.datastore.emulator.impl.firestore.CloudFirestoreV1Router.updateDocument(CloudFirestoreV1Router.java:151)
+	at com.google.cloud.datastore.emulator.firestore.v1.FirestoreV1GrpcAdapter$1.lambda$updateDocument$0(FirestoreV1GrpcAdapter.java:132)
+	at com.google.cloud.datastore.emulator.firestore.v1.FirestoreV1GrpcAdapter.unary(FirestoreV1GrpcAdapter.java:72)
+	at com.google.cloud.datastore.emulator.firestore.v1.FirestoreV1GrpcAdapter$1.updateDocument(FirestoreV1GrpcAdapter.java:132)
+	at com.google.firestore.v1.FirestoreGrpc$MethodHandlers.invoke(FirestoreGrpc.java:1388)
+	at io.grpc.stub.ServerCalls$UnaryServerCallHandler$UnaryServerCallListener.onHalfClose(ServerCalls.java:182)
+	at io.grpc.PartialForwardingServerCallListener.onHalfClose(PartialForwardingServerCallListener.java:35)
+	at io.grpc.ForwardingServerCallListener.onHalfClose(ForwardingServerCallListener.java:23)
+	at io.grpc.ForwardingServerCallListener$SimpleForwardingServerCallListener.onHalfClose(ForwardingServerCallListener.java:40)
+	at io.grpc.Contexts$ContextualizedServerCallListener.onHalfClose(Contexts.java:86)
+	at io.grpc.PartialForwardingServerCallListener.onHalfClose(PartialForwardingServerCallListener.java:35)
+	at io.grpc.ForwardingServerCallListener.onHalfClose(ForwardingServerCallListener.java:23)
+	at io.grpc.ForwardingServerCallListener$SimpleForwardingServerCallListener.onHalfClose(ForwardingServerCallListener.java:40)
+	at io.grpc.Contexts$ContextualizedServerCallListener.onHalfClose(Contexts.java:86)
+	at io.grpc.internal.ServerCallImpl$ServerStreamListenerImpl.halfClosed(ServerCallImpl.java:356)
+	at io.grpc.internal.ServerImpl$JumpToApplicationThreadServerStreamListener$1HalfClosed.runInContext(ServerImpl.java:879)
+	at io.grpc.internal.ContextRunnable.run(ContextRunnable.java:37)
+	at io.grpc.internal.SerializingExecutor.run(SerializingExecutor.java:133)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(Unknown Source)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(Unknown Source)
+	at java.base/java.lang.Thread.run(Unknown Source)
+
+Nov 10, 2026 11:17:57 PM io.gapi.emulators.netty.HttpHandler$1 onError
+INFO: Exception when handling request: PERMISSION_DENIED: 
+false for 'create' @ L89, evaluation error at L90:24 for 'update' @ L90, false for 'update' @ L90
+Nov 10, 2026 11:17:57 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected non-HTTP/2 connection.
+Nov 10, 2026 11:17:57 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected non-HTTP/2 connection.
+Nov 10, 2026 11:17:57 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected non-HTTP/2 connection.
+Nov 10, 2026 11:17:57 PM com.google.cloud.datastore.emulator.impl.util.WrappedStreamObserver onError
 WARNING: Operation failed: 
 false for 'create' @ L103, false for 'create' @ L108, false for 'update' @ L103, evaluation error at L109:24 for 'update' @ L109, false for 'create' @ L103, false for 'create' @ L108
 com.google.cloud.datastore.core.exception.DatastoreException: 
@@ -856,14 +942,14 @@ false for 'create' @ L103, false for 'create' @ L108, false for 'update' @ L103,
 	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(Unknown Source)
 	at java.base/java.lang.Thread.run(Unknown Source)
 
-Nov 08, 2026 2:31:05 AM io.gapi.emulators.netty.HttpHandler$1 onError
+Nov 10, 2026 11:17:57 PM io.gapi.emulators.netty.HttpHandler$1 onError
 INFO: Exception when handling request: PERMISSION_DENIED: 
 false for 'create' @ L103, false for 'create' @ L108, false for 'update' @ L103, evaluation error at L109:24 for 'update' @ L109, false for 'create' @ L103, false for 'create' @ L108
-Nov 08, 2026 2:31:05 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+Nov 10, 2026 11:17:57 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
 INFO: Detected non-HTTP/2 connection.
-Nov 08, 2026 2:31:05 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+Nov 10, 2026 11:17:57 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
 INFO: Detected non-HTTP/2 connection.
-Nov 08, 2026 2:31:05 AM com.google.cloud.datastore.emulator.impl.util.WrappedStreamObserver onError
+Nov 10, 2026 11:17:57 PM com.google.cloud.datastore.emulator.impl.util.WrappedStreamObserver onError
 WARNING: Operation failed: 
 false for 'create' @ L103, false for 'create' @ L108, false for 'update' @ L103, evaluation error at L109:24 for 'update' @ L109, false for 'update' @ L103, false for 'update' @ L109
 com.google.cloud.datastore.core.exception.DatastoreException: 
@@ -898,12 +984,12 @@ false for 'create' @ L103, false for 'create' @ L108, false for 'update' @ L103,
 	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(Unknown Source)
 	at java.base/java.lang.Thread.run(Unknown Source)
 
-Nov 08, 2026 2:31:05 AM io.gapi.emulators.netty.HttpHandler$1 onError
+Nov 10, 2026 11:17:57 PM io.gapi.emulators.netty.HttpHandler$1 onError
 INFO: Exception when handling request: PERMISSION_DENIED: 
 false for 'create' @ L103, false for 'create' @ L108, false for 'update' @ L103, evaluation error at L109:24 for 'update' @ L109, false for 'update' @ L103, false for 'update' @ L109
-Nov 08, 2026 2:31:05 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+Nov 10, 2026 11:17:57 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
 INFO: Detected non-HTTP/2 connection.
-Nov 08, 2026 2:31:05 AM com.google.cloud.datastore.emulator.impl.util.WrappedStreamObserver onError
+Nov 10, 2026 11:17:57 PM com.google.cloud.datastore.emulator.impl.util.WrappedStreamObserver onError
 WARNING: Operation failed: 
 false for 'create' @ L103, false for 'create' @ L108, false for 'update' @ L103, evaluation error at L109:24 for 'update' @ L109, false for 'update' @ L103, false for 'update' @ L109
 com.google.cloud.datastore.core.exception.DatastoreException: 
@@ -938,12 +1024,12 @@ false for 'create' @ L103, false for 'create' @ L108, false for 'update' @ L103,
 	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(Unknown Source)
 	at java.base/java.lang.Thread.run(Unknown Source)
 
-Nov 08, 2026 2:31:05 AM io.gapi.emulators.netty.HttpHandler$1 onError
+Nov 10, 2026 11:17:57 PM io.gapi.emulators.netty.HttpHandler$1 onError
 INFO: Exception when handling request: PERMISSION_DENIED: 
 false for 'create' @ L103, false for 'create' @ L108, false for 'update' @ L103, evaluation error at L109:24 for 'update' @ L109, false for 'update' @ L103, false for 'update' @ L109
-Nov 08, 2026 2:31:05 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+Nov 10, 2026 11:17:57 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
 INFO: Detected non-HTTP/2 connection.
-Nov 08, 2026 2:31:05 AM com.google.cloud.datastore.emulator.impl.util.WrappedStreamObserver onError
+Nov 10, 2026 11:17:57 PM com.google.cloud.datastore.emulator.impl.util.WrappedStreamObserver onError
 WARNING: Operation failed: 
 false for 'create' @ L103, false for 'create' @ L108, false for 'update' @ L103, false for 'update' @ L109
 com.google.cloud.datastore.core.exception.DatastoreException: 
@@ -978,20 +1064,20 @@ false for 'create' @ L103, false for 'create' @ L108, false for 'update' @ L103,
 	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(Unknown Source)
 	at java.base/java.lang.Thread.run(Unknown Source)
 
-Nov 08, 2026 2:31:05 AM io.gapi.emulators.netty.HttpHandler$1 onError
+Nov 10, 2026 11:17:57 PM io.gapi.emulators.netty.HttpHandler$1 onError
 INFO: Exception when handling request: PERMISSION_DENIED: 
 false for 'create' @ L103, false for 'create' @ L108, false for 'update' @ L103, false for 'update' @ L109
-Nov 08, 2026 2:31:05 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+Nov 10, 2026 11:17:57 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
 INFO: Detected non-HTTP/2 connection.
-Nov 08, 2026 2:31:05 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+Nov 10, 2026 11:17:57 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
 INFO: Detected non-HTTP/2 connection.
-Nov 08, 2026 2:31:05 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+Nov 10, 2026 11:17:57 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
 INFO: Detected non-HTTP/2 connection.
-Nov 08, 2026 2:31:05 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+Nov 10, 2026 11:17:57 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
 INFO: Detected non-HTTP/2 connection.
-Nov 08, 2026 2:31:06 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+Nov 10, 2026 11:17:57 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
 INFO: Detected non-HTTP/2 connection.
-Nov 08, 2026 2:31:06 AM com.google.cloud.datastore.emulator.impl.util.WrappedStreamObserver onError
+Nov 10, 2026 11:17:57 PM com.google.cloud.datastore.emulator.impl.util.WrappedStreamObserver onError
 WARNING: Operation failed: 
 false for 'create' @ L120, false for 'update' @ L120
 com.google.cloud.datastore.core.exception.DatastoreException: 
@@ -1026,14 +1112,14 @@ false for 'create' @ L120, false for 'update' @ L120
 	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(Unknown Source)
 	at java.base/java.lang.Thread.run(Unknown Source)
 
-Nov 08, 2026 2:31:06 AM io.gapi.emulators.netty.HttpHandler$1 onError
+Nov 10, 2026 11:17:57 PM io.gapi.emulators.netty.HttpHandler$1 onError
 INFO: Exception when handling request: PERMISSION_DENIED: 
 false for 'create' @ L120, false for 'update' @ L120
-Nov 08, 2026 2:31:06 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+Nov 10, 2026 11:17:57 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
 INFO: Detected non-HTTP/2 connection.
-Nov 08, 2026 2:31:06 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+Nov 10, 2026 11:17:57 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
 INFO: Detected non-HTTP/2 connection.
-Nov 08, 2026 2:31:06 AM com.google.cloud.datastore.emulator.impl.util.WrappedStreamObserver onError
+Nov 10, 2026 11:17:57 PM com.google.cloud.datastore.emulator.impl.util.WrappedStreamObserver onError
 WARNING: Operation failed: 
 false for 'create' @ L120, false for 'update' @ L120
 com.google.cloud.datastore.core.exception.DatastoreException: 
@@ -1068,12 +1154,12 @@ false for 'create' @ L120, false for 'update' @ L120
 	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(Unknown Source)
 	at java.base/java.lang.Thread.run(Unknown Source)
 
-Nov 08, 2026 2:31:06 AM io.gapi.emulators.netty.HttpHandler$1 onError
+Nov 10, 2026 11:17:57 PM io.gapi.emulators.netty.HttpHandler$1 onError
 INFO: Exception when handling request: PERMISSION_DENIED: 
 false for 'create' @ L120, false for 'update' @ L120
-Nov 08, 2026 2:31:06 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+Nov 10, 2026 11:17:57 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
 INFO: Detected non-HTTP/2 connection.
-Nov 08, 2026 2:31:06 AM com.google.cloud.datastore.emulator.impl.util.WrappedStreamObserver onError
+Nov 10, 2026 11:17:57 PM com.google.cloud.datastore.emulator.impl.util.WrappedStreamObserver onError
 WARNING: Operation failed: 
 evaluation error at L119:22 for 'get' @ L119, Null value error. for 'get' @ L119
 com.google.cloud.datastore.core.exception.DatastoreException: 
@@ -1142,12 +1228,12 @@ Caused by: com.google.firebase.rules.runtime.common.EvaluationException: Error: 
 	at com.google.cloud.datastore.emulator.impl.rules.DefaultEmulatorRulesAuthorizer.withVerboseErrors(DefaultEmulatorRulesAuthorizer.java:321)
 	... 28 more
 
-Nov 08, 2026 2:31:06 AM io.gapi.emulators.netty.HttpHandler$1 onError
+Nov 10, 2026 11:17:57 PM io.gapi.emulators.netty.HttpHandler$1 onError
 INFO: Exception when handling request: PERMISSION_DENIED: 
 evaluation error at L119:22 for 'get' @ L119, Null value error. for 'get' @ L119
-Nov 08, 2026 2:31:06 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+Nov 10, 2026 11:17:57 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
 INFO: Detected non-HTTP/2 connection.
-Nov 08, 2026 2:31:06 AM com.google.cloud.datastore.emulator.impl.util.WrappedStreamObserver onError
+Nov 10, 2026 11:17:57 PM com.google.cloud.datastore.emulator.impl.util.WrappedStreamObserver onError
 WARNING: Operation failed: 
 false for 'delete' @ L120
 com.google.cloud.datastore.core.exception.DatastoreException: 
@@ -1182,16 +1268,16 @@ false for 'delete' @ L120
 	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(Unknown Source)
 	at java.base/java.lang.Thread.run(Unknown Source)
 
-Nov 08, 2026 2:31:06 AM io.gapi.emulators.netty.HttpHandler$1 onError
+Nov 10, 2026 11:17:57 PM io.gapi.emulators.netty.HttpHandler$1 onError
 INFO: Exception when handling request: PERMISSION_DENIED: 
 false for 'delete' @ L120
-Nov 08, 2026 2:31:06 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+Nov 10, 2026 11:17:57 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
 INFO: Detected non-HTTP/2 connection.
-Nov 08, 2026 2:31:06 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+Nov 10, 2026 11:17:57 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
 INFO: Detected non-HTTP/2 connection.
-Nov 08, 2026 2:31:06 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+Nov 10, 2026 11:17:57 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
 INFO: Detected non-HTTP/2 connection.
-Nov 08, 2026 2:31:06 AM com.google.cloud.datastore.emulator.impl.util.WrappedStreamObserver onError
+Nov 10, 2026 11:17:57 PM com.google.cloud.datastore.emulator.impl.util.WrappedStreamObserver onError
 WARNING: Operation failed: 
 false for 'create' @ L123, false for 'update' @ L123
 com.google.cloud.datastore.core.exception.DatastoreException: 
@@ -1226,14 +1312,14 @@ false for 'create' @ L123, false for 'update' @ L123
 	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(Unknown Source)
 	at java.base/java.lang.Thread.run(Unknown Source)
 
-Nov 08, 2026 2:31:06 AM io.gapi.emulators.netty.HttpHandler$1 onError
+Nov 10, 2026 11:17:57 PM io.gapi.emulators.netty.HttpHandler$1 onError
 INFO: Exception when handling request: PERMISSION_DENIED: 
 false for 'create' @ L123, false for 'update' @ L123
-Nov 08, 2026 2:31:06 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+Nov 10, 2026 11:17:57 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
 INFO: Detected non-HTTP/2 connection.
-Nov 08, 2026 2:31:06 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+Nov 10, 2026 11:17:57 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
 INFO: Detected non-HTTP/2 connection.
-Nov 08, 2026 2:31:06 AM com.google.cloud.datastore.emulator.impl.util.WrappedStreamObserver onError
+Nov 10, 2026 11:17:57 PM com.google.cloud.datastore.emulator.impl.util.WrappedStreamObserver onError
 WARNING: Operation failed: 
 false for 'create' @ L123, false for 'update' @ L123
 com.google.cloud.datastore.core.exception.DatastoreException: 
@@ -1268,12 +1354,12 @@ false for 'create' @ L123, false for 'update' @ L123
 	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(Unknown Source)
 	at java.base/java.lang.Thread.run(Unknown Source)
 
-Nov 08, 2026 2:31:06 AM io.gapi.emulators.netty.HttpHandler$1 onError
+Nov 10, 2026 11:17:57 PM io.gapi.emulators.netty.HttpHandler$1 onError
 INFO: Exception when handling request: PERMISSION_DENIED: 
 false for 'create' @ L123, false for 'update' @ L123
-Nov 08, 2026 2:31:06 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+Nov 10, 2026 11:17:57 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
 INFO: Detected non-HTTP/2 connection.
-Nov 08, 2026 2:31:06 AM com.google.cloud.datastore.emulator.impl.util.WrappedStreamObserver onError
+Nov 10, 2026 11:17:57 PM com.google.cloud.datastore.emulator.impl.util.WrappedStreamObserver onError
 WARNING: Operation failed: 
 evaluation error at L122:24 for 'get' @ L122, Null value error. for 'get' @ L122
 com.google.cloud.datastore.core.exception.DatastoreException: 
@@ -1342,12 +1428,12 @@ Caused by: com.google.firebase.rules.runtime.common.EvaluationException: Error: 
 	at com.google.cloud.datastore.emulator.impl.rules.DefaultEmulatorRulesAuthorizer.withVerboseErrors(DefaultEmulatorRulesAuthorizer.java:321)
 	... 28 more
 
-Nov 08, 2026 2:31:06 AM io.gapi.emulators.netty.HttpHandler$1 onError
+Nov 10, 2026 11:17:57 PM io.gapi.emulators.netty.HttpHandler$1 onError
 INFO: Exception when handling request: PERMISSION_DENIED: 
 evaluation error at L122:24 for 'get' @ L122, Null value error. for 'get' @ L122
-Nov 08, 2026 2:31:06 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+Nov 10, 2026 11:17:57 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
 INFO: Detected non-HTTP/2 connection.
-Nov 08, 2026 2:31:06 AM com.google.cloud.datastore.emulator.impl.util.WrappedStreamObserver onError
+Nov 10, 2026 11:17:57 PM com.google.cloud.datastore.emulator.impl.util.WrappedStreamObserver onError
 WARNING: Operation failed: 
 false for 'delete' @ L123
 com.google.cloud.datastore.core.exception.DatastoreException: 
@@ -1382,18 +1468,18 @@ false for 'delete' @ L123
 	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(Unknown Source)
 	at java.base/java.lang.Thread.run(Unknown Source)
 
-Nov 08, 2026 2:31:06 AM io.gapi.emulators.netty.HttpHandler$1 onError
+Nov 10, 2026 11:17:57 PM io.gapi.emulators.netty.HttpHandler$1 onError
 INFO: Exception when handling request: PERMISSION_DENIED: 
 false for 'delete' @ L123
-Nov 08, 2026 2:31:06 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+Nov 10, 2026 11:17:57 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
 INFO: Detected non-HTTP/2 connection.
-Nov 08, 2026 2:31:06 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+Nov 10, 2026 11:17:57 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
 INFO: Detected non-HTTP/2 connection.
-Nov 08, 2026 2:31:06 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+Nov 10, 2026 11:17:57 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
 INFO: Detected non-HTTP/2 connection.
-Nov 08, 2026 2:31:06 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+Nov 10, 2026 11:17:57 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
 INFO: Detected non-HTTP/2 connection.
-Nov 08, 2026 2:31:06 AM com.google.cloud.datastore.emulator.impl.util.WrappedStreamObserver onError
+Nov 10, 2026 11:17:57 PM com.google.cloud.datastore.emulator.impl.util.WrappedStreamObserver onError
 WARNING: Operation failed: 
 false for 'create' @ L80, evaluation error at L82:24 for 'update' @ L82, false for 'update' @ L82
 com.google.cloud.datastore.core.exception.DatastoreException: 
@@ -1428,14 +1514,14 @@ false for 'create' @ L80, evaluation error at L82:24 for 'update' @ L82, false f
 	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(Unknown Source)
 	at java.base/java.lang.Thread.run(Unknown Source)
 
-Nov 08, 2026 2:31:06 AM io.gapi.emulators.netty.HttpHandler$1 onError
+Nov 10, 2026 11:17:57 PM io.gapi.emulators.netty.HttpHandler$1 onError
 INFO: Exception when handling request: PERMISSION_DENIED: 
 false for 'create' @ L80, evaluation error at L82:24 for 'update' @ L82, false for 'update' @ L82
-Nov 08, 2026 2:31:06 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+Nov 10, 2026 11:17:57 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
 INFO: Detected non-HTTP/2 connection.
-Nov 08, 2026 2:31:06 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+Nov 10, 2026 11:17:57 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
 INFO: Detected non-HTTP/2 connection.
-Nov 08, 2026 2:31:06 AM com.google.cloud.datastore.emulator.impl.util.WrappedStreamObserver onError
+Nov 10, 2026 11:17:57 PM com.google.cloud.datastore.emulator.impl.util.WrappedStreamObserver onError
 WARNING: Operation failed: 
 false for 'create' @ L89, evaluation error at L90:24 for 'update' @ L90, false for 'update' @ L90
 com.google.cloud.datastore.core.exception.DatastoreException: 
@@ -1470,12 +1556,12 @@ false for 'create' @ L89, evaluation error at L90:24 for 'update' @ L90, false f
 	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(Unknown Source)
 	at java.base/java.lang.Thread.run(Unknown Source)
 
-Nov 08, 2026 2:31:06 AM io.gapi.emulators.netty.HttpHandler$1 onError
+Nov 10, 2026 11:17:57 PM io.gapi.emulators.netty.HttpHandler$1 onError
 INFO: Exception when handling request: PERMISSION_DENIED: 
 false for 'create' @ L89, evaluation error at L90:24 for 'update' @ L90, false for 'update' @ L90
-Nov 08, 2026 2:31:06 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+Nov 10, 2026 11:17:57 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
 INFO: Detected non-HTTP/2 connection.
-Nov 08, 2026 2:31:06 AM com.google.cloud.datastore.emulator.impl.util.WrappedStreamObserver onError
+Nov 10, 2026 11:17:57 PM com.google.cloud.datastore.emulator.impl.util.WrappedStreamObserver onError
 WARNING: Operation failed: 
 false for 'create' @ L129, false for 'update' @ L129
 com.google.cloud.datastore.core.exception.DatastoreException: 
@@ -1510,12 +1596,12 @@ false for 'create' @ L129, false for 'update' @ L129
 	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(Unknown Source)
 	at java.base/java.lang.Thread.run(Unknown Source)
 
-Nov 08, 2026 2:31:06 AM io.gapi.emulators.netty.HttpHandler$1 onError
+Nov 10, 2026 11:17:57 PM io.gapi.emulators.netty.HttpHandler$1 onError
 INFO: Exception when handling request: PERMISSION_DENIED: 
 false for 'create' @ L129, false for 'update' @ L129
-Nov 08, 2026 2:31:06 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+Nov 10, 2026 11:17:57 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
 INFO: Detected non-HTTP/2 connection.
-Nov 08, 2026 2:31:06 AM com.google.cloud.datastore.emulator.impl.util.WrappedStreamObserver onError
+Nov 10, 2026 11:17:57 PM com.google.cloud.datastore.emulator.impl.util.WrappedStreamObserver onError
 WARNING: Operation failed: 
 false for 'create' @ L138, false for 'update' @ L138
 com.google.cloud.datastore.core.exception.DatastoreException: 
@@ -1550,12 +1636,12 @@ false for 'create' @ L138, false for 'update' @ L138
 	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(Unknown Source)
 	at java.base/java.lang.Thread.run(Unknown Source)
 
-Nov 08, 2026 2:31:06 AM io.gapi.emulators.netty.HttpHandler$1 onError
+Nov 10, 2026 11:17:57 PM io.gapi.emulators.netty.HttpHandler$1 onError
 INFO: Exception when handling request: PERMISSION_DENIED: 
 false for 'create' @ L138, false for 'update' @ L138
-Nov 08, 2026 2:31:06 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+Nov 10, 2026 11:17:57 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
 INFO: Detected non-HTTP/2 connection.
-Nov 08, 2026 2:31:06 AM com.google.cloud.datastore.emulator.impl.util.WrappedStreamObserver onError
+Nov 10, 2026 11:17:57 PM com.google.cloud.datastore.emulator.impl.util.WrappedStreamObserver onError
 WARNING: Operation failed: 
 false for 'create' @ L133, false for 'update' @ L133
 com.google.cloud.datastore.core.exception.DatastoreException: 
@@ -1590,14 +1676,14 @@ false for 'create' @ L133, false for 'update' @ L133
 	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(Unknown Source)
 	at java.base/java.lang.Thread.run(Unknown Source)
 
-Nov 08, 2026 2:31:06 AM io.gapi.emulators.netty.HttpHandler$1 onError
+Nov 10, 2026 11:17:57 PM io.gapi.emulators.netty.HttpHandler$1 onError
 INFO: Exception when handling request: PERMISSION_DENIED: 
 false for 'create' @ L133, false for 'update' @ L133
-Nov 08, 2026 2:31:06 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+Nov 10, 2026 11:17:57 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
 INFO: Detected non-HTTP/2 connection.
-Nov 08, 2026 2:31:06 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+Nov 10, 2026 11:17:57 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
 INFO: Detected non-HTTP/2 connection.
-Nov 08, 2026 2:31:06 AM com.google.cloud.datastore.emulator.impl.util.WrappedStreamObserver onError
+Nov 10, 2026 11:17:57 PM com.google.cloud.datastore.emulator.impl.util.WrappedStreamObserver onError
 WARNING: Operation failed: 
 false for 'create' @ L80, evaluation error at L82:24 for 'update' @ L82, false for 'update' @ L82
 com.google.cloud.datastore.core.exception.DatastoreException: 
@@ -1632,14 +1718,14 @@ false for 'create' @ L80, evaluation error at L82:24 for 'update' @ L82, false f
 	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(Unknown Source)
 	at java.base/java.lang.Thread.run(Unknown Source)
 
-Nov 08, 2026 2:31:06 AM io.gapi.emulators.netty.HttpHandler$1 onError
+Nov 10, 2026 11:17:57 PM io.gapi.emulators.netty.HttpHandler$1 onError
 INFO: Exception when handling request: PERMISSION_DENIED: 
 false for 'create' @ L80, evaluation error at L82:24 for 'update' @ L82, false for 'update' @ L82
-Nov 08, 2026 2:31:06 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+Nov 10, 2026 11:17:57 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
 INFO: Detected non-HTTP/2 connection.
-Nov 08, 2026 2:31:06 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+Nov 10, 2026 11:17:57 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
 INFO: Detected non-HTTP/2 connection.
-Nov 08, 2026 2:31:06 AM com.google.cloud.datastore.emulator.impl.util.WrappedStreamObserver onError
+Nov 10, 2026 11:17:57 PM com.google.cloud.datastore.emulator.impl.util.WrappedStreamObserver onError
 WARNING: Operation failed: 
 false for 'create' @ L89, evaluation error at L90:24 for 'update' @ L90, false for 'update' @ L90
 com.google.cloud.datastore.core.exception.DatastoreException: 
@@ -1674,12 +1760,12 @@ false for 'create' @ L89, evaluation error at L90:24 for 'update' @ L90, false f
 	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(Unknown Source)
 	at java.base/java.lang.Thread.run(Unknown Source)
 
-Nov 08, 2026 2:31:06 AM io.gapi.emulators.netty.HttpHandler$1 onError
+Nov 10, 2026 11:17:57 PM io.gapi.emulators.netty.HttpHandler$1 onError
 INFO: Exception when handling request: PERMISSION_DENIED: 
 false for 'create' @ L89, evaluation error at L90:24 for 'update' @ L90, false for 'update' @ L90
-Nov 08, 2026 2:31:06 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+Nov 10, 2026 11:17:57 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
 INFO: Detected non-HTTP/2 connection.
-Nov 08, 2026 2:31:06 AM com.google.cloud.datastore.emulator.impl.util.WrappedStreamObserver onError
+Nov 10, 2026 11:17:57 PM com.google.cloud.datastore.emulator.impl.util.WrappedStreamObserver onError
 WARNING: Operation failed: 
 false for 'create' @ L129, false for 'update' @ L129
 com.google.cloud.datastore.core.exception.DatastoreException: 
@@ -1714,12 +1800,12 @@ false for 'create' @ L129, false for 'update' @ L129
 	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(Unknown Source)
 	at java.base/java.lang.Thread.run(Unknown Source)
 
-Nov 08, 2026 2:31:06 AM io.gapi.emulators.netty.HttpHandler$1 onError
+Nov 10, 2026 11:17:57 PM io.gapi.emulators.netty.HttpHandler$1 onError
 INFO: Exception when handling request: PERMISSION_DENIED: 
 false for 'create' @ L129, false for 'update' @ L129
-Nov 08, 2026 2:31:06 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+Nov 10, 2026 11:17:57 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
 INFO: Detected non-HTTP/2 connection.
-Nov 08, 2026 2:31:06 AM com.google.cloud.datastore.emulator.impl.util.WrappedStreamObserver onError
+Nov 10, 2026 11:17:57 PM com.google.cloud.datastore.emulator.impl.util.WrappedStreamObserver onError
 WARNING: Operation failed: 
 false for 'create' @ L138, false for 'update' @ L138
 com.google.cloud.datastore.core.exception.DatastoreException: 
@@ -1754,12 +1840,12 @@ false for 'create' @ L138, false for 'update' @ L138
 	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(Unknown Source)
 	at java.base/java.lang.Thread.run(Unknown Source)
 
-Nov 08, 2026 2:31:06 AM io.gapi.emulators.netty.HttpHandler$1 onError
+Nov 10, 2026 11:17:57 PM io.gapi.emulators.netty.HttpHandler$1 onError
 INFO: Exception when handling request: PERMISSION_DENIED: 
 false for 'create' @ L138, false for 'update' @ L138
-Nov 08, 2026 2:31:06 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+Nov 10, 2026 11:17:57 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
 INFO: Detected non-HTTP/2 connection.
-Nov 08, 2026 2:31:06 AM com.google.cloud.datastore.emulator.impl.util.WrappedStreamObserver onError
+Nov 10, 2026 11:17:58 PM com.google.cloud.datastore.emulator.impl.util.WrappedStreamObserver onError
 WARNING: Operation failed: 
 false for 'create' @ L133, false for 'update' @ L133
 com.google.cloud.datastore.core.exception.DatastoreException: 
@@ -1794,12 +1880,12 @@ false for 'create' @ L133, false for 'update' @ L133
 	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(Unknown Source)
 	at java.base/java.lang.Thread.run(Unknown Source)
 
-Nov 08, 2026 2:31:06 AM io.gapi.emulators.netty.HttpHandler$1 onError
+Nov 10, 2026 11:17:58 PM io.gapi.emulators.netty.HttpHandler$1 onError
 INFO: Exception when handling request: PERMISSION_DENIED: 
 false for 'create' @ L133, false for 'update' @ L133
-Nov 08, 2026 2:31:06 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+Nov 10, 2026 11:17:58 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
 INFO: Detected HTTP/2 connection.
-Nov 08, 2026 2:31:08 AM com.google.cloud.datastore.emulator.impl.util.WrappedStreamObserver onError
+Nov 10, 2026 11:18:00 PM com.google.cloud.datastore.emulator.impl.util.WrappedStreamObserver onError
 WARNING: Operation failed: Transaction lock timeout.
 com.google.cloud.datastore.core.exception.DatastoreException: Transaction lock timeout.
 	at com.google.cloud.datastore.emulator.impl.transactions.ReactiveLockManager.acquireLocks(ReactiveLockManager.java:70)
@@ -1829,7 +1915,7 @@ com.google.cloud.datastore.core.exception.DatastoreException: Transaction lock t
 	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(Unknown Source)
 	at java.base/java.lang.Thread.run(Unknown Source)
 
-Nov 08, 2026 2:31:11 AM com.google.cloud.datastore.emulator.impl.util.WrappedStreamObserver onError
+Nov 10, 2026 11:18:02 PM com.google.cloud.datastore.emulator.impl.util.WrappedStreamObserver onError
 WARNING: Operation failed: Transaction lock timeout.
 com.google.cloud.datastore.core.exception.DatastoreException: Transaction lock timeout.
 	at com.google.cloud.datastore.emulator.impl.transactions.ReactiveLockManager.acquireLocks(ReactiveLockManager.java:70)
@@ -1859,7 +1945,7 @@ com.google.cloud.datastore.core.exception.DatastoreException: Transaction lock t
 	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(Unknown Source)
 	at java.base/java.lang.Thread.run(Unknown Source)
 
-Nov 08, 2026 2:31:13 AM com.google.cloud.datastore.emulator.impl.util.WrappedStreamObserver onError
+Nov 10, 2026 11:18:04 PM com.google.cloud.datastore.emulator.impl.util.WrappedStreamObserver onError
 WARNING: Operation failed: Transaction lock timeout.
 com.google.cloud.datastore.core.exception.DatastoreException: Transaction lock timeout.
 	at com.google.cloud.datastore.emulator.impl.transactions.ReactiveLockManager.acquireLocks(ReactiveLockManager.java:70)
@@ -1889,15 +1975,15 @@ com.google.cloud.datastore.core.exception.DatastoreException: Transaction lock t
 	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(Unknown Source)
 	at java.base/java.lang.Thread.run(Unknown Source)
 
-Nov 08, 2026 2:31:13 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+Nov 10, 2026 11:18:04 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
 INFO: Detected non-HTTP/2 connection.
-Nov 08, 2026 2:31:13 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+Nov 10, 2026 11:18:04 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
 INFO: Detected non-HTTP/2 connection.
-Nov 08, 2026 2:31:13 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+Nov 10, 2026 11:18:04 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
 INFO: Detected non-HTTP/2 connection.
-Nov 08, 2026 2:31:13 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+Nov 10, 2026 11:18:04 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
 INFO: Detected non-HTTP/2 connection.
-Nov 08, 2026 2:31:13 AM com.google.cloud.datastore.emulator.impl.util.WrappedStreamObserver onError
+Nov 10, 2026 11:18:04 PM com.google.cloud.datastore.emulator.impl.util.WrappedStreamObserver onError
 WARNING: Operation failed: 
 evaluation error at L178:24 for 'create' @ L178, false for 'create' @ L178
 com.google.cloud.datastore.core.exception.DatastoreException: 
@@ -1931,12 +2017,12 @@ evaluation error at L178:24 for 'create' @ L178, false for 'create' @ L178
 	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(Unknown Source)
 	at java.base/java.lang.Thread.run(Unknown Source)
 
-Nov 08, 2026 2:31:13 AM io.gapi.emulators.netty.HttpHandler$1 onError
+Nov 10, 2026 11:18:04 PM io.gapi.emulators.netty.HttpHandler$1 onError
 INFO: Exception when handling request: PERMISSION_DENIED: 
 evaluation error at L178:24 for 'create' @ L178, false for 'create' @ L178
-Nov 08, 2026 2:31:13 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+Nov 10, 2026 11:18:04 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
 INFO: Detected non-HTTP/2 connection.
-Nov 08, 2026 2:31:13 AM com.google.cloud.datastore.emulator.impl.util.WrappedStreamObserver onError
+Nov 10, 2026 11:18:04 PM com.google.cloud.datastore.emulator.impl.util.WrappedStreamObserver onError
 WARNING: Operation failed: 
 false for 'create' @ L178
 com.google.cloud.datastore.core.exception.DatastoreException: 
@@ -1970,16 +2056,16 @@ false for 'create' @ L178
 	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(Unknown Source)
 	at java.base/java.lang.Thread.run(Unknown Source)
 
-Nov 08, 2026 2:31:13 AM io.gapi.emulators.netty.HttpHandler$1 onError
+Nov 10, 2026 11:18:04 PM io.gapi.emulators.netty.HttpHandler$1 onError
 INFO: Exception when handling request: PERMISSION_DENIED: 
 false for 'create' @ L178
-Nov 08, 2026 2:31:13 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+Nov 10, 2026 11:18:04 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
 INFO: Detected non-HTTP/2 connection.
-Nov 08, 2026 2:31:13 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+Nov 10, 2026 11:18:04 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
 INFO: Detected non-HTTP/2 connection.
-Nov 08, 2026 2:31:13 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+Nov 10, 2026 11:18:04 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
 INFO: Detected non-HTTP/2 connection.
-Nov 08, 2026 2:31:13 AM com.google.cloud.datastore.emulator.impl.util.WrappedStreamObserver onError
+Nov 10, 2026 11:18:04 PM com.google.cloud.datastore.emulator.impl.util.WrappedStreamObserver onError
 WARNING: Operation failed: 
 evaluation error at L178:24 for 'create' @ L178, false for 'create' @ L178
 com.google.cloud.datastore.core.exception.DatastoreException: 
@@ -2013,12 +2099,12 @@ evaluation error at L178:24 for 'create' @ L178, false for 'create' @ L178
 	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(Unknown Source)
 	at java.base/java.lang.Thread.run(Unknown Source)
 
-Nov 08, 2026 2:31:13 AM io.gapi.emulators.netty.HttpHandler$1 onError
+Nov 10, 2026 11:18:04 PM io.gapi.emulators.netty.HttpHandler$1 onError
 INFO: Exception when handling request: PERMISSION_DENIED: 
 evaluation error at L178:24 for 'create' @ L178, false for 'create' @ L178
-Nov 08, 2026 2:31:13 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+Nov 10, 2026 11:18:04 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
 INFO: Detected non-HTTP/2 connection.
-Nov 08, 2026 2:31:13 AM com.google.cloud.datastore.emulator.impl.util.WrappedStreamObserver onError
+Nov 10, 2026 11:18:04 PM com.google.cloud.datastore.emulator.impl.util.WrappedStreamObserver onError
 WARNING: Operation failed: 
 evaluation error at L178:24 for 'create' @ L178, false for 'create' @ L178
 com.google.cloud.datastore.core.exception.DatastoreException: 
@@ -2052,12 +2138,12 @@ evaluation error at L178:24 for 'create' @ L178, false for 'create' @ L178
 	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(Unknown Source)
 	at java.base/java.lang.Thread.run(Unknown Source)
 
-Nov 08, 2026 2:31:13 AM io.gapi.emulators.netty.HttpHandler$1 onError
+Nov 10, 2026 11:18:04 PM io.gapi.emulators.netty.HttpHandler$1 onError
 INFO: Exception when handling request: PERMISSION_DENIED: 
 evaluation error at L178:24 for 'create' @ L178, false for 'create' @ L178
-Nov 08, 2026 2:31:13 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+Nov 10, 2026 11:18:04 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
 INFO: Detected non-HTTP/2 connection.
-Nov 08, 2026 2:31:13 AM com.google.cloud.datastore.emulator.impl.util.WrappedStreamObserver onError
+Nov 10, 2026 11:18:04 PM com.google.cloud.datastore.emulator.impl.util.WrappedStreamObserver onError
 WARNING: Operation failed: 
 evaluation error at L178:24 for 'create' @ L178, false for 'create' @ L178
 com.google.cloud.datastore.core.exception.DatastoreException: 
@@ -2091,18 +2177,18 @@ evaluation error at L178:24 for 'create' @ L178, false for 'create' @ L178
 	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(Unknown Source)
 	at java.base/java.lang.Thread.run(Unknown Source)
 
-Nov 08, 2026 2:31:13 AM io.gapi.emulators.netty.HttpHandler$1 onError
+Nov 10, 2026 11:18:04 PM io.gapi.emulators.netty.HttpHandler$1 onError
 INFO: Exception when handling request: PERMISSION_DENIED: 
 evaluation error at L178:24 for 'create' @ L178, false for 'create' @ L178
-Nov 08, 2026 2:31:13 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+Nov 10, 2026 11:18:05 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
 INFO: Detected non-HTTP/2 connection.
-Nov 08, 2026 2:31:13 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+Nov 10, 2026 11:18:05 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
 INFO: Detected non-HTTP/2 connection.
-Nov 08, 2026 2:31:13 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+Nov 10, 2026 11:18:05 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
 INFO: Detected non-HTTP/2 connection.
-Nov 08, 2026 2:31:13 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+Nov 10, 2026 11:18:05 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
 INFO: Detected non-HTTP/2 connection.
-Nov 08, 2026 2:31:13 AM com.google.cloud.datastore.emulator.impl.util.WrappedStreamObserver onError
+Nov 10, 2026 11:18:05 PM com.google.cloud.datastore.emulator.impl.util.WrappedStreamObserver onError
 WARNING: Operation failed: 
 false for 'get' @ L185
 com.google.cloud.datastore.core.exception.DatastoreException: 
@@ -2139,12 +2225,12 @@ false for 'get' @ L185
 	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(Unknown Source)
 	at java.base/java.lang.Thread.run(Unknown Source)
 
-Nov 08, 2026 2:31:13 AM io.gapi.emulators.netty.HttpHandler$1 onError
+Nov 10, 2026 11:18:05 PM io.gapi.emulators.netty.HttpHandler$1 onError
 INFO: Exception when handling request: PERMISSION_DENIED: 
 false for 'get' @ L185
-Nov 08, 2026 2:31:13 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+Nov 10, 2026 11:18:05 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
 INFO: Detected non-HTTP/2 connection.
-Nov 08, 2026 2:31:13 AM com.google.cloud.datastore.emulator.impl.util.WrappedStreamObserver onError
+Nov 10, 2026 11:18:05 PM com.google.cloud.datastore.emulator.impl.util.WrappedStreamObserver onError
 WARNING: Operation failed: 
 false for 'create' @ L178, false for 'update' @ L185
 com.google.cloud.datastore.core.exception.DatastoreException: 
@@ -2179,12 +2265,12 @@ false for 'create' @ L178, false for 'update' @ L185
 	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(Unknown Source)
 	at java.base/java.lang.Thread.run(Unknown Source)
 
-Nov 08, 2026 2:31:13 AM io.gapi.emulators.netty.HttpHandler$1 onError
+Nov 10, 2026 11:18:05 PM io.gapi.emulators.netty.HttpHandler$1 onError
 INFO: Exception when handling request: PERMISSION_DENIED: 
 false for 'create' @ L178, false for 'update' @ L185
-Nov 08, 2026 2:31:13 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+Nov 10, 2026 11:18:05 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
 INFO: Detected non-HTTP/2 connection.
-Nov 08, 2026 2:31:13 AM com.google.cloud.datastore.emulator.impl.util.WrappedStreamObserver onError
+Nov 10, 2026 11:18:05 PM com.google.cloud.datastore.emulator.impl.util.WrappedStreamObserver onError
 WARNING: Operation failed: 
 false for 'delete' @ L185
 com.google.cloud.datastore.core.exception.DatastoreException: 
@@ -2219,16 +2305,16 @@ false for 'delete' @ L185
 	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(Unknown Source)
 	at java.base/java.lang.Thread.run(Unknown Source)
 
-Nov 08, 2026 2:31:13 AM io.gapi.emulators.netty.HttpHandler$1 onError
+Nov 10, 2026 11:18:05 PM io.gapi.emulators.netty.HttpHandler$1 onError
 INFO: Exception when handling request: PERMISSION_DENIED: 
 false for 'delete' @ L185
-Nov 08, 2026 2:31:13 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+Nov 10, 2026 11:18:05 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
 INFO: Detected non-HTTP/2 connection.
-Nov 08, 2026 2:31:13 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+Nov 10, 2026 11:18:05 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
 INFO: Detected non-HTTP/2 connection.
-Nov 08, 2026 2:31:13 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+Nov 10, 2026 11:18:05 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
 INFO: Detected non-HTTP/2 connection.
-Nov 08, 2026 2:31:13 AM com.google.cloud.datastore.emulator.impl.util.WrappedStreamObserver onError
+Nov 10, 2026 11:18:05 PM com.google.cloud.datastore.emulator.impl.util.WrappedStreamObserver onError
 WARNING: Operation failed: 
 evaluation error at L218:24 for 'create' @ L218, evaluation error at L219:32 for 'update' @ L219, Null value error. for 'create' @ L218
 com.google.cloud.datastore.core.exception.DatastoreException: 
@@ -2294,22 +2380,22 @@ Caused by: com.google.firebase.rules.runtime.common.EvaluationException: Error: 
 	at com.google.cloud.datastore.emulator.impl.rules.DefaultEmulatorRulesAuthorizer.withVerboseErrors(DefaultEmulatorRulesAuthorizer.java:321)
 	... 25 more
 
-Nov 08, 2026 2:31:13 AM io.gapi.emulators.netty.HttpHandler$1 onError
+Nov 10, 2026 11:18:05 PM io.gapi.emulators.netty.HttpHandler$1 onError
 INFO: Exception when handling request: PERMISSION_DENIED: 
 evaluation error at L218:24 for 'create' @ L218, evaluation error at L219:32 for 'update' @ L219, Null value error. for 'create' @ L218
-Nov 08, 2026 2:31:13 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+Nov 10, 2026 11:18:05 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
 INFO: Detected non-HTTP/2 connection.
-Nov 08, 2026 2:31:13 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+Nov 10, 2026 11:18:05 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
 INFO: Detected non-HTTP/2 connection.
-Nov 08, 2026 2:31:13 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+Nov 10, 2026 11:18:05 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
 INFO: Detected non-HTTP/2 connection.
-Nov 08, 2026 2:31:13 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+Nov 10, 2026 11:18:05 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
 INFO: Detected non-HTTP/2 connection.
-Nov 08, 2026 2:31:14 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+Nov 10, 2026 11:18:05 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
 INFO: Detected non-HTTP/2 connection.
-Nov 08, 2026 2:31:14 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+Nov 10, 2026 11:18:05 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
 INFO: Detected non-HTTP/2 connection.
-Nov 08, 2026 2:31:14 AM com.google.cloud.datastore.emulator.impl.util.WrappedStreamObserver onError
+Nov 10, 2026 11:18:05 PM com.google.cloud.datastore.emulator.impl.util.WrappedStreamObserver onError
 WARNING: Operation failed: 
 evaluation error at L213:22 for 'list' @ L213, Property userId is undefined on object. for 'list' @ L213
 com.google.cloud.datastore.core.exception.DatastoreException: 
@@ -2389,16 +2475,16 @@ Caused by: com.google.firebase.rules.runtime.common.EvaluationException: Error: 
 	at com.google.cloud.datastore.emulator.impl.rules.DefaultEmulatorRulesAuthorizer.withVerboseErrors(DefaultEmulatorRulesAuthorizer.java:321)
 	... 29 more
 
-Nov 08, 2026 2:31:14 AM io.gapi.emulators.netty.HttpHandler$1 onError
+Nov 10, 2026 11:18:05 PM io.gapi.emulators.netty.HttpHandler$1 onError
 INFO: Exception when handling request: PERMISSION_DENIED: 
 evaluation error at L213:22 for 'list' @ L213, Property userId is undefined on object. for 'list' @ L213
-Nov 08, 2026 2:31:14 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+Nov 10, 2026 11:18:05 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
 INFO: Detected non-HTTP/2 connection.
-Nov 08, 2026 2:31:14 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+Nov 10, 2026 11:18:05 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
 INFO: Detected non-HTTP/2 connection.
-Nov 08, 2026 2:31:14 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+Nov 10, 2026 11:18:05 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
 INFO: Detected non-HTTP/2 connection.
-Nov 08, 2026 2:31:14 AM com.google.cloud.datastore.emulator.impl.util.WrappedStreamObserver onError
+Nov 10, 2026 11:18:05 PM com.google.cloud.datastore.emulator.impl.util.WrappedStreamObserver onError
 WARNING: Operation failed: 
 evaluation error at L218:24 for 'create' @ L218, evaluation error at L219:32 for 'update' @ L219, Null value error. for 'create' @ L218
 com.google.cloud.datastore.core.exception.DatastoreException: 
@@ -2464,14 +2550,14 @@ Caused by: com.google.firebase.rules.runtime.common.EvaluationException: Error: 
 	at com.google.cloud.datastore.emulator.impl.rules.DefaultEmulatorRulesAuthorizer.withVerboseErrors(DefaultEmulatorRulesAuthorizer.java:321)
 	... 25 more
 
-Nov 08, 2026 2:31:14 AM io.gapi.emulators.netty.HttpHandler$1 onError
+Nov 10, 2026 11:18:05 PM io.gapi.emulators.netty.HttpHandler$1 onError
 INFO: Exception when handling request: PERMISSION_DENIED: 
 evaluation error at L218:24 for 'create' @ L218, evaluation error at L219:32 for 'update' @ L219, Null value error. for 'create' @ L218
-Nov 08, 2026 2:31:14 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+Nov 10, 2026 11:18:05 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
 INFO: Detected non-HTTP/2 connection.
-Nov 08, 2026 2:31:14 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+Nov 10, 2026 11:18:05 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
 INFO: Detected non-HTTP/2 connection.
-Nov 08, 2026 2:31:14 AM com.google.cloud.datastore.emulator.impl.util.WrappedStreamObserver onError
+Nov 10, 2026 11:18:05 PM com.google.cloud.datastore.emulator.impl.util.WrappedStreamObserver onError
 WARNING: Operation failed: 
 evaluation error at L218:24 for 'create' @ L218, evaluation error at L219:32 for 'update' @ L219, false for 'update' @ L219
 com.google.cloud.datastore.core.exception.DatastoreException: 
@@ -2505,30 +2591,30 @@ evaluation error at L218:24 for 'create' @ L218, evaluation error at L219:32 for
 	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(Unknown Source)
 	at java.base/java.lang.Thread.run(Unknown Source)
 
-Nov 08, 2026 2:31:14 AM io.gapi.emulators.netty.HttpHandler$1 onError
+Nov 10, 2026 11:18:05 PM io.gapi.emulators.netty.HttpHandler$1 onError
 INFO: Exception when handling request: PERMISSION_DENIED: 
 evaluation error at L218:24 for 'create' @ L218, evaluation error at L219:32 for 'update' @ L219, false for 'update' @ L219
-Nov 08, 2026 2:31:14 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+Nov 10, 2026 11:18:05 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
 INFO: Detected non-HTTP/2 connection.
-Nov 08, 2026 2:31:14 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+Nov 10, 2026 11:18:05 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
 INFO: Detected non-HTTP/2 connection.
-Nov 08, 2026 2:31:14 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+Nov 10, 2026 11:18:05 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
 INFO: Detected non-HTTP/2 connection.
-Nov 08, 2026 2:31:14 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+Nov 10, 2026 11:18:05 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
 INFO: Detected non-HTTP/2 connection.
-Nov 08, 2026 2:31:14 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+Nov 10, 2026 11:18:05 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
 INFO: Detected non-HTTP/2 connection.
-Nov 08, 2026 2:31:14 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+Nov 10, 2026 11:18:05 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
 INFO: Detected non-HTTP/2 connection.
-Nov 08, 2026 2:31:14 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+Nov 10, 2026 11:18:05 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
 INFO: Detected non-HTTP/2 connection.
-Nov 08, 2026 2:31:14 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+Nov 10, 2026 11:18:05 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
 INFO: Detected non-HTTP/2 connection.
-Nov 08, 2026 2:31:14 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+Nov 10, 2026 11:18:05 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
 INFO: Detected non-HTTP/2 connection.
-Nov 08, 2026 2:31:14 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+Nov 10, 2026 11:18:05 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
 INFO: Detected non-HTTP/2 connection.
-Nov 08, 2026 2:31:14 AM com.google.cloud.datastore.emulator.impl.util.WrappedStreamObserver onError
+Nov 10, 2026 11:18:05 PM com.google.cloud.datastore.emulator.impl.util.WrappedStreamObserver onError
 WARNING: Operation failed: 
 evaluation error at L213:22 for 'get' @ L213, false for 'get' @ L213
 com.google.cloud.datastore.core.exception.DatastoreException: 
@@ -2565,18 +2651,18 @@ evaluation error at L213:22 for 'get' @ L213, false for 'get' @ L213
 	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(Unknown Source)
 	at java.base/java.lang.Thread.run(Unknown Source)
 
-Nov 08, 2026 2:31:14 AM io.gapi.emulators.netty.HttpHandler$1 onError
+Nov 10, 2026 11:18:05 PM io.gapi.emulators.netty.HttpHandler$1 onError
 INFO: Exception when handling request: PERMISSION_DENIED: 
 evaluation error at L213:22 for 'get' @ L213, false for 'get' @ L213
-Nov 08, 2026 2:31:14 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+Nov 10, 2026 11:18:05 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
 INFO: Detected non-HTTP/2 connection.
-Nov 08, 2026 2:31:14 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+Nov 10, 2026 11:18:05 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
 INFO: Detected non-HTTP/2 connection.
-Nov 08, 2026 2:31:14 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+Nov 10, 2026 11:18:05 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
 INFO: Detected non-HTTP/2 connection.
-Nov 08, 2026 2:31:14 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+Nov 10, 2026 11:18:05 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
 INFO: Detected non-HTTP/2 connection.
-Nov 08, 2026 2:31:14 AM com.google.cloud.datastore.emulator.impl.util.WrappedStreamObserver onError
+Nov 10, 2026 11:18:05 PM com.google.cloud.datastore.emulator.impl.util.WrappedStreamObserver onError
 WARNING: Operation failed: 
 false for 'create' @ L225, false for 'update' @ L225
 com.google.cloud.datastore.core.exception.DatastoreException: 
@@ -2610,12 +2696,12 @@ false for 'create' @ L225, false for 'update' @ L225
 	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(Unknown Source)
 	at java.base/java.lang.Thread.run(Unknown Source)
 
-Nov 08, 2026 2:31:14 AM io.gapi.emulators.netty.HttpHandler$1 onError
+Nov 10, 2026 11:18:05 PM io.gapi.emulators.netty.HttpHandler$1 onError
 INFO: Exception when handling request: PERMISSION_DENIED: 
 false for 'create' @ L225, false for 'update' @ L225
-Nov 08, 2026 2:31:14 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+Nov 10, 2026 11:18:05 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
 INFO: Detected non-HTTP/2 connection.
-Nov 08, 2026 2:31:14 AM com.google.cloud.datastore.emulator.impl.util.WrappedStreamObserver onError
+Nov 10, 2026 11:18:05 PM com.google.cloud.datastore.emulator.impl.util.WrappedStreamObserver onError
 WARNING: Operation failed: 
 false for 'get' @ L224
 com.google.cloud.datastore.core.exception.DatastoreException: 
@@ -2652,12 +2738,12 @@ false for 'get' @ L224
 	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(Unknown Source)
 	at java.base/java.lang.Thread.run(Unknown Source)
 
-Nov 08, 2026 2:31:14 AM io.gapi.emulators.netty.HttpHandler$1 onError
+Nov 10, 2026 11:18:05 PM io.gapi.emulators.netty.HttpHandler$1 onError
 INFO: Exception when handling request: PERMISSION_DENIED: 
 false for 'get' @ L224
-Nov 08, 2026 2:31:14 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+Nov 10, 2026 11:18:05 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
 INFO: Detected non-HTTP/2 connection.
-Nov 08, 2026 2:31:14 AM com.google.cloud.datastore.emulator.impl.util.WrappedStreamObserver onError
+Nov 10, 2026 11:18:05 PM com.google.cloud.datastore.emulator.impl.util.WrappedStreamObserver onError
 WARNING: Operation failed: 
 evaluation error at L218:24 for 'create' @ L218, evaluation error at L219:32 for 'update' @ L219, false for 'update' @ L219
 com.google.cloud.datastore.core.exception.DatastoreException: 
@@ -2692,12 +2778,12 @@ evaluation error at L218:24 for 'create' @ L218, evaluation error at L219:32 for
 	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(Unknown Source)
 	at java.base/java.lang.Thread.run(Unknown Source)
 
-Nov 08, 2026 2:31:14 AM io.gapi.emulators.netty.HttpHandler$1 onError
+Nov 10, 2026 11:18:05 PM io.gapi.emulators.netty.HttpHandler$1 onError
 INFO: Exception when handling request: PERMISSION_DENIED: 
 evaluation error at L218:24 for 'create' @ L218, evaluation error at L219:32 for 'update' @ L219, false for 'update' @ L219
-Nov 08, 2026 2:31:14 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+Nov 10, 2026 11:18:05 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
 INFO: Detected HTTP/2 connection.
-Nov 08, 2026 2:31:16 AM com.google.cloud.datastore.emulator.impl.util.WrappedStreamObserver onError
+Nov 10, 2026 11:18:07 PM com.google.cloud.datastore.emulator.impl.util.WrappedStreamObserver onError
 WARNING: Operation failed: Transaction lock timeout.
 com.google.cloud.datastore.core.exception.DatastoreException: Transaction lock timeout.
 	at com.google.cloud.datastore.emulator.impl.transactions.ReactiveLockManager.acquireLocks(ReactiveLockManager.java:70)
@@ -2727,7 +2813,7 @@ com.google.cloud.datastore.core.exception.DatastoreException: Transaction lock t
 	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(Unknown Source)
 	at java.base/java.lang.Thread.run(Unknown Source)
 
-Nov 08, 2026 2:31:18 AM com.google.cloud.datastore.emulator.impl.util.WrappedStreamObserver onError
+Nov 10, 2026 11:18:09 PM com.google.cloud.datastore.emulator.impl.util.WrappedStreamObserver onError
 WARNING: Operation failed: Transaction lock timeout.
 com.google.cloud.datastore.core.exception.DatastoreException: Transaction lock timeout.
 	at com.google.cloud.datastore.emulator.impl.transactions.ReactiveLockManager.acquireLocks(ReactiveLockManager.java:70)
@@ -2757,7 +2843,7 @@ com.google.cloud.datastore.core.exception.DatastoreException: Transaction lock t
 	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(Unknown Source)
 	at java.base/java.lang.Thread.run(Unknown Source)
 
-Nov 08, 2026 2:31:20 AM com.google.cloud.datastore.emulator.impl.util.WrappedStreamObserver onError
+Nov 10, 2026 11:18:11 PM com.google.cloud.datastore.emulator.impl.util.WrappedStreamObserver onError
 WARNING: Operation failed: Transaction lock timeout.
 com.google.cloud.datastore.core.exception.DatastoreException: Transaction lock timeout.
 	at com.google.cloud.datastore.emulator.impl.transactions.ReactiveLockManager.acquireLocks(ReactiveLockManager.java:70)
@@ -2787,7 +2873,7 @@ com.google.cloud.datastore.core.exception.DatastoreException: Transaction lock t
 	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(Unknown Source)
 	at java.base/java.lang.Thread.run(Unknown Source)
 
-Nov 08, 2026 2:31:22 AM com.google.cloud.datastore.emulator.impl.util.WrappedStreamObserver onError
+Nov 10, 2026 11:18:14 PM com.google.cloud.datastore.emulator.impl.util.WrappedStreamObserver onError
 WARNING: Operation failed: Transaction lock timeout.
 com.google.cloud.datastore.core.exception.DatastoreException: Transaction lock timeout.
 	at com.google.cloud.datastore.emulator.impl.transactions.ReactiveLockManager.acquireLocks(ReactiveLockManager.java:70)
@@ -2817,13 +2903,13 @@ com.google.cloud.datastore.core.exception.DatastoreException: Transaction lock t
 	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(Unknown Source)
 	at java.base/java.lang.Thread.run(Unknown Source)
 
-Nov 08, 2026 2:31:23 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+Nov 10, 2026 11:18:14 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
 INFO: Detected non-HTTP/2 connection.
-Nov 08, 2026 2:31:23 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+Nov 10, 2026 11:18:14 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
 INFO: Detected non-HTTP/2 connection.
-Nov 08, 2026 2:31:23 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+Nov 10, 2026 11:18:14 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
 INFO: Detected non-HTTP/2 connection.
-Nov 08, 2026 2:31:23 AM com.google.cloud.datastore.emulator.impl.util.WrappedStreamObserver onError
+Nov 10, 2026 11:18:14 PM com.google.cloud.datastore.emulator.impl.util.WrappedStreamObserver onError
 WARNING: Operation failed: 
 false for 'create' @ L115
 com.google.cloud.datastore.core.exception.DatastoreException: 
@@ -2857,16 +2943,16 @@ false for 'create' @ L115
 	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(Unknown Source)
 	at java.base/java.lang.Thread.run(Unknown Source)
 
-Nov 08, 2026 2:31:23 AM io.gapi.emulators.netty.HttpHandler$1 onError
+Nov 10, 2026 11:18:14 PM io.gapi.emulators.netty.HttpHandler$1 onError
 INFO: Exception when handling request: PERMISSION_DENIED: 
 false for 'create' @ L115
-Nov 08, 2026 2:31:23 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+Nov 10, 2026 11:18:14 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
 INFO: Detected non-HTTP/2 connection.
-Nov 08, 2026 2:31:23 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+Nov 10, 2026 11:18:14 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
 INFO: Detected non-HTTP/2 connection.
-Nov 08, 2026 2:31:23 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+Nov 10, 2026 11:18:14 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
 INFO: Detected non-HTTP/2 connection.
-Nov 08, 2026 2:31:23 AM com.google.cloud.datastore.emulator.impl.util.WrappedStreamObserver onError
+Nov 10, 2026 11:18:14 PM com.google.cloud.datastore.emulator.impl.util.WrappedStreamObserver onError
 WARNING: Operation failed: 
 evaluation error at L114:22 for 'get' @ L114, false for 'get' @ L114
 com.google.cloud.datastore.core.exception.DatastoreException: 
@@ -2903,12 +2989,12 @@ evaluation error at L114:22 for 'get' @ L114, false for 'get' @ L114
 	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(Unknown Source)
 	at java.base/java.lang.Thread.run(Unknown Source)
 
-Nov 08, 2026 2:31:23 AM io.gapi.emulators.netty.HttpHandler$1 onError
+Nov 10, 2026 11:18:14 PM io.gapi.emulators.netty.HttpHandler$1 onError
 INFO: Exception when handling request: PERMISSION_DENIED: 
 evaluation error at L114:22 for 'get' @ L114, false for 'get' @ L114
-Nov 08, 2026 2:31:23 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+Nov 10, 2026 11:18:14 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
 INFO: Detected non-HTTP/2 connection.
-Nov 08, 2026 2:31:23 AM com.google.cloud.datastore.emulator.impl.util.WrappedStreamObserver onError
+Nov 10, 2026 11:18:14 PM com.google.cloud.datastore.emulator.impl.util.WrappedStreamObserver onError
 WARNING: Operation failed: 
 false for 'get' @ L114
 com.google.cloud.datastore.core.exception.DatastoreException: 
@@ -2945,12 +3031,12 @@ false for 'get' @ L114
 	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(Unknown Source)
 	at java.base/java.lang.Thread.run(Unknown Source)
 
-Nov 08, 2026 2:31:23 AM io.gapi.emulators.netty.HttpHandler$1 onError
+Nov 10, 2026 11:18:14 PM io.gapi.emulators.netty.HttpHandler$1 onError
 INFO: Exception when handling request: PERMISSION_DENIED: 
 false for 'get' @ L114
-Nov 08, 2026 2:31:23 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+Nov 10, 2026 11:18:14 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
 INFO: Detected non-HTTP/2 connection.
-Nov 08, 2026 2:31:23 AM com.google.cloud.datastore.emulator.impl.util.WrappedStreamObserver onError
+Nov 10, 2026 11:18:14 PM com.google.cloud.datastore.emulator.impl.util.WrappedStreamObserver onError
 WARNING: Operation failed: 
 false for 'create' @ L115, false for 'update' @ L115
 com.google.cloud.datastore.core.exception.DatastoreException: 
@@ -2985,12 +3071,12 @@ false for 'create' @ L115, false for 'update' @ L115
 	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(Unknown Source)
 	at java.base/java.lang.Thread.run(Unknown Source)
 
-Nov 08, 2026 2:31:23 AM io.gapi.emulators.netty.HttpHandler$1 onError
+Nov 10, 2026 11:18:14 PM io.gapi.emulators.netty.HttpHandler$1 onError
 INFO: Exception when handling request: PERMISSION_DENIED: 
 false for 'create' @ L115, false for 'update' @ L115
-Nov 08, 2026 2:31:23 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+Nov 10, 2026 11:18:14 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
 INFO: Detected non-HTTP/2 connection.
-Nov 08, 2026 2:31:23 AM com.google.cloud.datastore.emulator.impl.util.WrappedStreamObserver onError
+Nov 10, 2026 11:18:14 PM com.google.cloud.datastore.emulator.impl.util.WrappedStreamObserver onError
 WARNING: Operation failed: 
 false for 'delete' @ L115
 com.google.cloud.datastore.core.exception.DatastoreException: 
@@ -3025,16 +3111,16 @@ false for 'delete' @ L115
 	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(Unknown Source)
 	at java.base/java.lang.Thread.run(Unknown Source)
 
-Nov 08, 2026 2:31:23 AM io.gapi.emulators.netty.HttpHandler$1 onError
+Nov 10, 2026 11:18:14 PM io.gapi.emulators.netty.HttpHandler$1 onError
 INFO: Exception when handling request: PERMISSION_DENIED: 
 false for 'delete' @ L115
-Nov 08, 2026 2:31:23 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+Nov 10, 2026 11:18:14 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
 INFO: Detected non-HTTP/2 connection.
-Nov 08, 2026 2:31:23 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+Nov 10, 2026 11:18:14 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
 INFO: Detected non-HTTP/2 connection.
-Nov 08, 2026 2:31:23 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+Nov 10, 2026 11:18:14 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
 INFO: Detected non-HTTP/2 connection.
-Nov 08, 2026 2:31:23 AM com.google.cloud.datastore.emulator.impl.util.WrappedStreamObserver onError
+Nov 10, 2026 11:18:14 PM com.google.cloud.datastore.emulator.impl.util.WrappedStreamObserver onError
 WARNING: Operation failed: 
 false for 'create' @ L115
 com.google.cloud.datastore.core.exception.DatastoreException: 
@@ -3068,12 +3154,12 @@ false for 'create' @ L115
 	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(Unknown Source)
 	at java.base/java.lang.Thread.run(Unknown Source)
 
-Nov 08, 2026 2:31:23 AM io.gapi.emulators.netty.HttpHandler$1 onError
+Nov 10, 2026 11:18:14 PM io.gapi.emulators.netty.HttpHandler$1 onError
 INFO: Exception when handling request: PERMISSION_DENIED: 
 false for 'create' @ L115
-Nov 08, 2026 2:31:23 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+Nov 10, 2026 11:18:14 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
 INFO: Detected non-HTTP/2 connection.
-Nov 08, 2026 2:31:23 AM com.google.cloud.datastore.emulator.impl.util.WrappedStreamObserver onError
+Nov 10, 2026 11:18:14 PM com.google.cloud.datastore.emulator.impl.util.WrappedStreamObserver onError
 WARNING: Operation failed: 
 false for 'create' @ L115
 com.google.cloud.datastore.core.exception.DatastoreException: 
@@ -3107,12 +3193,12 @@ false for 'create' @ L115
 	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(Unknown Source)
 	at java.base/java.lang.Thread.run(Unknown Source)
 
-Nov 08, 2026 2:31:23 AM io.gapi.emulators.netty.HttpHandler$1 onError
+Nov 10, 2026 11:18:14 PM io.gapi.emulators.netty.HttpHandler$1 onError
 INFO: Exception when handling request: PERMISSION_DENIED: 
 false for 'create' @ L115
-Nov 08, 2026 2:31:23 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+Nov 10, 2026 11:18:14 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
 INFO: Detected non-HTTP/2 connection.
-Nov 08, 2026 2:31:23 AM com.google.cloud.datastore.emulator.impl.util.WrappedStreamObserver onError
+Nov 10, 2026 11:18:14 PM com.google.cloud.datastore.emulator.impl.util.WrappedStreamObserver onError
 WARNING: Operation failed: 
 false for 'create' @ L115
 com.google.cloud.datastore.core.exception.DatastoreException: 
@@ -3146,18 +3232,18 @@ false for 'create' @ L115
 	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(Unknown Source)
 	at java.base/java.lang.Thread.run(Unknown Source)
 
-Nov 08, 2026 2:31:23 AM io.gapi.emulators.netty.HttpHandler$1 onError
+Nov 10, 2026 11:18:14 PM io.gapi.emulators.netty.HttpHandler$1 onError
 INFO: Exception when handling request: PERMISSION_DENIED: 
 false for 'create' @ L115
-Nov 08, 2026 2:31:23 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+Nov 10, 2026 11:18:14 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
 INFO: Detected non-HTTP/2 connection.
-Nov 08, 2026 2:31:23 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+Nov 10, 2026 11:18:14 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
 INFO: Detected non-HTTP/2 connection.
-Nov 08, 2026 2:31:23 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+Nov 10, 2026 11:18:14 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
 INFO: Detected non-HTTP/2 connection.
-Nov 08, 2026 2:31:23 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+Nov 10, 2026 11:18:14 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
 INFO: Detected non-HTTP/2 connection.
-Nov 08, 2026 2:31:23 AM com.google.cloud.datastore.emulator.impl.util.WrappedStreamObserver onError
+Nov 10, 2026 11:18:14 PM com.google.cloud.datastore.emulator.impl.util.WrappedStreamObserver onError
 WARNING: Operation failed: 
 evaluation error at L178:24 for 'create' @ L178, false for 'create' @ L178
 com.google.cloud.datastore.core.exception.DatastoreException: 
@@ -3191,12 +3277,12 @@ evaluation error at L178:24 for 'create' @ L178, false for 'create' @ L178
 	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(Unknown Source)
 	at java.base/java.lang.Thread.run(Unknown Source)
 
-Nov 08, 2026 2:31:23 AM io.gapi.emulators.netty.HttpHandler$1 onError
+Nov 10, 2026 11:18:14 PM io.gapi.emulators.netty.HttpHandler$1 onError
 INFO: Exception when handling request: PERMISSION_DENIED: 
 evaluation error at L178:24 for 'create' @ L178, false for 'create' @ L178
-Nov 08, 2026 2:31:23 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+Nov 10, 2026 11:18:14 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
 INFO: Detected non-HTTP/2 connection.
-Nov 08, 2026 2:31:23 AM com.google.cloud.datastore.emulator.impl.util.WrappedStreamObserver onError
+Nov 10, 2026 11:18:14 PM com.google.cloud.datastore.emulator.impl.util.WrappedStreamObserver onError
 WARNING: Operation failed: 
 false for 'create' @ L178
 com.google.cloud.datastore.core.exception.DatastoreException: 
@@ -3230,16 +3316,16 @@ false for 'create' @ L178
 	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(Unknown Source)
 	at java.base/java.lang.Thread.run(Unknown Source)
 
-Nov 08, 2026 2:31:23 AM io.gapi.emulators.netty.HttpHandler$1 onError
+Nov 10, 2026 11:18:14 PM io.gapi.emulators.netty.HttpHandler$1 onError
 INFO: Exception when handling request: PERMISSION_DENIED: 
 false for 'create' @ L178
-Nov 08, 2026 2:31:23 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+Nov 10, 2026 11:18:14 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
 INFO: Detected non-HTTP/2 connection.
-Nov 08, 2026 2:31:23 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+Nov 10, 2026 11:18:14 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
 INFO: Detected non-HTTP/2 connection.
-Nov 08, 2026 2:31:23 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+Nov 10, 2026 11:18:14 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
 INFO: Detected non-HTTP/2 connection.
-Nov 08, 2026 2:31:23 AM com.google.cloud.datastore.emulator.impl.util.WrappedStreamObserver onError
+Nov 10, 2026 11:18:14 PM com.google.cloud.datastore.emulator.impl.util.WrappedStreamObserver onError
 WARNING: Operation failed: 
 evaluation error at L178:24 for 'create' @ L178, false for 'create' @ L178
 com.google.cloud.datastore.core.exception.DatastoreException: 
@@ -3273,12 +3359,12 @@ evaluation error at L178:24 for 'create' @ L178, false for 'create' @ L178
 	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(Unknown Source)
 	at java.base/java.lang.Thread.run(Unknown Source)
 
-Nov 08, 2026 2:31:23 AM io.gapi.emulators.netty.HttpHandler$1 onError
+Nov 10, 2026 11:18:14 PM io.gapi.emulators.netty.HttpHandler$1 onError
 INFO: Exception when handling request: PERMISSION_DENIED: 
 evaluation error at L178:24 for 'create' @ L178, false for 'create' @ L178
-Nov 08, 2026 2:31:23 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+Nov 10, 2026 11:18:14 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
 INFO: Detected non-HTTP/2 connection.
-Nov 08, 2026 2:31:23 AM com.google.cloud.datastore.emulator.impl.util.WrappedStreamObserver onError
+Nov 10, 2026 11:18:14 PM com.google.cloud.datastore.emulator.impl.util.WrappedStreamObserver onError
 WARNING: Operation failed: 
 evaluation error at L178:24 for 'create' @ L178, false for 'create' @ L178
 com.google.cloud.datastore.core.exception.DatastoreException: 
@@ -3312,12 +3398,12 @@ evaluation error at L178:24 for 'create' @ L178, false for 'create' @ L178
 	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(Unknown Source)
 	at java.base/java.lang.Thread.run(Unknown Source)
 
-Nov 08, 2026 2:31:23 AM io.gapi.emulators.netty.HttpHandler$1 onError
+Nov 10, 2026 11:18:14 PM io.gapi.emulators.netty.HttpHandler$1 onError
 INFO: Exception when handling request: PERMISSION_DENIED: 
 evaluation error at L178:24 for 'create' @ L178, false for 'create' @ L178
-Nov 08, 2026 2:31:23 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+Nov 10, 2026 11:18:14 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
 INFO: Detected non-HTTP/2 connection.
-Nov 08, 2026 2:31:23 AM com.google.cloud.datastore.emulator.impl.util.WrappedStreamObserver onError
+Nov 10, 2026 11:18:14 PM com.google.cloud.datastore.emulator.impl.util.WrappedStreamObserver onError
 WARNING: Operation failed: 
 evaluation error at L178:24 for 'create' @ L178, false for 'create' @ L178
 com.google.cloud.datastore.core.exception.DatastoreException: 
@@ -3351,18 +3437,18 @@ evaluation error at L178:24 for 'create' @ L178, false for 'create' @ L178
 	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(Unknown Source)
 	at java.base/java.lang.Thread.run(Unknown Source)
 
-Nov 08, 2026 2:31:23 AM io.gapi.emulators.netty.HttpHandler$1 onError
+Nov 10, 2026 11:18:14 PM io.gapi.emulators.netty.HttpHandler$1 onError
 INFO: Exception when handling request: PERMISSION_DENIED: 
 evaluation error at L178:24 for 'create' @ L178, false for 'create' @ L178
-Nov 08, 2026 2:31:23 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+Nov 10, 2026 11:18:14 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
 INFO: Detected non-HTTP/2 connection.
-Nov 08, 2026 2:31:23 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+Nov 10, 2026 11:18:14 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
 INFO: Detected non-HTTP/2 connection.
-Nov 08, 2026 2:31:23 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+Nov 10, 2026 11:18:14 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
 INFO: Detected non-HTTP/2 connection.
-Nov 08, 2026 2:31:23 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+Nov 10, 2026 11:18:14 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
 INFO: Detected non-HTTP/2 connection.
-Nov 08, 2026 2:31:23 AM com.google.cloud.datastore.emulator.impl.util.WrappedStreamObserver onError
+Nov 10, 2026 11:18:14 PM com.google.cloud.datastore.emulator.impl.util.WrappedStreamObserver onError
 WARNING: Operation failed: 
 false for 'get' @ L185
 com.google.cloud.datastore.core.exception.DatastoreException: 
@@ -3399,12 +3485,12 @@ false for 'get' @ L185
 	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(Unknown Source)
 	at java.base/java.lang.Thread.run(Unknown Source)
 
-Nov 08, 2026 2:31:23 AM io.gapi.emulators.netty.HttpHandler$1 onError
+Nov 10, 2026 11:18:14 PM io.gapi.emulators.netty.HttpHandler$1 onError
 INFO: Exception when handling request: PERMISSION_DENIED: 
 false for 'get' @ L185
-Nov 08, 2026 2:31:23 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+Nov 10, 2026 11:18:14 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
 INFO: Detected non-HTTP/2 connection.
-Nov 08, 2026 2:31:23 AM com.google.cloud.datastore.emulator.impl.util.WrappedStreamObserver onError
+Nov 10, 2026 11:18:14 PM com.google.cloud.datastore.emulator.impl.util.WrappedStreamObserver onError
 WARNING: Operation failed: 
 false for 'create' @ L178, false for 'update' @ L185
 com.google.cloud.datastore.core.exception.DatastoreException: 
@@ -3439,12 +3525,12 @@ false for 'create' @ L178, false for 'update' @ L185
 	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(Unknown Source)
 	at java.base/java.lang.Thread.run(Unknown Source)
 
-Nov 08, 2026 2:31:23 AM io.gapi.emulators.netty.HttpHandler$1 onError
+Nov 10, 2026 11:18:14 PM io.gapi.emulators.netty.HttpHandler$1 onError
 INFO: Exception when handling request: PERMISSION_DENIED: 
 false for 'create' @ L178, false for 'update' @ L185
-Nov 08, 2026 2:31:23 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+Nov 10, 2026 11:18:14 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
 INFO: Detected non-HTTP/2 connection.
-Nov 08, 2026 2:31:23 AM com.google.cloud.datastore.emulator.impl.util.WrappedStreamObserver onError
+Nov 10, 2026 11:18:14 PM com.google.cloud.datastore.emulator.impl.util.WrappedStreamObserver onError
 WARNING: Operation failed: 
 false for 'delete' @ L185
 com.google.cloud.datastore.core.exception.DatastoreException: 
@@ -3479,6 +3565,6 @@ false for 'delete' @ L185
 	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(Unknown Source)
 	at java.base/java.lang.Thread.run(Unknown Source)
 
-Nov 08, 2026 2:31:23 AM io.gapi.emulators.netty.HttpHandler$1 onError
+Nov 10, 2026 11:18:14 PM io.gapi.emulators.netty.HttpHandler$1 onError
 INFO: Exception when handling request: PERMISSION_DENIED: 
 false for 'delete' @ L185

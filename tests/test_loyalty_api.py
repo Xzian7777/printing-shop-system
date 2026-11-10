@@ -30,13 +30,10 @@ class LoyaltyApiTests(unittest.TestCase):
             return {'uid':user(value).uid}
         fake_auth = types.SimpleNamespace(get_user=user,get_user_by_email=lambda email:user(email.split('@')[0]),
             verify_id_token=verify, UserNotFoundError=MissingUser)
-        self.env = {'__name__':__name__, 'auth':fake_auth,'firebase':types.SimpleNamespace(db=self.db),
-            'firestore':types.SimpleNamespace(Query=types.SimpleNamespace(DESCENDING='desc'))}
-        tree = ast.parse((Path(__file__).parents[1]/'loyalty_api.py').read_text())
-        nodes = [n for n in tree.body if not isinstance(n,(ast.Import,ast.ImportFrom)) or
-                 (isinstance(n,ast.ImportFrom) and n.module not in ['firebase_admin']) or
-                 (isinstance(n,ast.Import) and n.names[0].name != 'firebase_config')]
-        exec(compile(ast.Module(body=nodes,type_ignores=[]),'loyalty_api.py','exec'),self.env)
+        from backend_test_support import load_backend
+        self.env = load_backend({'auth': fake_auth, 'db': self.db,
+            'firestore': types.SimpleNamespace(transactional=transactional, SERVER_TIMESTAMP='server-time',
+                Query=types.SimpleNamespace(DESCENDING='desc'))}).__dict__
         app = Flask(__name__)
         app.secret_key = 'loyalty-api-test'
         self.env['register_loyalty_routes'](app)
@@ -45,9 +42,6 @@ class LoyaltyApiTests(unittest.TestCase):
         for name, method in [('get',Collection.stream),('order_by',lambda self,*a,**kw:self),('limit',lambda self,*a,**kw:self)]:
             patcher=patch.object(Collection,name,method,create=True);patcher.start();self.addCleanup(patcher.stop)
         patcher=patch.object(Transaction,'create',Transaction.set,create=True);patcher.start();self.addCleanup(patcher.stop)
-        import loyalty_backend
-        patcher=patch.object(loyalty_backend.firestore,'transactional',transactional);patcher.start();self.addCleanup(patcher.stop)
-        patcher=patch.object(loyalty_backend.firestore,'SERVER_TIMESTAMP','server-time');patcher.start();self.addCleanup(patcher.stop)
 
     def test_session_and_token_authentication_and_forged_admin(self):
         self.assertEqual(self.client.get('/api/loyalty/me').status_code,401)

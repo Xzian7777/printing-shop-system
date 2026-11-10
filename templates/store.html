@@ -68,7 +68,7 @@
             <div>
                 <h3 class="text-base font-extrabold text-black">Sign In Required</h3>
                 <p class="text-xs text-slate-800 mt-1 leading-relaxed">
-                    Kailangan mo munang mag-sign in para makapag-add o makapag-type ng quantity ng items sa iyong shopping cart.
+                    Sign in to add items to your cart and choose quantities.
                 </p>
             </div>
             <div class="flex gap-2 pt-2">
@@ -91,7 +91,7 @@
                     <div class="w-10 h-10 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center text-lg font-bold">📦</div>
                     <div>
                         <h3 class="font-bold text-black text-sm">Add New Store Product</h3>
-                        <p class="text-[11px] text-slate-800">Magdagdag ng bagong item sa store catalog at inventory</p>
+                        <p class="text-[11px] text-slate-800">Add a new item to the store catalog and inventory</p>
                     </div>
                 </div>
                 <button onclick="closeAddProductModal()" class="text-slate-700 hover:text-black p-2 rounded-xl cursor-pointer">
@@ -135,7 +135,7 @@
                     <div class="space-y-1">
                         <label class="block font-bold text-black">Initial Stock (pcs)</label>
                         <input type="number" id="newProdStock" value="100" min="0" max="99999" step="1" onkeydown="return !['e', 'E', '+', '-', '.'].includes(event.key)" oninput="this.value = this.value.replace(/[^0-9]/g, ''); if(this.value.length > 5) this.value = this.value.slice(0, 5);" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs text-black focus:outline-none focus:border-blue-600 font-medium">
-                        <span class="text-[10px] text-slate-700">Bilang ng piraso (0 - 99,999)</span>
+                        <span class="text-[10px] text-slate-700">Quantity (0–99,999 units)</span>
                     </div>
                 </div>
 
@@ -165,7 +165,7 @@
                     <div class="w-10 h-10 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-lg font-bold">✏️</div>
                     <div>
                         <h3 class="font-bold text-black text-sm">Edit Store Product & Import Image</h3>
-                        <p class="text-[11px] text-slate-800">I-update ang details o mag-import ng bagong larawan</p>
+                        <p class="text-[11px] text-slate-800">Update the details or upload a new image</p>
                     </div>
                 </div>
                 <button onclick="closeEditProductModal()" class="text-slate-700 hover:text-black p-2 rounded-xl cursor-pointer">
@@ -210,7 +210,7 @@
                     <div class="space-y-1">
                         <label class="block font-bold text-black">Stock (pcs)</label>
                         <input type="number" id="editProdStock" min="0" max="99999" step="1" onkeydown="return !['e', 'E', '+', '-', '.'].includes(event.key)" oninput="this.value = this.value.replace(/[^0-9]/g, ''); if(this.value.length > 5) this.value = this.value.slice(0, 5);" placeholder="0" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs text-black focus:outline-none focus:border-blue-600 font-medium">
-                        <span class="text-[10px] text-slate-700">Bilang ng piraso (0 - 99,999)</span>
+                        <span class="text-[10px] text-slate-700">Quantity (0–99,999 units)</span>
                     </div>
                 </div>
 
@@ -524,7 +524,7 @@ function closeLoginPromptModal() {
 function fetchStoreProductsFromBackend() {
     fetch('/api/store/products')
     .then(res => {
-        if (!res.ok) throw new Error("Database o API Route Connection Error");
+        if (!res.ok) throw new Error("Database or API connection error");
         return res.json();
     })
     .then(data => {
@@ -619,8 +619,8 @@ function renderStoreProducts() {
     if (filtered.length === 0) {
         grid.innerHTML = `
             <div class="col-span-full text-center py-12 text-slate-700 text-xs font-semibold bg-slate-50/50 rounded-3xl border border-dashed border-slate-200 p-6 space-y-2">
-                <div>📦 Walang nahanap na produkto sa database.</div>
-                ${isAdminUser ? '<div class="text-[11px] text-blue-600 font-bold">Pindutin ang "+ Add New Product" sa itaas para magdagdag ng unang item sa iyong store catalog.</div>' : ''}
+                <div>📦 No products were found.</div>
+                ${isAdminUser ? '<div class="text-[11px] text-blue-600 font-bold">Select "+ Add New Product" above to add your first store item.</div>' : ''}
             </div>
         `;
         if (paginationContainer) paginationContainer.classList.add('hidden');
@@ -936,7 +936,7 @@ async function submitEditProduct() {
     const desc = document.getElementById('editProdDesc').value.trim();
 
     if (!name) {
-        alert("⚠️ Pakilagay ang pangalan ng produkto.");
+        alert("⚠️ Please enter the product name.");
         return;
     }
 
@@ -950,12 +950,12 @@ async function submitEditProduct() {
     // Stock validation
     const stock = parseInt(rawStock, 10);
     if (isNaN(stock) || stock < 0) {
-        alert("⚠️ Ang stock ay hindi maaaring negatibo.");
+        alert("⚠️ Stock cannot be negative.");
         document.getElementById('editProdStock').focus();
         return;
     }
     if (stock > 99999) {
-        alert("⚠️ Ang maximum na stock ay 99,999 pcs para hindi masira ang format.");
+        alert("⚠️ Stock must not exceed 99,999 units.");
         document.getElementById('editProdStock').focus();
         return;
     }
@@ -977,7 +977,7 @@ async function submitEditProduct() {
         if (!await saveProductsToBackend(changes)) return;
         closeEditProductModal();
         renderStoreProducts();
-        alert(`✅ Matagumpay na na-update ang "${name}"!`);
+        alert(`✅ "${name}" updated successfully.`);
     }
 }
 
@@ -998,7 +998,7 @@ function setItemQtyDirect(prodId, rawValue) {
     }
 
     if (newQty > prod.stock) {
-        alert(`Paumanhin, hanggang ${prod.stock} pcs lamang ang available na stock.`);
+        alert(`Only ${prod.stock} units are available.`);
         newQty = prod.stock;
     }
 
@@ -1207,7 +1207,7 @@ function changeDetailModalQty(delta) {
 
     if (next < 1) next = 1;
     if (next > prod.stock) {
-        alert(`Hindi pwedeng lumagpas sa available stock (${prod.stock} pcs).`);
+        alert(`Quantity cannot exceed the available stock (${prod.stock} units).`);
         next = prod.stock;
     }
 
@@ -1270,7 +1270,7 @@ function submitModalAddToCart() {
     const totalDesired = existingQty + qtyToAdd;
 
     if (totalDesired > prod.stock) {
-        alert(`Hindi pwedeng lumagpas sa stock! Mayroon ka nang ${existingQty} pcs sa cart, at ${prod.stock} pcs lamang ang stock.`);
+        alert(`Quantity exceeds stock. You already have ${existingQty} units in your cart, and only ${prod.stock} units are available.`);
         return;
     }
 
@@ -1302,7 +1302,7 @@ function submitModalBuyNow() {
     const selectedQty = Math.max(1, parseInt(input?.value) || 1);
 
     if (selectedQty > prod.stock) {
-        alert(`Hindi pwedeng lumagpas sa stock (${prod.stock} pcs).`);
+        alert(`Quantity cannot exceed stock (${prod.stock} units).`);
         return;
     }
 

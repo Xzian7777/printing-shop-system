@@ -8,8 +8,8 @@ from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from unittest.mock import patch
 import flask
-import order_cancellation
-from inventory_rules import stock_plan, valid_transition
+from backend_test_support import backend as order_cancellation
+from backend_test_support import stock_plan, valid_transition
 from test_admin_sync import Database, transactional
 
 
@@ -64,7 +64,7 @@ class CancellationApiTests(unittest.TestCase):
         app = flask.Flask(__name__); app.secret_key = 'test-only'
         tree = ast.parse((Path(__file__).parents[1] / 'app.py').read_text(encoding='utf-8'))
         node = next(n for n in tree.body if isinstance(n, ast.FunctionDef) and n.name == 'cancel_order_endpoint')
-        env = {'app': app, 'db': object(), 'session': flask.session, 'request': flask.request, 'jsonify': flask.jsonify}
+        env = {'cancel_customer_order': lambda *args, **kwargs: order_cancellation.cancel_customer_order(*args, **kwargs), 'app': app, 'db': object(), 'session': flask.session, 'request': flask.request, 'jsonify': flask.jsonify}
         exec(compile(ast.Module(body=[node], type_ignores=[]), 'app.py', 'exec'), env)
         client = app.test_client()
         self.assertEqual(client.post('/api/orders/o1/cancel', json={}).status_code, 401)
@@ -85,9 +85,9 @@ class CancellationRaceTests(unittest.TestCase):
         db = Client(project='demo-printshop-push', credentials=AnonymousCredentials())
         env = {'db': db, 'firestore': firestore, 'datetime': datetime, 'uuid': uuid,
                'valid_transition': valid_transition, 'stock_plan': stock_plan}
-        tree = ast.parse((Path(__file__).parents[1] / 'firebase_config.py').read_text(encoding='utf-8'))
-        functions = [n for n in tree.body if isinstance(n, ast.FunctionDef)]
-        exec(compile(ast.Module(body=functions, type_ignores=[]), 'firebase_config.py', 'exec'), env)
+        tree = ast.parse((Path(__file__).parents[1] / 'app.py').read_text(encoding='utf-8'))
+        functions = [n for n in tree.body if isinstance(n, ast.FunctionDef) and not any(ast.unparse(d).startswith('app.') for d in n.decorator_list)]
+        exec(compile(ast.Module(body=functions, type_ignores=[]), 'app.py', 'exec'), env)
         env['create_notification'] = lambda *_: True
         env['send_fcm_push_notification'] = lambda **_: True
         for _ in range(3):

@@ -13,6 +13,7 @@ test_stock_deducted_once_across_approval_and_completion (test_admin_sync.AdminSy
 test_structured_and_legacy_stock_rules (test_admin_sync.AdminSyncTests.test_structured_and_legacy_stock_rules) ... ok
 test_user_archive_resolves_both_existing_profile_ids (test_admin_sync.AdminSyncTests.test_user_archive_resolves_both_existing_profile_ids) ... ok
 test_web_permanent_delete_removes_mobile_tombstones (test_admin_sync.AdminSyncTests.test_web_permanent_delete_removes_mobile_tombstones) ... ok
+test_restore_preserves_current_mirror_fields_and_zeros_recreated_mirror (test_admin_sync.LoyaltyRestoreTests.test_restore_preserves_current_mirror_fields_and_zeros_recreated_mirror) ... ok
 test_approved_flags_and_non_owner_block_cancellation (test_cancellation_access.CancellationAccessTests.test_approved_flags_and_non_owner_block_cancellation) ... ok
 test_direct_bypasses_and_hard_deletion_are_denied (test_cancellation_access.CancellationAccessTests.test_direct_bypasses_and_hard_deletion_are_denied) ... ok
 test_legacy_email_ownership_and_sibling_artifact_access_remain_supported (test_cancellation_access.CancellationAccessTests.test_legacy_email_ownership_and_sibling_artifact_access_remain_supported) ... ok
@@ -30,6 +31,7 @@ test_free_product_reward_is_zero_payment_and_earns_nothing (test_loyalty.Loyalty
 test_invalid_price_rate_reward_and_out_of_stock_fail_before_reservation (test_loyalty.LoyaltyTransactionTests.test_invalid_price_rate_reward_and_out_of_stock_fail_before_reservation) ... ok
 test_pending_reserves_then_approval_spends_and_rejection_returns_once (test_loyalty.LoyaltyTransactionTests.test_pending_reserves_then_approval_spends_and_rejection_returns_once) ... ok
 test_sequential_device_reservations_cannot_overspend (test_loyalty.LoyaltyTransactionTests.test_sequential_device_reservations_cannot_overspend) ... ok
+test_admin_can_create_zero_balance_mirror_with_mapping (test_loyalty_access.LoyaltyAccessTests.test_admin_can_create_zero_balance_mirror_with_mapping) ... ok
 test_customer_cannot_forge_discount_or_cancel_reserved_points_directly (test_loyalty_access.LoyaltyAccessTests.test_customer_cannot_forge_discount_or_cancel_reserved_points_directly) ... ok
 test_only_owner_or_admin_can_read_balances_and_events (test_loyalty_access.LoyaltyAccessTests.test_only_owner_or_admin_can_read_balances_and_events) ... ok
 test_profile_and_catalog_direct_write_bypasses_are_denied (test_loyalty_access.LoyaltyAccessTests.test_profile_and_catalog_direct_write_bypasses_are_denied) ... ok
@@ -95,7 +97,7 @@ test_modified_browser_scripts_parse (test_template_scripts.TemplateSyntaxTests.t
 test_modified_pages_render (test_template_scripts.TemplateSyntaxTests.test_modified_pages_render) ... ok
 
 ----------------------------------------------------------------------
-Ran 93 tests in 22.513s
+Ran 95 tests in 23.541s
 
 OK
 Error archiving: Item is missing or already archived.

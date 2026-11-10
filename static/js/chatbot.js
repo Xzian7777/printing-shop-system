@@ -26,7 +26,7 @@ function sendChatbotMessage() {
     input.value = '';
 
     setTimeout(() => {
-        let reply = "Salamat sa mensahe! Pwede mong itanong sa akin ang presyo, order status, o RFID points balance.";
+        let reply = "Thank you for your message! You can ask about prices, order status, or your RFID points balance.";
         const q = msg.toLowerCase();
         if (q.includes('magkano') || q.includes('price')) reply = "💰 Business Cards start at ₱250, Tarpaulins ₱15/sqft, Standard A4 ₱3.00/pg.";
         if (q.includes('order') || q.includes('status')) reply = "📦 Order #PRNT-8942 is currently [Printing 🖨️]. Estimated pickup: 3:30 PM.";

@@ -6,7 +6,7 @@ const AppValidators = {
     // 1. Required Field
     isRequired(value, fieldName = 'field') {
         if (!value || value.trim() === '') {
-            return `Hindi pwedeng iwang blangko ang ${fieldName}.`;
+            return `${fieldName} is required.`;
         }
         return null;
     },
@@ -14,18 +14,18 @@ const AppValidators = {
     // 2 & 3. Name Validation (Min: 2, Max: 50, Alphabets only)
     validateName(value) {
         if (!value || value.trim() === '') {
-            return 'Required ang buong pangalan.';
+            return 'Full name is required.';
         }
         const trimmed = value.trim();
         if (trimmed.length < 2) {
-            return 'Ang pangalan ay dapat higit sa 1 character.';
+            return 'Name must contain at least 2 characters.';
         }
         if (trimmed.length > 50) {
-            return 'Ang pangalan ay hindi pwedeng lumagpas sa 50 characters.';
+            return 'Name must not exceed 50 characters.';
         }
         const nameRegex = /^[a-zA-Z\s\-\.\ñ\Ñ]+$/;
         if (!nameRegex.test(trimmed)) {
-            return 'Bawal na character sa pangalan. MGA LETRA LANG.';
+            return 'Name may contain letters only.';
         }
         return null;
     },
@@ -33,11 +33,11 @@ const AppValidators = {
     // 4. Email Validation
     validateEmail(value) {
         if (!value || value.trim() === '') {
-            return 'Required ang email address.';
+            return 'Email address is required.';
         }
         const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
         if (!emailRegex.test(value.trim())) {
-            return 'Maglagay ng tamang email format (hal. name@domain.com).';
+            return 'Enter a valid email address (for example, name@domain.com).';
         }
         return null;
     },
@@ -45,11 +45,11 @@ const AppValidators = {
     // 5. Contact Number (11-digit PH mobile: 09XXXXXXXXX)
     validateContactNumber(value) {
         if (!value || value.trim() === '') {
-            return 'Required ang contact number.';
+            return 'Contact number is required.';
         }
         const phoneRegex = /^09\d{9}$/;
         if (!phoneRegex.test(value.trim())) {
-            return 'Dapat ay 11-digit PH mobile number (hal. 09123456789).';
+            return 'Enter an 11-digit Philippine mobile number (for example, 09123456789).';
         }
         return null;
     },
@@ -57,17 +57,17 @@ const AppValidators = {
     // 6. Number Field Validation (Qty / Price)
     validateNumber(value, min = 1, max = 1000, fieldName = 'Bilang') {
         if (!value || value.toString().trim() === '') {
-            return `Required ang ${fieldName}.`;
+            return `${fieldName} is required.`;
         }
         const num = Number(value);
         if (isNaN(num)) {
-            return 'Maglagay ng tamang numero lang.';
+            return 'Enter a valid number.';
         }
         if (min !== null && num < min) {
-            return `Ang ${fieldName} ay hindi pwedeng mababa sa ${min}.`;
+            return `${fieldName} must be at least ${min}.`;
         }
         if (max !== null && num > max) {
-            return `Ang ${fieldName} ay hindi pwedeng lumagpas sa ${max}.`;
+            return `${fieldName} must not exceed ${max}.`;
         }
         return null;
     },
@@ -75,13 +75,13 @@ const AppValidators = {
     // 7. Password Validation (Min 6, Max 32)
     validatePassword(value) {
         if (!value) {
-            return 'Required ang password.';
+            return 'Password is required.';
         }
         if (value.length < 6) {
-            return 'Ang password ay dapat may minimum na 6 characters.';
+            return 'Password must contain at least 6 characters.';
         }
         if (value.length > 32) {
-            return 'Ang password ay hindi pwedeng lumagpas sa 32 characters.';
+            return 'Password must not exceed 32 characters.';
         }
         return null;
     },
@@ -89,14 +89,14 @@ const AppValidators = {
     // 8. Date Validation (Not past date)
     validateDate(dateString) {
         if (!dateString) {
-            return 'Mangyaring pumili ng petsa.';
+            return 'Please select a date.';
         }
         const selectedDate = new Date(dateString);
         const today = new Date();
         today.setHours(0, 0, 0, 0);
 
         if (selectedDate < today) {
-            return 'Hindi pwedeng lumipas na petsa ang piliin.';
+            return 'Please select today or a future date.';
         }
         return null;
     }

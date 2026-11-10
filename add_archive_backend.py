@@ -1,4 +1,4 @@
-with open('firebase_config.py', 'r', encoding='utf-8') as f:
+with open('app.py', 'r', encoding='utf-8') as f:
     code = f.read()
 
 archive_code = '''
@@ -109,8 +109,8 @@ def permanently_delete_archived_item(archive_doc_id):
 
 if 'ARCHIVE MANAGEMENT SYSTEM' not in code:
     code += archive_code
-    with open('firebase_config.py', 'w', encoding='utf-8') as f:
+    with open('app.py', 'w', encoding='utf-8') as f:
         f.write(code)
-    print('firebase_config.py updated with archive functions')
+    print('app.py updated with archive functions')
 else:
-    print('Already present in firebase_config.py')
+    print('Already present in app.py')

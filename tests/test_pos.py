@@ -8,8 +8,8 @@ from pathlib import Path
 from unittest.mock import patch
 
 from flask import Flask
-import pos_backend
-from pos_rules import cents, validate_sale
+from backend_test_support import backend as pos_backend
+from backend_test_support import cents, validate_sale
 from test_admin_sync import Database, transactional
 
 
@@ -111,7 +111,7 @@ class PosApiTests(unittest.TestCase):
         self.app.secret_key = 'test-only'
         tree = ast.parse((Path(__file__).parents[1] / 'app.py').read_text(encoding='utf-8'))
         node = next(n for n in tree.body if isinstance(n, ast.FunctionDef) and n.name == 'pos_sales')
-        env = {'app': self.app, 'session': flask.session, 'request': flask.request, 'jsonify': flask.jsonify, 'db': object()}
+        env = {'complete_sale': lambda *args, **kwargs: pos_backend.complete_sale(*args, **kwargs), 'app': self.app, 'session': flask.session, 'request': flask.request, 'jsonify': flask.jsonify, 'db': object()}
         exec(compile(ast.Module(body=[node], type_ignores=[]), 'app.py', 'exec'), env)
         self.client = self.app.test_client()
 
