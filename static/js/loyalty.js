@@ -1,3 +1,25 @@
+const PaymentEligibility = {
+    allowed: false,
+    message: 'Cash on Pickup unlocks after your first payment-verified, completed order. Please use GCash for your first order.',
+    apply(account) {
+        this.allowed = account.cashOnPickupAllowed === true;
+        document.querySelectorAll('input[type="radio"][value="Cash on Pickup"]').forEach(input => {
+            input.disabled = !this.allowed;
+            input.closest('label')?.classList.toggle('opacity-50', !this.allowed);
+            if (!this.allowed && input.checked) {
+                input.checked = false;
+                const gcash = document.querySelector(`input[name="${input.name}"][value^="GCash"]`);
+                if (gcash) gcash.checked = true;
+                if (input.name === 'custPaymentMethod') togglePaymentSelection('gcash');
+            }
+        });
+        document.querySelectorAll('[data-cash-eligibility]').forEach(element => {
+            element.textContent = this.allowed ? 'Cash on Pickup is available for your account.' : this.message;
+        });
+        if (typeof updateStorePaymentControls === 'function') updateStorePaymentControls();
+    }
+};
+
 const Loyalty = {
     account: null, rewards: [], catalog: [], selectors: new Map(),
     pendingKey: 'kcz-loyalty-' + (document.body.dataset.loyaltyAccount || 'guest'),
@@ -12,6 +34,7 @@ const Loyalty = {
     },
     async balance() {
         this.account = await this.api('/api/loyalty/me');
+        PaymentEligibility.apply(this.account);
         for (const selector of this.selectors.values()) selector.update();
         for (const id of ['rfidPointsText', 'headerRfidPoints']) {
             const element = document.getElementById(id);
@@ -46,7 +69,6 @@ const Loyalty = {
         const selector = this.selectors.get(selectorId);
         selector?.update();
         payload.pointsUsed = selector?.points || 0;
-        if (!payload.pointsUsed && !payload.rewardId) return fetch('/api/orders', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload)});
         const previous = localStorage.getItem(this.pendingKey);
         if (previous) throw Error('A previous checkout needs confirmation. Open My Rewards and retry it first.');
         payload.submissionId ||= this.id();
@@ -55,7 +77,7 @@ const Loyalty = {
         return this.sendPending(payload);
     },
     async sendPending(payload) {
-        const response = await fetch('/api/loyalty/orders', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload)});
+        const response = await fetch(payload.pointsUsed || payload.rewardId ? '/api/loyalty/orders' : '/api/orders', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload)});
         const result = await response.clone().json();
         if (result.success || [400,409].includes(response.status)) localStorage.removeItem(this.pendingKey);
         return response;
@@ -111,10 +133,7 @@ const Loyalty = {
                     input.onchange = () => resolve(input.files?.[0]); input.oncancel = () => resolve(null); input.click();
                 });
                 if (!file) return;
-                const form = new FormData(); form.append('file', file);
-                const response = await fetch('/api/upload', {method:'POST', body:form});
-                const uploaded = await response.json();
-                if (!response.ok || !uploaded.success) throw Error(uploaded.message || 'Upload failed.');
+                const uploaded = await ShopUploads.upload(file);
                 const first = uploaded.files?.[0] || uploaded;
                 Object.assign(payload, {file:file.name, fileUrl:first.fileUrl, storagePath:first.storagePath});
             }

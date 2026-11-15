@@ -64,6 +64,17 @@ class PushDeliveryTests(unittest.TestCase):
         self.assertEqual(send.call_args.kwargs['data_payload']['_exclude_tokens'], ['phone1'])
         self.assertCountEqual(self.job.get().to_dict()['deliveredTokens'], ['phone1', 'phone2'])
 
+    def test_cancelled_notification_targets_saved_customer_and_is_not_repeated(self):
+        self.job.set({'status': 'Cancelled'}, merge=True)
+        send = Mock(return_value={'success': True, 'delivered_tokens': ['phone1']})
+        self.deliver(send)
+        self.deliver(send)
+        send.assert_called_once()
+        self.assertEqual(send.call_args.kwargs['recipient_email'], 'customer@example.com')
+        self.assertEqual(send.call_args.kwargs['data_payload']['status'], 'Cancelled')
+        self.assertIn('Cancelled', send.call_args.kwargs['title'])
+        self.assertEqual(self.job.get().to_dict()['state'], 'sent')
+
     def test_active_lease_blocks_another_worker_and_expired_lease_can_recover(self):
         self.job.set({'state': 'sending', 'leaseUntil': self.now + datetime.timedelta(minutes=1)}, merge=True)
         send = Mock(return_value={'success': True})
@@ -119,7 +130,7 @@ class PushPayloadTests(unittest.TestCase):
 
         db = Database()
         for token in ['good', 'failed', 'already-sent']:
-            db.collection('fcm_tokens').document(token).set({'token': token})
+            db.collection('fcm_tokens').document(token).set({'token': token, 'serverVerified': True})
         docs = db.collection('fcm_tokens').stream()
         fake_db = types.SimpleNamespace(collection=lambda _: Query(docs))
         sent = []

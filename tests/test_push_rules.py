@@ -30,7 +30,7 @@ class PushRulesTests(unittest.TestCase):
         self.name = f'projects/{PROJECT}/databases/(default)/documents'
         self.job_id = uuid.uuid4().hex
         for uid, role in [('admin1', 'admin'), ('customer1', 'customer')]:
-            self.call('PATCH', f'/users/{uid}', {'fields': {'role': {'stringValue': role}}}, 'owner')
+            self.call('PATCH', f'/users/{uid}', {'fields': {'role': {'stringValue': role}, 'email': {'stringValue': uid + '@example.com'}}}, 'owner')
 
     def call(self, method, path, data=None, bearer=None):
         request = urllib.request.Request(
@@ -61,6 +61,16 @@ class PushRulesTests(unittest.TestCase):
         self.job_id = uuid.uuid4().hex
         self.assertEqual(self.create('customer1'), 403)
         self.assertEqual(self.create(None), 403)
+
+    def test_reader_credentials_bindings_and_events_are_server_only(self):
+        for collection in ['rfid_readers', 'rfid_cards', 'rfid_events', 'upload_batches', 'upload_intents']:
+            path = '/' + collection + '/' + uuid.uuid4().hex
+            fields = {'fields': {'active': {'booleanValue': True}}}
+            self.assertEqual(self.call('PATCH', path, fields, 'owner'), 200)
+            for bearer in [None, token('customer1'), token('admin1')]:
+                self.assertEqual(self.call('GET', path, bearer=bearer), 403)
+                self.assertEqual(self.call('PATCH', path, fields, bearer), 403)
+                self.assertEqual(self.call('DELETE', path, bearer=bearer), 403)
 
     def test_clients_cannot_read_change_or_delete_delivery_state(self):
         self.assertEqual(self.create(), 200)

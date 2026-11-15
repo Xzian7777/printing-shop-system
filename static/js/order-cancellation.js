@@ -1,6 +1,6 @@
 function customerCanCancel(order) {
     const status = Object.hasOwn(order, 'status') ? order.status : 'Order Submitted';
-    return order.source !== 'POS' && ['Order Submitted', 'For Approval'].includes(status) &&
+    return order.ownershipReviewRequired !== true && order.source !== 'POS' && ['Order Submitted', 'For Approval'].includes(status) &&
         order.approvedAt == null && (order.stockDeducted === undefined || order.stockDeducted === false);
 }
 
@@ -10,7 +10,7 @@ let cancellationBusy = false;
 function openCustomerCancellation(id) {
     const order = allCustomerOrdersCache.find(o => o.id === id);
     if (!order || !customerCanCancel(order)) {
-        alert('This order cannot be cancelled because it has been approved or processing has started.');
+        alert(order?.ownershipReviewRequired ? 'This legacy order needs account review before cancellation.' : 'This order cannot be cancelled because it has been approved or processing has started.');
         return;
     }
     cancellationOrderId = id;

@@ -11,6 +11,8 @@ import os
 import re
 import uuid
 import mimetypes
+import hashlib
+import requests
 from supabase import create_client, Client
 from dotenv import load_dotenv
 
@@ -41,11 +43,27 @@ ALLOWED_MIME_TYPES = {
 SUPABASE_URL      = os.getenv('SUPABASE_URL', '').rstrip('/')
 SERVICE_ROLE_KEY  = os.getenv('SUPABASE_SERVICE_ROLE_KEY', '')
 BUCKET_NAME       = os.getenv('BUCKET_NAME', 'kezcemzek-files')
+PRIVATE_BUCKET_NAME = os.getenv('PRIVATE_BUCKET_NAME', 'kezcemzek-orders-private')
 
 # ---------------------------------------------------------------------------
 # CLIENT  (service-role key — server-side only)
 # ---------------------------------------------------------------------------
 _supabase_client: Client | None = None
+
+
+def ensure_private_bucket():
+    from storage3.exceptions import StorageApiError
+    client = _get_client()
+    try:
+        bucket = client.storage.get_bucket(PRIVATE_BUCKET_NAME)
+    except StorageApiError as error:
+        if str(error.status) != '404':
+            raise
+        client.storage.create_bucket(PRIVATE_BUCKET_NAME, options={'public': False})
+        bucket = client.storage.get_bucket(PRIVATE_BUCKET_NAME)
+    public = bucket.get('public') if isinstance(bucket, dict) else bucket.public
+    if public:
+        raise RuntimeError('The customer-document bucket must be private.')
 
 def _get_client() -> Client:
     """Return (and lazily initialise) the Supabase client."""
@@ -58,8 +76,39 @@ def _get_client() -> Client:
             'Set SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY in .env.'
         )
     _supabase_client = create_client(SUPABASE_URL, SERVICE_ROLE_KEY)
-    print('✅ Supabase client initialised (service-role key).')
+    print('Supabase storage client initialized.')
     return _supabase_client
+
+
+def signed_staging_upload(storage_path):
+    ensure_private_bucket()
+    result = _get_client().storage.from_(PRIVATE_BUCKET_NAME).create_signed_upload_url(storage_path)
+    return result.get('signed_url') or result['signedUrl']
+
+
+def read_staged_upload(storage_path):
+    url = get_signed_url(storage_path)
+    if not url:
+        raise RuntimeError('Unable to read the staged upload. Please retry.')
+    contents = bytearray()
+    with requests.get(url, stream=True, timeout=(10, 45), allow_redirects=False) as response:
+        response.raise_for_status()
+        for chunk in response.iter_content(65536):
+            contents.extend(chunk)
+            if len(contents) > MAX_FILE_SIZE_BYTES:
+                raise ValueError('File size exceeds the 10 MB limit per file.')
+    return bytes(contents)
+
+
+def publish_uploaded_bytes(storage_path, contents, content_type, bucket_name):
+    bucket = _get_client().storage.from_(bucket_name)
+    try:
+        bucket.upload(storage_path, contents, {'content-type': content_type, 'upsert': 'false'})
+    except Exception as error:
+        if str(getattr(error, 'status', '')) not in ['400', '409']:
+            raise
+        if hashlib.sha256(bucket.download(storage_path)).digest() != hashlib.sha256(contents).digest():
+            raise ValueError('The upload changed during a retry. Select the file again.') from error
 
 
 # ---------------------------------------------------------------------------
@@ -171,6 +220,7 @@ def upload_order_file(
     order_id: str,
     customer_id: str = 'unknown',
     filename: str | None = None,
+    bucket_name: str | None = None,
 ) -> tuple[str, str]:
     """
     Upload a design/document file to Supabase Storage.
@@ -182,6 +232,9 @@ def upload_order_file(
         orders/{order_id}/{uuid}_{sanitized_filename}
     """
     client = _get_client()
+    bucket_name = bucket_name or PRIVATE_BUCKET_NAME
+    if bucket_name == PRIVATE_BUCKET_NAME:
+        ensure_private_bucket()
 
     original_name = filename or getattr(file_obj, 'filename', '') or 'upload'
     sanitized     = _sanitize_filename(original_name)
@@ -196,7 +249,7 @@ def upload_order_file(
     content_type = ALLOWED_MIME_TYPES.get(ext, 'application/octet-stream')
 
     try:
-        client.storage.from_(BUCKET_NAME).upload(
+        client.storage.from_(bucket_name).upload(
             path=storage_path,
             file=file_bytes,
             file_options={'content-type': content_type, 'upsert': 'false'},
@@ -204,48 +257,48 @@ def upload_order_file(
     except Exception as exc:
         raise RuntimeError(f'Supabase Storage upload failed: {exc}') from exc
 
-    # Generate a 24-hour signed URL immediately
-    signed_url = get_signed_url(storage_path, expires_in=86400)
-    print(f'✅ Uploaded to Supabase: {storage_path}')
+    # Generate a fifteen-minute signed URL immediately.
+    signed_url = get_signed_url(storage_path, expires_in=900, bucket_name=bucket_name)
+    print(f'Uploaded to Supabase: {storage_path}')
     return storage_path, signed_url
 
 
 # ---------------------------------------------------------------------------
 # SIGNED URL
 # ---------------------------------------------------------------------------
-def get_signed_url(storage_path: str, expires_in: int = 3600) -> str:
+def get_signed_url(storage_path: str, expires_in: int = 900, bucket_name: str | None = None) -> str:
     """
     Generate a time-limited signed URL for a private file.
 
-    expires_in: seconds until the URL expires (default 1 hour).
+    expires_in: seconds until the URL expires (default fifteen minutes).
     Returns the signed URL string, or '' on failure.
     """
     try:
         client  = _get_client()
-        result  = client.storage.from_(BUCKET_NAME).create_signed_url(
+        result  = client.storage.from_(bucket_name or PRIVATE_BUCKET_NAME).create_signed_url(
             storage_path, expires_in
         )
         # SDK v2: result is a dict with 'signedURL' key
         url = result.get('signedURL') or result.get('signedUrl') or ''
         return url
     except Exception as exc:
-        print(f'⚠️  Could not generate signed URL for {storage_path}: {exc}')
+        print(f'Could not generate signed URL for {storage_path}: {type(exc).__name__}')
         return ''
 
 
 # ---------------------------------------------------------------------------
 # DELETE  (cleanup on order failure)
 # ---------------------------------------------------------------------------
-def delete_file(storage_path: str) -> bool:
+def delete_file(storage_path: str, bucket_name: str | None = None) -> bool:
     """
     Delete a file from Supabase Storage.
     Returns True on success, False on failure.
     """
     try:
         client = _get_client()
-        client.storage.from_(BUCKET_NAME).remove([storage_path])
-        print(f'🗑️  Deleted from Supabase: {storage_path}')
+        client.storage.from_(bucket_name or PRIVATE_BUCKET_NAME).remove([storage_path])
+        print(f'Deleted from Supabase: {storage_path}')
         return True
     except Exception as exc:
-        print(f'⚠️  Could not delete {storage_path}: {exc}')
+        print(f'Could not delete {storage_path}: {type(exc).__name__}')
         return False

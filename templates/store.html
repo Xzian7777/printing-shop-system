@@ -105,7 +105,7 @@
                     <input type="text" id="newProdName" placeholder="e.g. Correction Tape 5m" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs text-black focus:outline-none focus:border-blue-600 font-medium">
                 </div>
 
-                <div class="grid grid-cols-2 gap-4">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div class="space-y-1">
                         <label class="block font-bold text-black">Category</label>
                         <select id="newProdCategory" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs text-black focus:outline-none focus:border-blue-600 font-medium">
@@ -126,7 +126,7 @@
                     </div>
                 </div>
 
-                <div class="grid grid-cols-2 gap-4">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div class="space-y-1">
                         <label class="block font-bold text-black">Price (₱)</label>
                         <input type="number" id="newProdPrice" value="30.00" min="0.01" max="5000000" step="0.01" onkeydown="return !['e', 'E', '+', '-'].includes(event.key)" oninput="if(/[eE+-]/.test(this.value)) this.value = ''; if(this.value.length > 10) this.value = this.value.slice(0, 10);" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs text-black focus:outline-none focus:border-blue-600 font-medium">
@@ -180,7 +180,7 @@
                     <input type="text" id="editProdName" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs text-black focus:outline-none focus:border-blue-600 font-medium">
                 </div>
 
-                <div class="grid grid-cols-2 gap-4">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div class="space-y-1">
                         <label class="block font-bold text-black">Category</label>
                         <select id="editProdCategory" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs text-black focus:outline-none focus:border-blue-600 font-medium">
@@ -201,7 +201,7 @@
                     </div>
                 </div>
 
-                <div class="grid grid-cols-2 gap-4">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div class="space-y-1">
                         <label class="block font-bold text-black">Price (₱)</label>
                         <input type="number" id="editProdPrice" min="0.01" max="5000000" step="0.01" onkeydown="return !['e', 'E', '+', '-'].includes(event.key)" oninput="if(/[eE+-]/.test(this.value)) this.value = ''; if(this.value.length > 10) this.value = this.value.slice(0, 10);" placeholder="0.00" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs text-black focus:outline-none focus:border-blue-600 font-medium">
@@ -297,7 +297,7 @@
 
     <!-- SHOPPING CART SLIDE-OVER DRAWER MODAL (Customer Only) -->
     <div id="cartModalBackdrop" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 hidden transition-opacity" onclick="toggleCartDrawer(false)"></div>
-    <div id="cartDrawer" class="fixed right-0 top-0 h-full w-full max-w-md bg-white z-50 shadow-2xl transform translate-x-full transition-transform duration-300 flex flex-col justify-between">
+    <div id="cartDrawer" inert role="dialog" aria-label="Shopping cart" class="fixed right-0 top-0 h-full w-full max-w-md bg-white z-50 shadow-2xl transform translate-x-full transition-transform duration-300 flex flex-col justify-between">
         <!-- Header -->
         <div class="p-5 border-b border-slate-200 flex items-center justify-between bg-slate-50">
             <div class="flex items-center gap-2">
@@ -328,12 +328,13 @@
                         <span>📲 GCash</span>
                     </label>
                     <label class="border border-slate-200 bg-white p-2.5 rounded-xl flex items-center gap-2 cursor-pointer text-[11px] font-bold">
-                        <input type="radio" name="storePaymentMethod" value="Cash on Pickup" onchange="updateStorePaymentControls()" class="text-blue-600">
+                        <input type="radio" name="storePaymentMethod" value="Cash on Pickup" disabled onchange="updateStorePaymentControls()" class="text-blue-600">
                         <span>💵 Cash Pickup</span>
                     </label>
                 </div>
             </div>
 
+            <p data-cash-eligibility role="status" class="text-xs text-emerald-800">Checking Cash on Pickup eligibility…</p>
             <div id="storeGcashPanel" class="store-gcash-panel space-y-3">
                 <p id="storeGcashStatus" class="text-sm text-slate-700" role="status">Loading GCash details…</p>
                 <div class="store-merchant-details">
@@ -563,21 +564,13 @@ function saveProductsToBackend(product) {
 }
 
 function checkStockAlertsOnLoad() {
-    STORE_PRODUCTS.forEach(p => {
-        if (p.stock === 0) {
-            triggerAdminNotification(`❌ OUT OF STOCK ALERT: "${p.name}" has 0 stock remaining!`);
-        } else if (p.stock < 50) {
-            triggerAdminNotification(`⚠️ LOW STOCK WARNING: "${p.name}" is down to ${p.stock} pcs!`);
-        }
-    });
-}
-
-function triggerAdminNotification(msg) {
+    if (!isAdminUser) return;
     fetch('/api/notifications', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: 'ADMIN', notificationType: 'Inventory Alert', message: msg })
-    }).catch(() => {});
+        headers: { 'Content-Type': 'application/json' }
+    }).then(response => {
+        if (!response.ok) throw new Error('Unable to refresh inventory alerts.');
+    }).catch(error => console.error(error.message));
 }
 
 function setStoreCategory(cat) {
@@ -658,22 +651,22 @@ function renderStoreProducts() {
                 <div class="bg-white border ${cardBorder} rounded-2xl p-5 shadow-xs transition-all flex flex-col justify-between space-y-4">
                     <div class="space-y-3">
                         <div class="relative h-36 bg-slate-100 rounded-xl overflow-hidden border border-slate-100">
-                            <img src="${imgUrl}" alt="${p.name}" class="w-full h-full object-cover" onerror="this.src='${defaultImg}'">
+                            <img src="${escapeHtml(imgUrl)}" alt="${escapeHtml(p.name)}" class="w-full h-full object-cover" onerror="this.src='${defaultImg}'">
                             ${badgeHTML}
                         </div>
                         <div>
                             <div class="flex justify-between items-start">
-                                <h3 class="font-bold text-sm text-black">${p.name}</h3>
+                                <h3 class="font-bold text-sm text-black">${escapeHtml(p.name)}</h3>
                                 <div class="flex items-center gap-1">
-                                    <button onclick="openEditProductModal('${p.id}')" class="text-indigo-600 hover:text-indigo-800 p-1.5 rounded-lg hover:bg-indigo-50 transition cursor-pointer" title="Edit Product">
+                                    <button onclick="openEditProductModal(${escapeHtml(JSON.stringify(String(p.id)))})" class="text-indigo-600 hover:text-indigo-800 p-1.5 rounded-lg hover:bg-indigo-50 transition cursor-pointer" title="Edit Product">
                                         <i class="fas fa-edit text-sm"></i>
                                     </button>
-                                    <button onclick="deleteProduct('${p.id}')" class="text-amber-600 hover:text-amber-800 p-1.5 rounded-lg hover:bg-amber-50 transition cursor-pointer" title="Archive Product">
+                                    <button onclick="deleteProduct(${escapeHtml(JSON.stringify(String(p.id)))})" class="text-amber-600 hover:text-amber-800 p-1.5 rounded-lg hover:bg-amber-50 transition cursor-pointer" title="Archive Product">
                                         <i class="fas fa-box-archive text-sm"></i>
                                     </button>
                                 </div>
                             </div>
-                            <p class="text-[11px] text-slate-800 pt-0.5 leading-relaxed">${p.desc || ''}</p>
+                            <p class="text-[11px] text-slate-800 pt-0.5 leading-relaxed">${escapeHtml(p.desc || '')}</p>
                         </div>
                     </div>
                     <div class="space-y-3 pt-2 border-t border-slate-100">
@@ -686,7 +679,7 @@ function renderStoreProducts() {
                             <span class="font-mono font-bold text-black">${storePriceLabel(p.price)}</span>
                         </div>
                         
-                        <button onclick="openRestockModal('${p.id}', '${p.name}')" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs py-2.5 rounded-xl transition shadow-2xs cursor-pointer flex items-center justify-center gap-1.5">
+                        <button onclick="openRestockModal(${escapeHtml(JSON.stringify(String(p.id)))}, ${escapeHtml(JSON.stringify(String(p.name)))})" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs py-2.5 rounded-xl transition shadow-2xs cursor-pointer flex items-center justify-center gap-1.5">
                             <i class="fas fa-plus-circle text-xs"></i> Custom Restock
                         </button>
                     </div>
@@ -695,15 +688,15 @@ function renderStoreProducts() {
         }
 
         return `
-            <div role="button" tabindex="0" onclick="openProductDetailModal('${p.id}')" onkeydown="if(event.key === 'Enter' || event.key === ' ') { event.preventDefault(); openProductDetailModal('${p.id}'); }" class="store-product-card bg-white border ${cardBorder} rounded-2xl p-5 shadow-xs hover:shadow-md transition-all flex flex-col justify-between space-y-4 group cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-emerald-600">
+            <div role="button" tabindex="0" onclick="openProductDetailModal(${escapeHtml(JSON.stringify(String(p.id)))})" onkeydown="if(event.key === 'Enter' || event.key === ' ') { event.preventDefault(); openProductDetailModal(${escapeHtml(JSON.stringify(String(p.id)))}); }" class="store-product-card bg-white border ${cardBorder} rounded-2xl p-5 shadow-xs hover:shadow-md transition-all flex flex-col justify-between space-y-4 group cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-emerald-600">
                 <div class="space-y-3">
                     <div class="relative h-36 bg-slate-100 rounded-xl overflow-hidden border border-slate-100 cursor-pointer">
-                        <img src="${imgUrl}" alt="${p.name}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" onerror="this.src='${defaultImg}'">
+                        <img src="${escapeHtml(imgUrl)}" alt="${escapeHtml(p.name)}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" onerror="this.src='${defaultImg}'">
                         ${badgeHTML}
                     </div>
                     <div>
-                        <h3 class="font-bold text-sm text-black group-hover:text-blue-600 transition-colors line-clamp-1">${p.name}</h3>
-                        <p class="text-[11px] text-slate-800 pt-0.5 leading-relaxed line-clamp-2">${p.desc || ''}</p>
+                        <h3 class="font-bold text-sm text-black group-hover:text-blue-600 transition-colors line-clamp-1">${escapeHtml(p.name)}</h3>
+                        <p class="text-[11px] text-slate-800 pt-0.5 leading-relaxed line-clamp-2">${escapeHtml(p.desc || '')}</p>
                     </div>
                 </div>
                 <div class="space-y-3 pt-2 border-t border-slate-100">
@@ -846,20 +839,16 @@ async function executeProductDeletion() {
     }
 }
 
-function handleProductFileImport(event, mode) {
+async function handleProductFileImport(event, mode) {
     const file = event.target.files[0];
     if (file) {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            const base64Url = e.target.result;
-            if (mode === 'edit') {
-                document.getElementById('editProdImage').value = base64Url;
-            } else {
-                document.getElementById('newProdImage').value = base64Url;
-            }
-            alert("📷 Image successfully imported and attached!");
-        };
-        reader.readAsDataURL(file);
+        event.target.disabled = true;
+        try {
+            const uploaded = await ShopUploads.upload(file, 'catalog');
+            document.getElementById(mode === 'edit' ? 'editProdImage' : 'newProdImage').value = uploaded.fileUrl;
+            alert('Image successfully uploaded and attached.');
+        } catch (error) { alert(error.message); }
+        finally { event.target.disabled = false; }
     }
 }
 
@@ -888,7 +877,7 @@ async function submitCustomRestock() {
         prod.stock += addQty;
         if (!await saveProductsToBackend({id: prod.id, stockDelta: addQty})) return;
         closeRestockModal();
-        alert(`Successfully restocked +${addQty} pcs to ${prod.name}! (New total stock: ${prod.stock})`);
+        alert(`Successfully restocked +${addQty} pcs to ${escapeHtml(prod.name)}! (New total stock: ${escapeHtml(prod.stock)})`);
     }
 }
 
@@ -998,7 +987,7 @@ function setItemQtyDirect(prodId, rawValue) {
     }
 
     if (newQty > prod.stock) {
-        alert(`Only ${prod.stock} units are available.`);
+        alert(`Only ${escapeHtml(prod.stock)} units are available.`);
         newQty = prod.stock;
     }
 
@@ -1026,7 +1015,7 @@ function updateItemQty(prodId, delta) {
             if (delta <= prod.stock) {
                 cartState[prodId] = { ...prod, qty: delta };
             } else {
-                alert(`Sorry, only ${prod.stock} pcs available in stock.`);
+                alert(`Sorry, only ${escapeHtml(prod.stock)} pcs available in stock.`);
             }
         }
     } else {
@@ -1036,7 +1025,7 @@ function updateItemQty(prodId, delta) {
         } else if (newQty <= prod.stock) {
             cartState[prodId].qty = newQty;
         } else {
-            alert(`Sorry, only ${prod.stock} pcs available in stock.`);
+            alert(`Sorry, only ${escapeHtml(prod.stock)} pcs available in stock.`);
         }
     }
     renderStoreProducts();
@@ -1126,9 +1115,9 @@ function openProductDetailModal(prodId) {
         if (isOut) {
             stockEl.innerHTML = `<span class="text-rose-600 font-bold">Out of Stock (0 pcs)</span>`;
         } else if (isLow) {
-            stockEl.innerHTML = `<span class="text-amber-600 font-bold">Low Stock: ${prod.stock} pcs left</span>`;
+            stockEl.innerHTML = `<span class="text-amber-600 font-bold">Low Stock: ${escapeHtml(prod.stock)} pcs left</span>`;
         } else {
-            stockEl.innerHTML = `<span class="text-emerald-600 font-bold">${prod.stock} pcs available</span>`;
+            stockEl.innerHTML = `<span class="text-emerald-600 font-bold">${escapeHtml(prod.stock)} pcs available</span>`;
         }
     }
 
@@ -1152,7 +1141,7 @@ function openProductDetailModal(prodId) {
         qtyInput.disabled = isOut || !priceValid;
     }
     if (maxHint) {
-        maxHint.textContent = `(Max: ${prod.stock} pcs)`;
+        maxHint.textContent = `(Max: ${escapeHtml(prod.stock)} pcs)`;
     }
 
     updateDetailModalTotal();
@@ -1207,7 +1196,7 @@ function changeDetailModalQty(delta) {
 
     if (next < 1) next = 1;
     if (next > prod.stock) {
-        alert(`Quantity cannot exceed the available stock (${prod.stock} units).`);
+        alert(`Quantity cannot exceed the available stock (${escapeHtml(prod.stock)} units).`);
         next = prod.stock;
     }
 
@@ -1270,7 +1259,7 @@ function submitModalAddToCart() {
     const totalDesired = existingQty + qtyToAdd;
 
     if (totalDesired > prod.stock) {
-        alert(`Quantity exceeds stock. You already have ${existingQty} units in your cart, and only ${prod.stock} units are available.`);
+        alert(`Quantity exceeds stock. You already have ${existingQty} units in your cart, and only ${escapeHtml(prod.stock)} units are available.`);
         return;
     }
 
@@ -1302,7 +1291,7 @@ function submitModalBuyNow() {
     const selectedQty = Math.max(1, parseInt(input?.value) || 1);
 
     if (selectedQty > prod.stock) {
-        alert(`Quantity cannot exceed stock (${prod.stock} units).`);
+        alert(`Quantity cannot exceed stock (${escapeHtml(prod.stock)} units).`);
         return;
     }
 
@@ -1336,6 +1325,7 @@ function toggleCartDrawer(open) {
 
     const backdrop = document.getElementById('cartModalBackdrop');
     const drawer = document.getElementById('cartDrawer');
+    drawer.inert = !open;
     if (open) {
         loadStoreGcashSettings();
         updateStorePaymentControls();
@@ -1368,15 +1358,15 @@ function updateCartDrawerUI() {
     container.innerHTML = items.map(item => `
         <div class="py-3 flex items-center justify-between gap-3 text-xs">
             <div class="flex items-center gap-2.5">
-                <img src="${item.imageUrl || 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=100&q=80'}" class="w-10 h-10 object-cover rounded-lg">
+                <img src="${escapeHtml(item.imageUrl || 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=100&q=80')}" class="w-10 h-10 object-cover rounded-lg">
                 <div>
-                    <div class="font-bold text-black">${item.name}</div>
+                    <div class="font-bold text-black">${escapeHtml(item.name)}</div>
                     <div class="text-[10px] text-slate-700 font-mono">${storePriceLabel(item.price)} x ${item.qty}</div>
                 </div>
             </div>
             <div class="flex items-center gap-2">
                 <span class="font-mono font-bold text-black">${validStorePrice(item.price) ? new Intl.NumberFormat('en-PH', {style:'currency',currency:'PHP'}).format(item.price * item.qty) : '—'}</span>
-                <button onclick="updateItemQty('${item.id}', -999)" class="text-rose-500 hover:text-rose-700 p-1 cursor-pointer">
+                <button onclick="updateItemQty(${escapeHtml(JSON.stringify(String(item.id)))}, -999)" class="text-rose-500 hover:text-rose-700 p-1 cursor-pointer">
                     <i class="fas fa-trash-alt text-xs"></i>
                 </button>
             </div>

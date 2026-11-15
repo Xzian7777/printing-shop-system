@@ -2,6 +2,8 @@ import argparse
 import base64
 import datetime
 import hashlib
+import hmac
+import io
 import logging
 import math
 import mimetypes
@@ -10,21 +12,26 @@ import random
 import re
 import secrets
 import smtplib
+import ssl
 import string
 import threading
+import time
 import uuid
 from decimal import Decimal, InvalidOperation, ROUND_HALF_UP
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
+from werkzeug.security import check_password_hash, generate_password_hash
+from werkzeug.datastructures import FileStorage
 from functools import wraps
 from pathlib import Path
 from urllib.parse import unquote, urlparse, urlsplit
 
 import requests
 from dotenv import load_dotenv
+from google.api_core.exceptions import ResourceExhausted
 from firebase_admin import auth, firestore, messaging
 from firebase_admin import auth as firebase_auth
-from flask import Blueprint, Flask, jsonify, redirect, render_template, request, session, url_for
+from flask import Blueprint, Flask, current_app, g, has_request_context, jsonify, redirect, render_template, request, session, url_for
 
 from firebase_config import db
 import supabase_config as sc
@@ -123,6 +130,33 @@ def stock_plan(order, products, restore=False):
     return plan
 
 
+def order_status_label(status):
+    value = str(status or 'Order Submitted').strip()
+    return 'Processing' if value.lower() in ['printing', 'preparing', 'processing'] else value
+
+
+def is_stopped_order_status(status):
+    value = str(status or '').strip().lower()
+    return 'cancel' in value or 'reject' in value
+
+
+def analytics_order_amount(order, field='total'):
+    if is_stopped_order_status(order.get('status')):
+        return 0.0
+    value = order.get(field)
+    if field == 'total' and value is None:
+        value = order.get('price')
+    if field == 'total' and value is None:
+        value = order.get('amount', 0)
+    if isinstance(value, bool):
+        return 0.0
+    try:
+        amount = float(str(value or 0).replace('₱', '').replace(',', '').strip())
+    except (TypeError, ValueError):
+        return 0.0
+    return amount if math.isfinite(amount) and amount >= 0 else 0.0
+
+
 def valid_transition(current, target):
     current = str(current or 'Order Submitted')
     if current == 'Cancelled':
@@ -156,7 +190,7 @@ def validate_payment(method, reference=''):
 def validate_merchant(settings, expected_account=''):
     account = str(settings.get('accountNumber') or '').strip()
     if settings.get('isActive') is False or not account:
-        raise ValueError('GCash is unavailable. Please choose Cash on Pickup.')
+        raise ValueError('GCash is unavailable. Contact the shop for payment assistance.')
     if expected_account and expected_account != account:
         raise ValueError('GCash merchant details changed. Refresh and check the current payment details.')
     return account
@@ -551,27 +585,75 @@ def update_order_status(order_id, new_status):
 # ---------------------------------------------------------------------------
 # OTHER STORE & USER HELPER FUNCTIONS
 # ---------------------------------------------------------------------------
+def customer_profile_rows(users, customers):
+    """Prefer UID-owned profiles and retain legacy identifiers for admin review."""
+    canonical = {doc.id: doc for doc in users
+                 if doc.id in [(doc.to_dict() or {}).get('uid'), (doc.to_dict() or {}).get('loyaltyUid')]}
+    email_uids = {}
+    for uid, doc in canonical.items():
+        email = str((doc.to_dict() or {}).get('email') or '').strip().lower()
+        email_uids.setdefault(email, set()).add(uid)
+    groups = {}
+    email_bindings = {}
+    for source, documents in [('users', users), ('customers', customers)]:
+        for doc in documents:
+            data = doc.to_dict() or {}
+            email = str(data.get('email') or '').strip().lower()
+            candidates = email_uids.get(email, set())
+            uid = data.get('uid') or data.get('loyaltyUid') or (next(iter(candidates)) if len(candidates) == 1 else None)
+            email_bindings.setdefault(email, set()).update(str(value) for value in [uid, data.get('loyaltyUid')] if value)
+            key = str(uid or email or f'{source}/{doc.id}')
+            groups.setdefault(key, []).append((source, doc))
+    result = []
+    for key, members in groups.items():
+        primary = canonical.get(key)
+        mirrors = [doc for source, doc in members if source == 'customers']
+        data = {}
+        for source, doc in members:
+            data.update(doc.to_dict() or {})
+        if primary:
+            data.update(primary.to_dict() or {})
+        legacy_users = bool(primary) and any(source == 'users' and doc.id != key and (doc.to_dict() or {}).get('uid') != key for source, doc in members)
+        primary_data = (primary.to_dict() or {}) if primary else {}
+        conflicting_id = bool(len(mirrors) == 1 and primary_data.get('customerId') and str(primary_data['customerId']) != mirrors[0].id)
+        conflicting_email = any(len(email_bindings.get(str((doc.to_dict() or {}).get('email') or '').strip().lower(), set())) > 1 for _, doc in members)
+        review = len(mirrors) > 1 or legacy_users or conflicting_id or conflicting_email
+        cards = {str((doc.to_dict() or {}).get('rfidUid')) for _, doc in members if (doc.to_dict() or {}).get('rfidUid')}
+        review = review or len(cards) > 1
+        data['id'] = primary.id if primary and review else (mirrors[0].id if mirrors else members[0][1].id)
+        if primary:
+            data['uid'] = primary.id
+            data['role'] = (primary.to_dict() or {}).get('role') or 'customer'
+            canonical_data = primary.to_dict() or {}
+            canonical_name = canonical_data.get('fullName') or canonical_data.get('full_name') or canonical_data.get('name')
+            if canonical_name:
+                data.update(fullName=canonical_name, full_name=canonical_name, name=canonical_name)
+        data['legacyCustomerIds'] = sorted(doc.id for doc in mirrors)
+        data['profileResolution'] = 'needs_review' if review else 'resolved'
+        data['rfidReviewRequired'] = review
+        if review:
+            data['rfidUid'] = (primary.to_dict() or {}).get('rfidUid', '') if primary else ''
+        if primary and primary.to_dict().get('physicalRfidUid'):
+            data['rfidUid'] = primary.to_dict()['physicalRfidUid']
+        archived = any((doc.to_dict() or {}).get('archived') or (doc.to_dict() or {}).get('isArchived') for _, doc in members)
+        data.update(archived=bool(archived), isArchived=bool(archived))
+        result.append(data)
+    return result
+
+
 def get_customers():
     try:
         if db is None: return []
-        profiles = {}
-        for collection in ['users', 'customers']:
-            for doc in db.collection(collection).stream():
-                data = doc.to_dict() or {}
-                key = str(data.get('email') or f'{collection}/{doc.id}').strip().lower()
-                old = profiles.get(key, {})
-                archived = old.get('archived') or old.get('isArchived') or data.get('archived') or data.get('isArchived') or False
-                profiles[key] = {**old, **data, 'id': doc.id, 'archived': archived, 'isArchived': archived}
+        profiles = customer_profile_rows(list(db.collection('users').stream()), list(db.collection('customers').stream()))
         balances = {doc.id: doc.to_dict() for doc in db.collection('loyalty_accounts').stream()}
-        for profile in profiles.values():
-            balance = balances.get(profile.get('loyaltyUid') or profile.get('uid') or profile.get('id'))
-            if balance:
-                profile['points'] = int(balance.get('balance', 0)) - int(balance.get('reserved', 0))
-                profile['loyaltyPoints'] = profile['points']
-                profile['reservedPoints'] = int(balance.get('reserved', 0))
-        return [p for p in profiles.values() if not p.get('archived') and not p.get('isArchived')]
-    except Exception as e:
-        print(f'Error fetching customers: {e}')
+        for profile in profiles:
+            balance = balances.get(profile.get('uid') or profile.get('loyaltyUid') or profile.get('id'), {})
+            profile['points'] = int(balance.get('balance', 0)) - int(balance.get('reserved', 0))
+            profile['loyaltyPoints'] = profile['points']
+            profile['reservedPoints'] = int(balance.get('reserved', 0))
+        return [profile for profile in profiles if not profile['archived']]
+    except Exception as error:
+        print(f'Error fetching customers: {error}')
         return []
 
 
@@ -907,8 +989,17 @@ def delete_service(service_id):
 
 def sync_customer_profile(customer_id, data):
     targets = _item_refs('user', str(customer_id), data)
+    rows = customer_profile_rows(list(db.collection('users').stream()), list(db.collection('customers').stream()))
+    review = next((row for row in rows if row['id'] == str(customer_id) and row['rfidReviewRequired']), None)
+    canonical = db.collection('users').document(str(customer_id))
+    if review and canonical.get().exists:
+        targets = [canonical]
     name = data.get('fullName') or data.get('full_name') or data.get('name')
     payload = dict(data)
+    for field in ['profileResolution', 'rfidReviewRequired', 'legacyCustomerIds']:
+        payload.pop(field, None)
+    if review:
+        payload = {key: value for key, value in payload.items() if key in ['fullName', 'full_name', 'name', 'email', 'phone', 'contact']}
     if name: payload.update(fullName=name, full_name=name, name=name)
     batch = db.batch()
     for target in targets:
@@ -998,8 +1089,12 @@ def get_notifications(user_id, email=None, state_user_id=None):
         audience.add(email)
     states = {doc.id: doc.to_dict() for doc in
               db.collection('notification_states').document(state_uid).collection('items').get()}
+    notifications = db.collection('notifications')
+    candidates = {doc.id: doc for doc in notifications.where('userId', 'in', sorted(audience)).stream()}
+    if email:
+        candidates.update({doc.id: doc for doc in notifications.where('recipientEmail', '==', email).stream()})
     result = []
-    for doc in db.collection('notifications').get():
+    for doc in candidates.values():
         data = doc.to_dict() or {}
         addressed = data.get('userId') in audience or (
             email and str(data.get('recipientEmail') or '').strip().lower() == email)
@@ -1040,6 +1135,28 @@ def create_notification(notif_data):
     except Exception:
         return False
 
+
+def refresh_stock_notifications():
+    created = 0
+    for product in get_store_products():
+        stock = whole(product.get('stock', 0), 'Stock', maximum=9007199254740991)
+        if stock >= 50:
+            continue
+        key = 'inventory_' + hashlib.sha256(f"{product['id']}:{stock}".encode()).hexdigest()
+        ref = db.collection('notifications').document(key)
+        title = 'Out of Stock' if stock == 0 else 'Low Stock'
+        message = f"{product.get('name') or 'Product'} has {stock} items remaining."
+        @firestore.transactional
+        def save(transaction):
+            if ref.get(transaction=transaction).exists:
+                return False
+            transaction.create(ref, {'id': key, 'userId': 'ADMIN', 'type': 'inventory_alert',
+                'title': title, 'message': message, 'status': 'Unread',
+                'productId': product['id'], 'stock': stock, 'createdAt': firestore.SERVER_TIMESTAMP})
+            return True
+        created += save(db.transaction())
+    return created
+
 def mark_all_notifications_read(user_id, email=None, state_user_id=None):
     return _save_notification_states(user_id, email, state_user_id)
 
@@ -1057,11 +1174,11 @@ def delete_all_notifications(user_id, email=None, state_user_id=None):
 
 def get_analytics_summary():
     orders = get_orders()
-    total_sales = sum(float(o.get('total', 0)) for o in orders if o.get('status') in ['Approved', 'Completed'])
+    total_sales = sum(analytics_order_amount(o) for o in orders if o.get('status') in ['Approved', 'Completed'])
     return {
         "totalOrders": len(orders),
         "totalSales": total_sales,
-        "activeOrders": len([o for o in orders if o.get('status') not in ['Completed', 'Rejected']])
+        "activeOrders": len([o for o in orders if str(o.get('status')).strip().lower() != 'completed' and not is_stopped_order_status(o.get('status'))])
     }
 
 # ---------------------------------------------------------------------------
@@ -1078,12 +1195,24 @@ def get_or_create_conversation(customer_email, customer_name=None, customer_phon
     if db is None or not customer_email:
         return None
     email_clean = customer_email.strip().lower()
-    conv_id = get_safe_conversation_id(email_clean)
+    user = auth.get_user_by_email(email_clean)
+    legacy_id = get_safe_conversation_id(email_clean)
+    legacy = db.collection('conversations').document(legacy_id).get()
+    legacy_data = legacy.to_dict() or {}
+    if legacy.exists and str(legacy_data.get('customerEmail') or '').lower() == email_clean:
+        conv_id, doc = legacy_id, legacy
+    else:
+        conv_id = 'conv_' + user.uid
+        doc = db.collection('conversations').document(conv_id).get()
     conv_ref = db.collection('conversations').document(conv_id)
-    doc = conv_ref.get()
-
+    customer_id = user.uid
     if doc.exists:
         data = doc.to_dict()
+        if str(data.get('customerEmail') or '').strip().lower() != email_clean:
+            raise PermissionError('This conversation needs account review. Contact the shop administrator.')
+        prior_owner = str(data.get('customerId') or '')
+        if prior_owner and prior_owner != user.uid and not prior_owner.startswith('CUST-'):
+            raise PermissionError('This conversation has conflicting ownership. Contact the shop administrator.')
         data['id'] = conv_id
         updates = {}
         if customer_name and (not data.get('customerName') or data.get('customerName') == email_clean.split('@')[0]):
@@ -1099,20 +1228,10 @@ def get_or_create_conversation(customer_email, customer_name=None, customer_phon
             conv_ref.update(updates)
         return data
 
-    # Lookup customer profile in Firestore 'customers' if name not provided
-    name = customer_name
-    phone = customer_phone
-    cid = customer_id
-    if not name or not phone or not cid:
-        for c in get_customers():
-            if isinstance(c, dict) and c.get('email', '').strip().lower() == email_clean:
-                if not name:
-                    name = c.get('fullName') or c.get('username')
-                if not phone:
-                    phone = c.get('contact') or c.get('phone')
-                if not cid:
-                    cid = c.get('id')
-                break
+    profile = db.collection('users').document(user.uid).get().to_dict() or {}
+    name = customer_name or profile.get('fullName') or profile.get('full_name') or user.display_name
+    phone = customer_phone or profile.get('phone') or profile.get('contact')
+    cid = user.uid
 
     now_iso = datetime.datetime.now().isoformat()
     new_conv = {
@@ -1132,6 +1251,21 @@ def get_or_create_conversation(customer_email, customer_name=None, customer_phon
     }
     conv_ref.set(new_conv)
     return new_conv
+
+_chat_directory_cache = (0, [])
+_chat_directory_lock = threading.RLock()
+
+
+def chat_directory():
+    global _chat_directory_cache
+    refresh = has_request_context() and request.args.get('refresh') == '1'
+    with _chat_directory_lock:
+        if not refresh and _chat_directory_cache[0] > time.monotonic():
+            return _chat_directory_cache[1]
+        rows = customer_profile_rows(list(db.collection('users').stream()), list(db.collection('customers').stream()))
+        _chat_directory_cache = (time.monotonic() + 60, rows)
+        return rows
+
 
 def get_all_conversations():
     """
@@ -1156,7 +1290,7 @@ def get_all_conversations():
 
         # 2. Fetch all registered customers to ensure complete customer inbox list
         try:
-            customers = get_customers() or []
+            customers = chat_directory()
             for c in customers:
                 if not isinstance(c, dict):
                     continue
@@ -1467,6 +1601,8 @@ def send_fcm_push_notification(recipient_role, recipient_email, title, body, cli
         doc_refs_by_token = {}
         for d in docs:
             tdata = d.to_dict()
+            if tdata.get('serverVerified') is not True:
+                continue
             tok = tdata.get('token')
             if tok and tok not in active_tokens and tok not in (data_payload or {}).get('_exclude_tokens', []):
                 active_tokens.append(tok)
@@ -1642,7 +1778,8 @@ def _item_refs(item_type, item_id, data):
             for doc in db.collection(collection).where('email', '==', email).stream():
                 refs[doc.reference.path] = doc.reference
     customer_id = str(data.get('customerId') or data.get('id') or item_id)
-    refs.setdefault('customers/' + customer_id, db.collection('customers').document(customer_id))
+    if not any(reference.parent.id == 'customers' for reference in refs.values()):
+        refs['customers/' + customer_id] = db.collection('customers').document(customer_id)
     if not any(r.parent.id == 'users' for r in refs.values()):
         uid = str(data.get('uid') or item_id)
         refs['users/' + uid] = db.collection('users').document(uid)
@@ -1734,11 +1871,12 @@ def read_account(db, transaction, uid):
     return ref, dict(data)
 
 
-def save_account(transaction, ref, data, event_id, kind, points, order_id):
+def save_account(transaction, ref, data, event_id, kind, points, order_id, metadata=None):
     balance, reserved = account_values(data)
     transaction.set(ref, {'balance': balance, 'reserved': reserved,
                          'updatedAt': firestore.SERVER_TIMESTAMP}, merge=True)
     transaction.create(ref.collection('events').document(event_id), {
+        **(metadata or {}),
         'type': kind, 'points': points, 'orderId': order_id,
         'balance': balance, 'reserved': reserved, 'createdAt': firestore.SERVER_TIMESTAMP,
     })
@@ -1811,9 +1949,241 @@ def catalog_order(db, transaction, payload, reward=None):
     return order, subtotal
 
 
+def prepare_direct_upload(actor, payload):
+    purpose = payload.get('purpose', 'document')
+    if purpose not in ['document', 'receipt', 'catalog', 'merchant_qr']:
+        raise ValueError('Invalid upload type.')
+    if purpose in ['catalog', 'merchant_qr'] and actor['role'] != 'admin':
+        raise PermissionError('Admin access is required for catalog uploads.')
+    files = payload.get('files')
+    if not isinstance(files, list) or not 1 <= len(files) <= sc.MAX_FILES_PER_REQUEST:
+        raise ValueError('Attach between one and five files.')
+    validated = []
+    for item in files:
+        if not isinstance(item, dict):
+            raise ValueError('Invalid file metadata.')
+        name, size = item.get('name'), item.get('size')
+        if not isinstance(name, str) or not name.strip() or len(name) > sc.MAX_FILENAME_LENGTH:
+            raise ValueError('Provide a filename of at most 150 characters.')
+        extension = sc._get_extension(name)
+        if extension not in sc.ALLOWED_EXTENSIONS or (purpose != 'document' and extension not in ['png', 'jpg', 'jpeg']):
+            raise ValueError('Choose a supported document or image format.')
+        if type(size) is not int or not 0 < size <= sc.MAX_FILE_SIZE_BYTES:
+            raise ValueError('Each file must be between 1 byte and 10 MB.')
+        validated.append({'name': name, 'size': size, 'contentType': sc.ALLOWED_MIME_TYPES[extension]})
+    if sum(item['size'] for item in validated) > sc.MAX_COMBINED_SIZE_BYTES:
+        raise ValueError('The combined upload limit is 25 MB.')
+    key = operation_key(actor['uid'], payload.get('submissionId'))
+    fingerprint = record_digest({'purpose': purpose, 'files': validated})
+    ref = db.collection('upload_batches').document(key)
+    now = utc_now()
+
+    @firestore.transactional
+    def prepare(transaction):
+        existing = ref.get(transaction=transaction).to_dict() or {}
+        if existing:
+            if existing.get('uid') != actor['uid'] or existing.get('fingerprint') != fingerprint:
+                raise ValueError('This upload identifier already belongs to a different selection.')
+            if existing['expiresAt'] <= now:
+                raise ValueError('The upload expired. Select the files again.')
+            return existing['fileIds']
+        ids = [key + '_' + str(index) for index in range(len(validated))]
+        for file_id, item in zip(ids, validated):
+            filename = sc._sanitize_filename(item['name'])
+            transaction.set(db.collection('upload_intents').document(file_id), {
+                **item, 'uid': actor['uid'], 'purpose': purpose, 'state': 'pending',
+                'stagePath': f'staging/{file_id}/{filename}',
+                'path': f'orders/{actor["uid"]}/{file_id}_{filename}',
+                'bucket': sc.BUCKET_NAME if purpose in ['catalog', 'merchant_qr'] else sc.PRIVATE_BUCKET_NAME,
+                'expiresAt': now + datetime.timedelta(minutes=30),
+                'cleanupAt': now + datetime.timedelta(hours=2, minutes=35),
+                'createdAt': firestore.SERVER_TIMESTAMP})
+        transaction.set(ref, {'uid': actor['uid'], 'fingerprint': fingerprint, 'fileIds': ids,
+                             'expiresAt': now + datetime.timedelta(minutes=30)})
+        return ids
+
+    ids = prepare(db.transaction())
+    tickets = []
+    for file_id in ids:
+        item = db.collection('upload_intents').document(file_id).get().to_dict()
+        ticket = {'fileId': file_id, 'contentType': item['contentType']}
+        if item['state'] == 'complete':
+            ticket['result'] = direct_upload_result(item)
+        else:
+            ticket['uploadUrl'] = sc.signed_staging_upload(item['stagePath'])
+        tickets.append(ticket)
+    return tickets
+
+
+def direct_upload_result(item):
+    url = (sc._get_client().storage.from_(item['bucket']).get_public_url(item['path'])
+           if item['purpose'] in ['catalog', 'merchant_qr'] else sc.get_signed_url(item['path']))
+    if not url:
+        raise RuntimeError('Unable to prepare the uploaded file link. Please retry.')
+    return {'fileName': item['name'], 'fileUrl': url, 'storagePath': item['path'], 'url': url}
+
+
+def finalize_direct_upload(actor, file_id):
+    ref = db.collection('upload_intents').document(safe_key(file_id))
+    lease = uuid.uuid4().hex
+
+    @firestore.transactional
+    def claim(transaction):
+        item = ref.get(transaction=transaction).to_dict() or {}
+        if item.get('uid') != actor['uid']:
+            raise PermissionError('This upload does not belong to your account.')
+        if item.get('purpose') in ['catalog', 'merchant_qr'] and actor['role'] != 'admin':
+            raise PermissionError('Admin access is required for catalog uploads.')
+        if item.get('state') == 'complete':
+            return item
+        now = utc_now()
+        if item['expiresAt'] <= now:
+            raise ValueError('The upload expired. Select the file again.')
+        if item.get('leaseUntil', now) > now:
+            raise ValueError('The upload is being verified. Retry shortly.')
+        transaction.update(ref, {'lease': lease, 'leaseUntil': now + datetime.timedelta(minutes=3)})
+        return item
+
+    item = claim(db.transaction())
+    if item.get('state') == 'complete':
+        return direct_upload_result(item)
+    try:
+        contents = sc.read_staged_upload(item['stagePath'])
+        if len(contents) != item['size']:
+            raise ValueError('The uploaded file size changed. Select the file again.')
+        file = FileStorage(stream=io.BytesIO(contents), filename=item['name'], content_type=item['contentType'])
+        valid, message = sc.validate_upload_file(file)
+        if not valid:
+            raise ValueError(message)
+        digest = hashlib.sha256(contents).hexdigest()
+        sc.publish_uploaded_bytes(item['path'], contents, item['contentType'], item['bucket'])
+        key = hashlib.sha256(f'{item["bucket"]}/{item["path"]}'.encode()).hexdigest()
+
+        @firestore.transactional
+        def complete(transaction):
+            current = ref.get(transaction=transaction).to_dict() or {}
+            if current.get('lease') != lease:
+                raise ValueError('The upload verification changed. Retry the same file.')
+            if item['purpose'] in ['document', 'receipt']:
+                transaction.set(db.collection('file_ownership').document(key), {
+                    'uid': actor['uid'], 'bucket': item['bucket'], 'path': item['path'],
+                    'purpose': item['purpose'], 'name': item['name'], 'size': len(contents),
+                    'sha256': digest, 'createdAt': firestore.SERVER_TIMESTAMP})
+            transaction.update(ref, {'state': 'complete', 'sha256': digest, 'completedAt': firestore.SERVER_TIMESTAMP})
+        complete(db.transaction())
+        return direct_upload_result(item)
+    except Exception:
+        @firestore.transactional
+        def release(transaction):
+            current = ref.get(transaction=transaction).to_dict() or {}
+            if current.get('lease') == lease and current.get('state') != 'complete':
+                transaction.update(ref, {'leaseUntil': utc_now()})
+        release(db.transaction())
+        raise
+
+
+def cleanup_expired_uploads(database):
+    # Signed upload tokens expire after two hours. Keep staging until every issued token expires.
+    query = database.collection('upload_intents').where('cleanupAt', '<=', utc_now()).limit(20)
+    for snapshot in query.stream():
+        item = snapshot.to_dict()
+        if sc.delete_file(item['stagePath']):
+            snapshot.reference.update({'cleanupAt': firestore.DELETE_FIELD, 'stageCleanedAt': firestore.SERVER_TIMESTAMP})
+
+
+def upload_metadata(url, actor, purpose=None):
+    parsed = urlparse(str(url or ''))
+    prefix = '/storage/v1/object/sign/'
+    if parsed.scheme != 'https' or parsed.netloc != urlparse(sc.SUPABASE_URL).netloc or not parsed.path.startswith(prefix):
+        raise ValueError('Upload the file through the shop before submitting the order.')
+    bucket, separator, path = unquote(parsed.path[len(prefix):]).partition('/')
+    if not separator or bucket != sc.PRIVATE_BUCKET_NAME or '..' in path.split('/'):
+        raise ValueError('Invalid private file reference.')
+    key = hashlib.sha256(f'{bucket}/{path}'.encode()).hexdigest()
+    record = db.collection('file_ownership').document(key).get().to_dict() or {}
+    if not record or record.get('uid') != actor['uid'] or (purpose and record.get('purpose') != purpose):
+        raise PermissionError('This file does not belong to your account or upload type.')
+    return record
+
+
+def validate_order_uploads(actor, payload):
+    if not payload.get('items'):
+        document = upload_metadata(payload.get('fileUrl'), actor, 'document')
+        if payload.get('storagePath') and payload['storagePath'] != document['path']:
+            raise PermissionError('This file path does not belong to the uploaded document.')
+        payload['storagePath'] = document['path']
+    receipt = str(payload.get('gcashReceiptUrl') or '')
+    if 'gcash' in str(payload.get('payment', '')).lower() and receipt and not receipt.startswith('data:'):
+        upload_metadata(receipt, actor, 'receipt')
+
+
+def store_inline_receipt(value, actor):
+    value = validate_receipt(value)
+    if not value.startswith('data:'):
+        return value
+    contents = base64.b64decode(value.split(',', 1)[1], validate=True)
+    digest = hashlib.sha256(contents).hexdigest()
+    mime = value.split(';', 1)[0].removeprefix('data:')
+    extension = {'image/png': 'png', 'image/jpeg': 'jpg', 'image/webp': 'webp'}[mime]
+    path = f"receipts/{actor['uid']}/{digest}.{extension}"
+    key = hashlib.sha256(f'{sc.PRIVATE_BUCKET_NAME}/{path}'.encode()).hexdigest()
+    ref = db.collection('file_ownership').document(key)
+    existing = ref.get().to_dict() or {}
+    if existing and (existing.get('uid') != actor['uid'] or existing.get('sha256') != digest):
+        raise PermissionError('Receipt ownership needs review.')
+    sc.ensure_private_bucket()
+    bucket = sc._get_client().storage.from_(sc.PRIVATE_BUCKET_NAME)
+    if not existing:
+        try:
+            bucket.upload(path, contents, {'content-type': mime, 'upsert': 'false'})
+        except Exception as error:
+            if str(getattr(error, 'status', '')) not in ['400', '409'] or hashlib.sha256(bucket.download(path)).hexdigest() != digest:
+                raise
+        ref.set({'uid': actor['uid'], 'bucket': sc.PRIVATE_BUCKET_NAME, 'path': path,
+                 'purpose': 'receipt', 'name': 'GCash_Receipt.' + extension,
+                 'sha256': digest, 'size': len(contents), 'createdAt': firestore.SERVER_TIMESTAMP})
+    url = sc.get_signed_url(path)
+    if not url:
+        raise RuntimeError('Unable to prepare a private receipt link.')
+    return url
+
+
+def payment_eligibility(db, uid, account=None, transaction=None):
+    if account is None:
+        account = db.collection('loyalty_accounts').document(uid).get(transaction=transaction).to_dict() or {}
+    if account.get('cashOnPickupUnlocked') is True:
+        return {'cashOnPickupAllowed': True, 'hasOrders': True}
+    has_orders = False
+    for collection in [orders_ref(db), db.collection('orders')]:
+        for snapshot in collection.where('customerId', '==', uid).stream(transaction=transaction):
+            order = snapshot.to_dict() or {}
+            has_orders = True
+            if order.get('loyaltyUid') not in [None, '', uid]:
+                continue
+            if str(order.get('status') or '').strip().lower() != 'completed':
+                continue
+            if str(order.get('paymentStatus') or '').strip().lower() != 'paid':
+                continue
+            try:
+                paid = money(order.get('total', order.get('totalAmount', 0))) > 0
+            except (ValueError, TypeError):
+                paid = False
+            if paid:
+                return {'cashOnPickupAllowed': True, 'hasOrders': True}
+    return {'cashOnPickupAllowed': False, 'hasOrders': has_orders}
+
+
 def submit_order(db, actor, payload):
     key = operation_key(actor['uid'], payload.get('submissionId'))
     request_ref = db.collection('loyalty_submissions').document(key)
+    prior = request_ref.get().to_dict() or {}
+    if prior:
+        if prior.get('uid') != actor['uid']:
+            raise PermissionError('Submission belongs to another customer.')
+        return orders_ref(db).document(prior['orderId']).get().to_dict()
+    payload = dict(payload)
+    if 'gcash' in str(payload.get('payment') or '').lower() and str(payload.get('gcashReceiptUrl') or '').startswith('data:'):
+        payload['gcashReceiptUrl'] = store_inline_receipt(payload['gcashReceiptUrl'], actor)
     for _ in range(10):
         order_id = f'PRNT-{secrets.randbelow(1000000):06d}'
         order_ref = orders_ref(db).document(order_id)
@@ -1841,6 +2211,7 @@ def submit_order(db, actor, payload):
                 if not reward.get('active'):
                     raise ValueError('This reward is unavailable.')
             order, subtotal = catalog_order(db, transaction, payload, reward)
+            validate_order_uploads(actor, order)
             if reward:
                 points = whole(reward['pointsCost'], 'Reward points', 1)
                 if points > balance - reserved:
@@ -1860,6 +2231,8 @@ def submit_order(db, actor, payload):
                 if money(payload.get('totalAmount', payload.get('total'))) != subtotal:
                     raise ValueError('Catalog prices changed. Review the updated subtotal.')
                 payment, reference = validate_payment(payload.get('payment') or 'Cash on Pickup', str(payload.get('gcashRef') or ''))
+                if payment == 'Cash on Pickup' and not payment_eligibility(db, actor['uid'], account, transaction)['cashOnPickupAllowed']:
+                    raise ValueError('Cash on Pickup unlocks after your first payment-verified, completed order. Please use GCash for your first order.')
                 receipt, merchant = '', ''
                 if 'gcash' in payment.lower():
                     details = db.collection('settings').document('gcash_config').get(transaction=transaction).to_dict() or {}
@@ -1883,6 +2256,7 @@ def submit_order(db, actor, payload):
                 account['reserved'] = reserved + points
                 save_account(transaction, account_ref, account, f'reserve_{order_id}', 'reserve', points, order_id)
             transaction.create(order_ref, record)
+            transaction.set(db.collection('settings').document('order_revision'), {'updatedAt': firestore.SERVER_TIMESTAMP})
             transaction.create(request_ref, {'uid': actor['uid'], 'orderId': order_id})
             transaction.set(db.collection('notifications').document('order_created_' + order_id), {
                 'id': 'order_created_' + order_id, 'userId': 'ADMIN', 'type': 'new_order',
@@ -1911,7 +2285,7 @@ def apply_order_status(db, order_id, target, actor, reason='', payment_confirmed
         current = order.get('status', 'Order Submitted')
         cancelling = target == 'Cancelled'
         if cancelling:
-            if actor['uid'] not in [order.get('customerId'), order.get('uid')] and actor['email'] != str(order.get('email') or order.get('customerEmail') or '').lower():
+            if actor['uid'] != order.get('customerId'):
                 raise PermissionError('You can only cancel your own order.')
         elif actor['role'] != 'admin':
             raise PermissionError('Admin access required.')
@@ -1965,6 +2339,12 @@ def apply_order_status(db, order_id, target, actor, reason='', payment_confirmed
         if target == 'Completed':
             updates['completedAt'] = firestore.SERVER_TIMESTAMP
             updates['paymentStatus'] = 'Paid' if money(order.get('total', 0)) else 'Paid with Points'
+            if uid and uid == order.get('customerId') and money(order.get('total', 0)) > 0:
+                transaction.set(account_ref, {
+                    'cashOnPickupUnlocked': True,
+                    'cashOnPickupUnlockedAt': firestore.SERVER_TIMESTAMP,
+                    'cashOnPickupOrderId': order_id,
+                }, merge=True)
             if uid and money(order.get('total', 0)) > 0 and not order.get('pointsEarned'):
                 account['balance'] += 1
                 updates['pointsEarned'] = 1
@@ -1982,6 +2362,7 @@ def apply_order_status(db, order_id, target, actor, reason='', payment_confirmed
             for product_ref in [db.collection('products').document(key), legacy_products(db).document(key)]:
                 transaction.set(product_ref, {**products[key], 'stock': stock}, merge=True)
         transaction.update(ref, updates)
+        transaction.set(db.collection('settings').document('order_revision'), {'updatedAt': firestore.SERVER_TIMESTAMP})
         transaction.set(db.collection('push_jobs').document(), {
             'type': 'order_status', 'orderId': order_id, 'status': target,
             'state': 'pending', 'createdAt': firestore.SERVER_TIMESTAMP,
@@ -1989,7 +2370,7 @@ def apply_order_status(db, order_id, target, actor, reason='', payment_confirmed
         notif = db.collection('notifications').document()
         transaction.set(notif, {'id': notif.id, 'userId': uid or order.get('customerId') or order.get('email'),
             'recipientEmail': str(order.get('email') or order.get('customerEmail') or '').lower(),
-            'title': f'Order Status: {target}', 'message': f'{order_id} is now {target}.',
+            'title': f'Order Status: {order_status_label(target)}', 'message': f'{order_id} is now {order_status_label(target)}.',
             'type': 'order_status', 'orderId': order_id, 'status': 'Unread',
             'link': '/customer?tab=myOrders', 'createdAt': firestore.SERVER_TIMESTAMP,
             'timestamp': datetime.datetime.now(datetime.timezone.utc).isoformat()})
@@ -2105,6 +2486,7 @@ def complete_sale(db, request, cashier, loyalty_customer=None):
                     account['balance'] += 1
                     save_account(transaction, account_ref, account, f'earn_{order_id}', 'earn', 1, order_id)
             transaction.set(orders.document(order_id), record)
+            transaction.set(db.collection('settings').document('order_revision'), {'updatedAt': firestore.SERVER_TIMESTAMP})
             transaction.set(receipt_ref, {**record, 'recordedAt': firestore.SERVER_TIMESTAMP})
             return record
 
@@ -2147,7 +2529,7 @@ def job_payload(db, job, event_id):
     if job.get('type') == 'order_status':
         order_id = job.get('orderId')
         status = str(job.get('status') or '')
-        allowed = ['Approved', 'Printing', 'Preparing', 'Ready for Pickup', 'Completed']
+        allowed = ['Approved', 'Printing', 'Preparing', 'Ready for Pickup', 'Completed', 'Cancelled']
         if not order_id or (status not in allowed and not status.startswith('Rejected')):
             return None
         order = db.document(f'artifacts/printcraft-pro/public/data/orders/{order_id}').get()
@@ -2159,8 +2541,8 @@ def job_payload(db, job, event_id):
             return None
         return dict(
             recipient_role='customer', recipient_email=email,
-            title=f'Order {status}: {order_id}'[:200],
-            body=f"Your {data.get('service') or 'order'} is now {status}."[:300],
+            title=f'Order {order_status_label(status)}: {order_id}'[:200],
+            body=f"Your {data.get('service') or 'order'} is now {order_status_label(status)}."[:300],
             click_url='/customer?tab=myOrders',
             data_payload={'type': 'order_status', 'order_id': order_id,
                           'status': status, 'event_id': event_id},
@@ -2246,21 +2628,28 @@ def deliver_job(db, ref, send):
     })
 
 
-def run(db, send):
-    while True:
+def run(db, send, shutdown=None):
+    shutdown = shutdown or threading.Event()
+    maintenance_at = 0
+    while not shutdown.is_set():
         try:
             # One field index, with persistent leases for concurrent web workers.
             jobs = db.collection('push_jobs').where('state', 'in', ['pending', 'retry', 'sending'])
             for snapshot in jobs.stream():
+                if shutdown.is_set():
+                    break
                 deliver_job(db, snapshot.reference, send)
+            if time.monotonic() >= maintenance_at:
+                cleanup_expired_uploads(db)
+                maintenance_at = time.monotonic() + 300
         except Exception:
             log.exception('Push delivery poll failed')
-        threading.Event().wait(5)
+        shutdown.wait(5)
 
 
 def start_push_worker(db, send):
     global _thread
-    if db is None:
+    if db is None or os.getenv('PUSH_WORKER_MODE', 'external' if os.getenv('VERCEL') else 'embedded') == 'external':
         return
     with _lock:
         if _thread is None or not _thread.is_alive():
@@ -2276,39 +2665,412 @@ class SignInRequired(Exception):
     pass
 
 
+def resolve_customer_profile(uid, email, canonical, users, customers):
+    profile = canonical.to_dict() or {}
+    for document in [canonical, *users, *customers]:
+        data = document.to_dict() or {}
+        if (data.get('archived') or data.get('isArchived') or data.get('disabled') or data.get('isDisabled')
+                or str(data.get('status', '')).lower() in ['archived', 'disabled']):
+            raise PermissionError('This account is archived or disabled. Contact the shop administrator.')
+        for field in ['uid', 'loyaltyUid']:
+            if data.get(field) and data[field] != uid:
+                raise ValueError('Your account has conflicting identities. Contact the shop administrator to resolve it.')
+    if profile.get('email') and str(profile['email']).strip().lower() != email:
+        raise ValueError('Your account has conflicting email addresses. Contact the shop administrator to resolve it.')
+    legacy_users = any(document.id != uid and (document.to_dict() or {}).get('uid') != uid for document in users)
+    conflicting_id = bool(len(customers) == 1 and profile.get('customerId') and str(profile['customerId']) != customers[0].id)
+    cards = {str((document.to_dict() or {}).get('rfidUid')) for document in [canonical, *users, *customers]
+             if (document.to_dict() or {}).get('rfidUid')}
+    review = len(customers) > 1 or legacy_users or conflicting_id or len(cards) > 1
+    if review and (not canonical.exists or str(profile.get('email') or '').strip().lower() != email):
+        raise ValueError('Your account needs legacy profile review. Contact the shop administrator to resolve it.')
+    role = str(profile.get('role') or 'customer').lower()
+    if canonical.exists and (not profile.get('email') or not profile.get('role')):
+        raise PermissionError('Your account profile is incomplete. Contact the shop administrator.')
+    if role not in ['customer', 'admin']:
+        raise PermissionError('This account role is unavailable. Contact the shop administrator.')
+    return {'profileResolution': 'needs_review' if review else 'resolved', 'rfidReviewRequired': bool(review),
+            'legacyCustomerIds': sorted(document.id for document in customers)}
+
+
+def storage_object_reference(value):
+    parsed = urlparse(str(value or ''))
+    if parsed.netloc != urlparse(sc.SUPABASE_URL).netloc or parsed.scheme != 'https':
+        return None
+    match = re.fullmatch(r'/storage/v1/object/(?:public|sign)/([^/]+)/(.+)', unquote(parsed.path))
+    if not match or '..' in match[2].split('/'):
+        return None
+    return match[1], match[2]
+
+
+def public_storage_references(database):
+    assets = set()
+    collections = [database.collection(name) for name in ['products', 'sample_products', 'services']]
+    collections.append(legacy_products(database))
+    for collection in collections:
+        for document in collection.stream():
+            data = document.to_dict() or {}
+            for field in ['imageUrl', 'image', 'qrUrl']:
+                reference = storage_object_reference(data.get(field))
+                if reference:
+                    assets.add(reference)
+    merchant = database.collection('settings').document('gcash_config').get().to_dict() or {}
+    reference = storage_object_reference(merchant.get('qrUrl'))
+    if reference:
+        assets.add(reference)
+    return assets
+
+
+def file_migration_report(database):
+    assets = public_storage_references(database)
+    objects, unresolved = {}, []
+    for document in orders_ref(database).stream():
+        data = document.to_dict() or {}
+        uid = str(data.get('customerId') or '')
+        for field in ['fileUrl', 'gcashReceiptUrl']:
+            value = str(data.get(field) or '')
+            if not value or value.startswith('data:'):
+                continue
+            reference = storage_object_reference(value)
+            if not reference:
+                unresolved.append({'orderPath': document.reference.path, 'field': field})
+                continue
+            bucket, path = reference
+            if bucket == sc.PRIVATE_BUCKET_NAME:
+                continue
+            key = hashlib.sha256(f'{bucket}/{path}'.encode()).hexdigest()
+            row = objects.setdefault(key, {'key': key, 'bucket': bucket, 'path': path, 'owners': [], 'references': [], 'approved': False})
+            if uid not in row['owners']:
+                row['owners'].append(uid)
+            row['references'].append({'orderPath': document.reference.path, 'field': field, 'url': value})
+    for row in objects.values():
+        uid = row['owners'][0] if len(row['owners']) == 1 else ''
+        row['sharedPublicAsset'] = (row['bucket'], row['path']) in assets
+        row['eligible'] = bool(uid and database.collection('users').document(uid).get().exists and row['bucket'] == sc.BUCKET_NAME and not row['sharedPublicAsset'] and len({ref['field'] for ref in row['references']}) == 1)
+    return {'version': 1, 'objects': list(objects.values()), 'unresolved': unresolved}
+
+
+def apply_file_report(database, report):
+    if report.get('version') != 1:
+        raise ValueError('Unsupported file migration report.')
+    sc.ensure_private_bucket()
+    client = sc._get_client()
+    migrated = 0
+    for row in report.get('objects', []):
+        if not row.get('approved'):
+            continue
+        if not row.get('eligible') or row.get('sharedPublicAsset') or len(row['owners']) != 1:
+            raise ValueError('Resolve shared or unmatched file ownership first.')
+        uid = row['owners'][0]
+        safe_key(uid)
+        if not database.collection('users').document(uid).get().exists:
+            raise ValueError('Resolve the canonical file owner first.')
+        if row['bucket'] != sc.BUCKET_NAME or '..' in row['path'].split('/'):
+            raise ValueError('Invalid legacy storage location.')
+        if row['key'] != hashlib.sha256(f"{row['bucket']}/{row['path']}".encode()).hexdigest():
+            raise ValueError('The file migration identifier does not match its storage object.')
+        filename = sc._sanitize_filename(row['path'].split('/')[-1])
+        path = f"orders/{uid}/migrated-{row['key'][:20]}-{filename}"
+        key = hashlib.sha256(f'{sc.PRIVATE_BUCKET_NAME}/{path}'.encode()).hexdigest()
+        if not row['references']:
+            raise ValueError('The file migration has no order references.')
+        for reference in row['references']:
+            if (reference['field'] not in ['fileUrl', 'gcashReceiptUrl'] or
+                    storage_object_reference(reference['url']) != (row['bucket'], row['path']) or
+                    not reference['orderPath'].startswith('artifacts/printcraft-pro/public/data/orders/') or
+                    reference['orderPath'].count('/') != 5):
+                raise ValueError('Invalid file migration reference.')
+        try:
+            original = client.storage.from_(row['bucket']).download(row['path'])
+        except Exception as error:
+            if str(getattr(error, 'status', '')) != '404':
+                raise
+            saved = database.collection('file_ownership').document(key).get().to_dict() or {}
+            private = client.storage.from_(sc.PRIVATE_BUCKET_NAME).download(path)
+            references_complete = True
+            for reference in row['references']:
+                current = database.document(reference['orderPath']).get().to_dict() or {}
+                references_complete = references_complete and current.get('customerId') == uid and current.get('fileMigrationKeys', {}).get(reference['field']) == key
+            if saved.get('uid') != uid or hashlib.sha256(private).hexdigest() != saved.get('sha256') or not references_complete:
+                raise ValueError('The original file is missing. Review the private copy and references.')
+            migrated += 1
+            continue
+        digest = hashlib.sha256(original).hexdigest()
+        try:
+            existing = client.storage.from_(sc.PRIVATE_BUCKET_NAME).download(path)
+        except Exception as error:
+            if str(getattr(error, 'status', '')) != '404':
+                raise
+            client.storage.from_(sc.PRIVATE_BUCKET_NAME).upload(path, original,
+                {'content-type': mimetypes.guess_type(filename)[0] or 'application/octet-stream', 'upsert': 'false'})
+            existing = client.storage.from_(sc.PRIVATE_BUCKET_NAME).download(path)
+        if hashlib.sha256(existing).hexdigest() != digest:
+            raise ValueError('Private file verification failed. The public file was preserved.')
+        signed = sc.get_signed_url(path)
+        if not signed:
+            raise RuntimeError('Private download link could not be generated.')
+        @firestore.transactional
+        def update_references(transaction):
+            updates = []
+            for reference in row['references']:
+                ref = database.document(reference['orderPath'])
+                data = ref.get(transaction=transaction).to_dict() or {}
+                if data.get('customerId') != uid or data.get(reference['field']) != reference['url']:
+                    if data.get('fileMigrationKeys', {}).get(reference['field']) == key:
+                        continue
+                    raise ValueError('File ownership or order reference changed. Regenerate the manifest.')
+                updates.append((ref, reference['field'], data.get('fileMigrationKeys', {})))
+            for ref, field, prior_keys in updates:
+                transaction.update(ref, {field: signed, 'fileMigrationKeys': {**prior_keys, field: key}})
+            transaction.set(database.collection('settings').document('order_revision'), {'updatedAt': firestore.SERVER_TIMESTAMP})
+            transaction.set(database.collection('file_ownership').document(key), {'uid': uid,
+                'path': path, 'bucket': sc.PRIVATE_BUCKET_NAME, 'purpose': 'receipt' if all(r['field'] == 'gcashReceiptUrl' for r in row['references']) else 'document',
+                'sha256': digest, 'name': filename, 'createdAt': firestore.SERVER_TIMESTAMP})
+        update_references(database.transaction())
+        if hashlib.sha256(client.storage.from_(row['bucket']).download(row['path'])).hexdigest() != digest:
+            raise ValueError('Public file changed. The private copy was preserved for review.')
+        if (row['bucket'], row['path']) in public_storage_references(database):
+            raise ValueError('This file is now used by a public catalog asset. Review it before cleanup.')
+        client.storage.from_(row['bucket']).remove([row['path']])
+        migrated += 1
+    return migrated
+
+
+def record_digest(data):
+    return hashlib.sha256(__import__('json').dumps(data, sort_keys=True, default=str, separators=(',', ':')).encode()).hexdigest()
+
+
+def identity_migration_report(database, auth_users):
+    sources = {name: list(database.collection(name).stream()) for name in ['users', 'customers', 'archives']}
+    by_email = {}
+    for user in auth_users:
+        if user.email:
+            by_email.setdefault(user.email.strip().lower(), []).append(user)
+    records, identities = [], []
+    for email, users in sorted(by_email.items()):
+        if len(users) != 1:
+            continue
+        uid = users[0].uid
+        paths, archives, conflicts = [], [], []
+        for source, documents in sources.items():
+            for document in documents:
+                data = document.to_dict() or {}
+                content = data.get('data', {}) if source == 'archives' else data
+                if source == 'archives' and data.get('itemType') != 'user':
+                    continue
+                if str(content.get('email') or '').strip().lower() != email:
+                    continue
+                path = document.reference.path
+                if any(content.get(field) and content[field] != uid for field in ['uid', 'loyaltyUid']):
+                    conflicts.append(path)
+                (archives if source == 'archives' else paths).append(path)
+                records.append({'path': path, 'digest': record_digest(data), 'data': data})
+        identities.append({'uid': uid, 'email': email, 'profilePaths': sorted(paths), 'archivePaths': sorted(archives),
+                           'conflicts': conflicts, 'canonicalExists': any(doc.id == uid for doc in sources['users']), 'approved': False})
+    matched = {row['path'] for row in records}
+    unmatched = [doc.reference.path for name in ['users', 'customers'] for doc in sources[name] if doc.reference.path not in matched]
+    for source, documents in sources.items():
+        for document in documents:
+            if document.reference.path in matched:
+                continue
+            data = document.to_dict() or {}
+            content = data.get('data', {}) if source == 'archives' else data
+            if source == 'archives' and data.get('itemType') != 'user':
+                continue
+            if str(content.get('email') or '').strip():
+                records.append({'path': document.reference.path, 'digest': record_digest(data), 'data': data, 'approved': False})
+    orders = []
+    auth_uids = {user.uid for user in auth_users}
+    for document in orders_ref(database).stream():
+        data = document.to_dict() or {}
+        candidates = by_email.get(str(data.get('email') or data.get('customerEmail') or '').strip().lower(), [])
+        if len(candidates) == 1 and data.get('customerId') != candidates[0].uid:
+            uid = candidates[0].uid
+            conflicting = data.get('customerId') in auth_uids or data.get('loyaltyUid') not in [None, '', uid]
+            orders.append({'path': document.reference.path, 'digest': record_digest(data), 'existingCustomerId': data.get('customerId'),
+                           'email': data.get('email'), 'proposedUid': uid, 'conflicting': conflicting, 'approved': False})
+    return {'version': 1, 'identities': identities, 'records': records, 'orders': orders, 'unmatched': unmatched}
+
+
+def normalize_identity_records(database, report):
+    """Backfill query metadata while preserving UID, RFID, role, and ownership."""
+    if report.get('version') != 1:
+        raise ValueError('Unsupported identity report.')
+    reviewed_paths = {path for identity in report['identities'] if identity.get('approved')
+                      and identity.get('canonicalExists') and not identity.get('conflicts')
+                      for path in identity['profilePaths'] + identity['archivePaths']}
+    pending = 0
+    for row in report['records']:
+        path = row['path']
+        if path.split('/')[0] not in ['users', 'customers', 'archives'] or path.count('/') != 1:
+            raise ValueError('Invalid normalization path.')
+        content = row['data'].get('data', {}) if path.startswith('archives/') else row['data']
+        email = str(content.get('email') or '').strip().lower()
+        if not email:
+            continue
+        if not row.get('approved') and path not in reviewed_paths:
+            current = database.document(path).get().to_dict() or {}
+            pending += current.get('emailNormalized') != email
+            continue
+        @firestore.transactional
+        def normalize(transaction):
+            ref = database.document(path)
+            current = ref.get(transaction=transaction).to_dict() or {}
+            comparison = dict(current)
+            if 'emailNormalized' not in row['data']:
+                comparison.pop('emailNormalized', None)
+            if record_digest(comparison) != row['digest']:
+                raise ValueError('Profile changed. Regenerate the normalization report.')
+            transaction.set(ref, {'emailNormalized': email}, merge=True)
+        normalize(database.transaction())
+    database.collection('settings').document('security_config').set({
+        'normalizedIdentityVersion': 0 if pending else 1, 'normalizationPending': pending,
+        'normalizedAt': firestore.SERVER_TIMESTAMP,
+        'reportDigest': record_digest(report)}, merge=True)
+
+
+def apply_identity_report(database, report):
+    if report.get('version') != 1:
+        raise ValueError('Unsupported identity report.')
+    records = {row['path']: row for row in report['records']}
+    applied = 0
+    for row in report['identities']:
+        if not row.get('approved'):
+            continue
+        if not row.get('canonicalExists') or row.get('conflicts'):
+            raise ValueError('Resolve conflicting identities before applying this mapping.')
+        email, uid = row['email'], row['uid']
+        user = auth.get_user(uid)
+        if not user.email or user.email.strip().lower() != email:
+            raise ValueError('Authentication identity changed. Regenerate the report.')
+        @firestore.transactional
+        def apply(transaction):
+            snapshots = []
+            for path in row['profilePaths'] + row['archivePaths']:
+                if path.split('/')[0] not in ['users', 'customers', 'archives'] or path.count('/') != 1:
+                    raise ValueError('Invalid identity report path.')
+                ref = database.document(path)
+                current = ref.get(transaction=transaction).to_dict() or {}
+                comparison = dict(current)
+                if 'emailNormalized' not in records[path]['data']:
+                    comparison.pop('emailNormalized', None)
+                if record_digest(comparison) != records[path]['digest']:
+                    raise ValueError('Profile changed. Regenerate and review the report.')
+                snapshots.append(ref)
+            index_ref = database.collection('account_identity_index').document(hashlib.sha256(email.encode()).hexdigest())
+            prior = index_ref.get(transaction=transaction).to_dict() or {}
+            if prior.get('uid', uid) != uid:
+                raise ValueError('Identity index belongs to another UID.')
+            for ref in snapshots:
+                transaction.set(ref, {'emailNormalized': email}, merge=True)
+            transaction.set(index_ref, {'uid': uid, 'emailNormalized': email, 'profilePaths': row['profilePaths'], 'archivePaths': row['archivePaths']})
+        apply(database.transaction())
+        applied += 1
+    for row in report.get('orders', []):
+        if not row.get('approved'):
+            continue
+        if row.get('conflicting') or not row['path'].startswith('artifacts/printcraft-pro/public/data/orders/') or row['path'].count('/') != 5:
+            raise ValueError('Resolve invalid or conflicting order ownership first.')
+        @firestore.transactional
+        def migrate_order(transaction):
+            ref = database.document(row['path'])
+            data = ref.get(transaction=transaction).to_dict() or {}
+            if data.get('customerId') == row['proposedUid']:
+                return
+            if record_digest(data) != row['digest']:
+                raise ValueError('Order changed. Regenerate the report.')
+            transaction.update(ref, {'customerId': row['proposedUid'], 'legacyCustomerId': data.get('customerId'), 'ownershipMigratedAt': firestore.SERVER_TIMESTAMP})
+            transaction.set(database.collection('settings').document('order_revision'), {'updatedAt': firestore.SERVER_TIMESTAMP})
+        migrate_order(database.transaction())
+    return applied
+
+
+_profile_lookup_cache = {}
+_profile_lookup_lock = threading.RLock()
+
+
+def matching_profiles(uid, email, canonical, transaction=None):
+    cacheable = transaction is None and has_request_context() and request.method == 'GET' and request.endpoint != 'current_account'
+    cache_key = (uid, email, record_digest(canonical.to_dict() or {}))
+    if cacheable:
+        with _profile_lookup_lock:
+            cached = _profile_lookup_cache.get(cache_key)
+            if cached and cached[0] > time.monotonic():
+                return cached[1]
+    profile = canonical.to_dict() or {}
+    index = db.collection('account_identity_index').document(hashlib.sha256(email.encode()).hexdigest()).get(transaction=transaction).to_dict() or {}
+    if index.get('uid') and index['uid'] != uid:
+        raise PermissionError('Your account needs identity review. Contact the shop administrator.')
+    for path in index.get('archivePaths', []):
+        if path.startswith('archives/') and path.count('/') == 1 and db.document(path).get(transaction=transaction).exists:
+            raise PermissionError('This account is archived. Contact the shop administrator.')
+    for snapshot in db.collection('archives').where('emailNormalized', '==', email).stream(transaction=transaction):
+        if snapshot.to_dict().get('itemType') == 'user':
+            raise PermissionError('This account is archived. Contact the shop administrator.')
+    matches = {}
+    variants = {email, str(profile.get('email') or '').strip()}
+    for source in ['users', 'customers']:
+        collection = db.collection(source)
+        documents = {}
+        for path in index.get('profilePaths', []):
+            if path.startswith(source + '/') and path.count('/') == 1:
+                doc = db.document(path).get(transaction=transaction)
+                if doc.exists:
+                    documents[doc.id] = doc
+        filters = [('emailNormalized', email), ('uid', uid), ('loyaltyUid', uid)]
+        filters.extend(('email', value) for value in sorted(variants - {''}))
+        for field, value in filters:
+            for doc in collection.where(field, '==', value).stream(transaction=transaction):
+                documents[doc.id] = doc
+        matches[source] = [doc for doc in documents.values() if str((doc.to_dict() or {}).get('email') or '').strip().lower() == email]
+    if cacheable:
+        with _profile_lookup_lock:
+            if len(_profile_lookup_cache) >= 256:
+                _profile_lookup_cache.clear()
+            _profile_lookup_cache[cache_key] = (time.monotonic() + 15, matches)
+    return matches
+
+
 def customer_identity(uid=None, email=None):
     user = auth.get_user(uid) if uid else auth.get_user_by_email(email)
     if user.disabled:
         raise PermissionError('Customer account is disabled.')
-    profile = db.collection('users').document(user.uid).get().to_dict() or {}
-    if profile.get('email') and str(profile['email']).strip().lower() != user.email.lower():
-        raise ValueError('Resolve the customer profile email mapping before using points.')
-    mirrors = list(db.collection('customers').where('email', '==', user.email.lower()).stream())
-    profiles = [profile, *[d.to_dict() for d in mirrors]]
-    if any(p.get('archived') or p.get('isArchived') for p in profiles):
-        raise PermissionError('Customer account is archived.')
-    explicit_uids = {str(p.get('uid')) for p in profiles if p.get('uid')}
-    if explicit_uids - {user.uid}:
-        raise ValueError('Customer identity is ambiguous. Resolve the account mapping first.')
+    canonical = db.collection('users').document(user.uid).get()
+    if not canonical.exists:
+        raise PermissionError('Your account profile is incomplete. Contact the shop administrator.')
+    profile = canonical.to_dict() or {}
+    email = user.email.strip().lower()
+    matches = matching_profiles(user.uid, email, canonical)
+    resolution = resolve_customer_profile(user.uid, email, canonical, matches['users'], matches['customers'])
     role = str(profile.get('role') or 'customer').lower()
-    return {'uid': user.uid, 'email': user.email.lower(), 'role': role,
-            'name': profile.get('fullName') or profile.get('name') or user.display_name or user.email.split('@')[0]}
+    return {'uid': user.uid, 'email': user.email.lower(), 'role': role, **resolution,
+            'validAfter': getattr(user, 'tokens_valid_after_timestamp', 0) / 1000,
+            'name': profile.get('fullName') or profile.get('full_name') or profile.get('name') or user.display_name or user.email.split('@')[0]}
 
 
 def identity(admin=False):
-    header = request.headers.get('Authorization', '')
-    if header:
-        if not header.startswith('Bearer '):
-            raise SignInRequired('Sign in again.')
-        try:
-            decoded = auth.verify_id_token(header[7:], check_revoked=True)
-        except Exception:
-            raise SignInRequired('Your session expired. Sign in again.') from None
-        actor = customer_identity(uid=decoded['uid'])
-    elif session.get('email'):
-        actor = customer_identity(email=session['email'])
-    else:
-        raise SignInRequired('Sign in first.')
+    actor = getattr(g, 'actor', None)
+    if actor is None:
+        header = request.headers.get('Authorization', '')
+        if header:
+            if not header.startswith('Bearer '):
+                raise SignInRequired('Sign in again.')
+            try:
+                decoded = auth.verify_id_token(header[7:], check_revoked=True)
+            except Exception:
+                raise SignInRequired('Your session expired. Sign in again.') from None
+            actor = customer_identity(uid=decoded['uid'])
+            actor['authTime'] = decoded.get('auth_time', 0)
+        elif session.get('uid') and session.get('authTime'):
+            actor = customer_identity(uid=session['uid'])
+            if float(session['authTime']) < actor.get('validAfter', 0):
+                session.clear()
+                raise SignInRequired('Your session expired. Please sign in again.')
+            actor['authTime'] = session['authTime']
+        else:
+            session.clear()
+            raise SignInRequired('Sign in first.')
+        g.actor = actor
     if admin and actor['role'] != 'admin':
         raise PermissionError('Admin access required.')
     return actor
@@ -2349,6 +3111,239 @@ def safe_key(value):
     return value
 
 
+def rfid_card_uid(value):
+    card = re.sub(r'[:\s-]', '', str(value or '')).upper()
+    if not re.fullmatch(r'(?:[0-9A-F]{8}|[0-9A-F]{14}|[0-9A-F]{20})', card):
+        raise ValueError('Scan a valid RC522 card UID.')
+    return card
+
+
+def rfid_reader_identity(data):
+    reader_id = str(data.get('readerId') or '').upper()
+    if not re.fullmatch(r'[0-9A-F]{12}', reader_id):
+        raise SignInRequired('The RFID reader is not registered.')
+    key = request.headers.get('X-RFID-Key', '')
+    reader = db.collection('rfid_readers').document(reader_id).get().to_dict() or {}
+    digest = hashlib.sha256(key.encode()).hexdigest()
+    if len(key) < 32 or not reader.get('active') or not hmac.compare_digest(digest, reader.get('keyHash', '')):
+        raise SignInRequired('The RFID reader key is invalid or disabled.')
+    return reader_id, reader, digest
+
+
+def process_rfid_event(database, reader_id, key_hash, payload):
+    card_uid = rfid_card_uid(payload.get('cardUid'))
+    event_id = str(payload.get('eventId') or '')
+    if not re.fullmatch(re.escape(reader_id) + r'-[1-9][0-9]{0,19}', event_id):
+        raise ValueError('Invalid RFID event identifier.')
+    version = payload.get('bindingVersion') or ''
+    capture_id = payload.get('captureId') or ''
+    if not all(isinstance(value, str) and len(value) <= 64 for value in [version, capture_id]):
+        raise ValueError('Invalid RFID scan metadata.')
+    fingerprint = record_digest({'cardUid': card_uid, 'bindingVersion': version, 'captureId': capture_id})
+    key = hashlib.sha256(event_id.encode()).hexdigest()
+    event_ref = database.collection('rfid_events').document(key)
+    prior = event_ref.get().to_dict() or {}
+    if prior:
+        if prior.get('payloadHash') != fingerprint:
+            raise ValueError('This RFID event identifier already has a different payload.')
+        return prior['result']
+    reader_ref = database.collection('rfid_readers').document(reader_id)
+    card_ref = database.collection('rfid_cards').document(card_uid)
+    binding = card_ref.get().to_dict() or {}
+    actor = None
+    if not capture_id and binding.get('active') and binding.get('version') == version:
+        try:
+            actor = customer_identity(uid=binding['uid'])
+        except (PermissionError, ValueError, auth.UserNotFoundError):
+            actor = None
+
+    @firestore.transactional
+    def apply(transaction):
+        reader = reader_ref.get(transaction=transaction).to_dict() or {}
+        saved = event_ref.get(transaction=transaction).to_dict() or {}
+        current = card_ref.get(transaction=transaction).to_dict() or {}
+        if not reader.get('active') or not hmac.compare_digest(reader.get('keyHash', ''), key_hash):
+            raise SignInRequired('The RFID reader is disabled or its key changed.')
+        if saved:
+            if saved.get('payloadHash') != fingerprint:
+                raise ValueError('This RFID event identifier already has a different payload.')
+            return saved['result']
+        now = datetime.datetime.now(datetime.timezone.utc)
+        result = {'eventId': event_id, 'cardUid': card_uid, 'pointsAdded': 0, 'outcome': 'unassigned'}
+        uid = current.get('uid')
+        account_ref, account, profile = None, None, {}
+        if capture_id:
+            capture = reader.get('capture') or {}
+            result['outcome'] = 'captured' if (capture.get('id') == capture_id and
+                capture.get('expiresAt', now) > now and not capture.get('used')) else 'capture_expired'
+        elif current.get('active'):
+            if current.get('version') != version:
+                result['outcome'] = 'mapping_changed'
+            elif actor is None or actor['uid'] != uid or actor['role'] != 'customer':
+                result['outcome'] = 'account_unavailable'
+            else:
+                profile = database.collection('users').document(uid).get(transaction=transaction).to_dict() or {}
+                config(database, transaction)
+                account_ref, account = read_account(database, transaction, uid)
+                disabled = (not profile or profile.get('role') != 'customer' or
+                    any(profile.get(field) for field in ['archived', 'isArchived', 'disabled', 'isDisabled']) or
+                    str(profile.get('status', '')).lower() in ['archived', 'disabled'])
+                result['outcome'] = 'account_unavailable' if disabled else 'credited'
+        if result['outcome'] == 'credited':
+            balance, reserved = account_values(account)
+            account.update(balance=balance + 1, reserved=reserved)
+            save_account(transaction, account_ref, account, 'rfid_' + key, 'earn', 1, '',
+                         {'source': 'rfid', 'readerId': reader_id, 'cardUid': card_uid, 'eventId': event_id})
+            transaction.set(database.collection('users').document(uid), {'lastTap': now.isoformat()}, merge=True)
+            result.update(pointsAdded=1, balance=account['balance'])
+        scan = {**result, 'receivedAt': now.isoformat()}
+        updates = {'lastSeen': now.isoformat(), 'lastScan': scan}
+        if result['outcome'] == 'captured':
+            updates['capture'] = {**reader['capture'], 'cardUid': card_uid, 'eventId': event_id}
+        transaction.set(reader_ref, updates, merge=True)
+        transaction.create(event_ref, {'readerId': reader_id, 'payloadHash': fingerprint,
+            'result': result, 'createdAt': firestore.SERVER_TIMESTAMP})
+        transaction.create(database.collection('rfid_logs').document(key), {
+            'id': key, 'readerId': reader_id, 'cardUid': card_uid,
+            'customerUid': uid if result['outcome'] == 'credited' else None,
+            'customerName': (actor or {}).get('name', ''), 'pointsAdded': result['pointsAdded'],
+            'outcome': result['outcome'], 'timestamp': now.isoformat()})
+        return result
+    return apply(database.transaction())
+
+
+def register_rfid_routes(app):
+    api = Blueprint('rfid', __name__)
+
+    @api.route('/api/admin/rfid/readers', methods=['GET', 'POST'])
+    @api_errors
+    def readers():
+        actor = identity(admin=True)
+        if request.method == 'GET':
+            rows = []
+            for doc in db.collection('rfid_readers').stream():
+                reader = {k: v for k, v in doc.to_dict().items() if k != 'keyHash'}
+                captured = reader.get('capture') or {}
+                if isinstance(captured.get('expiresAt'), datetime.datetime):
+                    reader['capture'] = {**captured, 'expiresAt': captured['expiresAt'].isoformat()}
+                rows.append({'readerId': doc.id, **reader})
+            return jsonify(success=True, readers=rows)
+        data = body()
+        reader_id = str(data.get('readerId') or '').upper().strip()
+        name = str(data.get('name') or 'Counter reader').strip()
+        if not re.fullmatch(r'[0-9A-F]{12}', reader_id) or not 1 <= len(name) <= 80:
+            raise ValueError('Enter the 12-character reader ID and a name up to 80 characters.')
+        key = secrets.token_urlsafe(32)
+        ref = db.collection('rfid_readers').document(reader_id)
+        @firestore.transactional
+        def create(transaction):
+            current = ref.get(transaction=transaction).to_dict() or {}
+            if current and data.get('rotateKey') is not True:
+                raise ValueError('Reader already exists. Confirm key replacement to pair it again.')
+            transaction.set(ref, {'name': name, 'active': True, 'keyHash': hashlib.sha256(key.encode()).hexdigest(),
+                'registeredBy': actor['uid'], 'registeredAt': firestore.SERVER_TIMESTAMP}, merge=True)
+        create(db.transaction())
+        return jsonify(success=True, readerId=reader_id, readerKey=key)
+
+    @api.post('/api/admin/rfid/capture')
+    @api_errors
+    def capture():
+        identity(admin=True)
+        reader_id = safe_key(body().get('readerId')).upper()
+        ref = db.collection('rfid_readers').document(reader_id)
+        if not (ref.get().to_dict() or {}).get('active'):
+            raise ValueError('Select an active registered reader.')
+        capture_id = uuid.uuid4().hex
+        ref.set({'capture': {'id': capture_id, 'expiresAt': datetime.datetime.now(datetime.timezone.utc) +
+            datetime.timedelta(minutes=5), 'used': False}}, merge=True)
+        return jsonify(success=True, captureId=capture_id)
+
+    @api.post('/api/admin/rfid/cards')
+    @api_errors
+    def enroll():
+        admin = identity(admin=True)
+        data = body()
+        owner = customer_identity(uid=safe_key(data.get('uid')))
+        if owner['role'] != 'customer':
+            raise ValueError('Select a registered customer account.')
+        reader_ref = db.collection('rfid_readers').document(safe_key(data.get('readerId')).upper())
+        user_ref = db.collection('users').document(owner['uid'])
+        @firestore.transactional
+        def bind(transaction):
+            reader = reader_ref.get(transaction=transaction).to_dict() or {}
+            captured = reader.get('capture') or {}
+            profile = user_ref.get(transaction=transaction).to_dict() or {}
+            now = datetime.datetime.now(datetime.timezone.utc)
+            if not reader.get('active') or profile.get('role') != 'customer' or str(profile.get('status', '')).lower() in ['archived', 'disabled'] or any(
+                    profile.get(field) for field in ['archived', 'isArchived', 'disabled', 'isDisabled']):
+                raise ValueError('The reader or customer account is unavailable.')
+            if captured.get('id') != data.get('captureId'):
+                raise ValueError('Start card capture and scan the card first.')
+            card_uid = rfid_card_uid(captured.get('cardUid'))
+            ref = db.collection('rfid_cards').document(card_uid)
+            existing = ref.get(transaction=transaction).to_dict() or {}
+            if captured.get('used'):
+                if existing.get('active') and existing.get('uid') == owner['uid']:
+                    return card_uid
+                raise ValueError('This capture has already been used.')
+            if captured.get('expiresAt', now) <= now:
+                raise ValueError('The card capture expired. Scan the card again.')
+            if existing.get('active') and existing.get('uid') != owner['uid']:
+                raise ValueError('This card is already assigned to another account.')
+            previous = profile.get('physicalRfidUid')
+            previous_ref = db.collection('rfid_cards').document(previous) if previous and previous != card_uid else None
+            previous_binding = previous_ref.get(transaction=transaction).to_dict() or {} if previous_ref else {}
+            if previous_ref and data.get('replaceExisting') is not True:
+                raise ValueError('Confirm replacement of the customer\'s existing physical card.')
+            if previous_binding.get('active') and previous_binding.get('uid') != owner['uid']:
+                raise ValueError('The existing physical card needs ownership review.')
+            if previous_ref:
+                transaction.set(previous_ref, {'active': False, 'version': uuid.uuid4().hex}, merge=True)
+            version = existing.get('version') if existing.get('active') and existing.get('uid') == owner['uid'] else uuid.uuid4().hex
+            transaction.set(ref, {'uid': owner['uid'], 'active': True, 'version': version,
+                'enrolledBy': admin['uid'], 'enrolledAt': firestore.SERVER_TIMESTAMP})
+            transaction.set(user_ref, {'physicalRfidUid': card_uid}, merge=True)
+            transaction.set(reader_ref, {'capture': {**captured, 'used': True}}, merge=True)
+            transaction.set(db.collection('settings').document('rfid_config'), {'bindingsVersion': uuid.uuid4().hex}, merge=True)
+            return card_uid
+        card = bind(db.transaction())
+        return jsonify(success=True, cardUid=card, uid=owner['uid'])
+
+    @api.post('/api/iot/rfid/state')
+    @api_errors
+    def device_state():
+        data = body()
+        reader_id, reader, digest = rfid_reader_identity(data)
+        ref = db.collection('rfid_readers').document(reader_id)
+        now = datetime.datetime.now(datetime.timezone.utc)
+        try:
+            last_seen = datetime.datetime.fromisoformat(reader.get('lastSeen', ''))
+            if last_seen.tzinfo is None:
+                last_seen = last_seen.replace(tzinfo=datetime.timezone.utc)
+        except ValueError:
+            last_seen = now - datetime.timedelta(minutes=1)
+        if (now - last_seen).total_seconds() >= 30:
+            ref.set({'lastSeen': now.isoformat()}, merge=True)
+        revision = (db.collection('settings').document('rfid_config').get().to_dict() or {}).get('bindingsVersion', 'initial')
+        capture = reader.get('capture') or {}
+        now = datetime.datetime.now(datetime.timezone.utc)
+        capture_id = capture.get('id') if not capture.get('used') and capture.get('expiresAt', now) > now else ''
+        result = {'success': True, 'bindingsVersion': revision, 'captureId': capture_id or ''}
+        if data.get('bindingsVersion') != revision:
+            result['bindings'] = {doc.id: doc.to_dict()['version'] for doc in
+                db.collection('rfid_cards').where('active', '==', True).stream()}
+        return jsonify(result)
+
+    @api.post('/api/iot/rfid/taps')
+    @api_errors
+    def device_tap():
+        data = body()
+        reader_id, reader, digest = rfid_reader_identity(data)
+        return jsonify(success=True, **process_rfid_event(db, reader_id, digest, data))
+
+    app.register_blueprint(api)
+
+
 def register_loyalty_routes(app):
     api = Blueprint('loyalty', __name__)
 
@@ -2363,7 +3358,8 @@ def register_loyalty_routes(app):
         events = [{**doc.to_dict(), 'id': doc.id} for doc in
                   ref.collection('events').order_by('createdAt', direction=firestore.Query.DESCENDING).limit(100).stream()]
         return jsonify(success=True, uid=actor['uid'], balance=balance, reserved=reserved,
-                       available=balance-reserved, pointValueCents=settings.get('pointValueCents', 100), events=events)
+                       available=balance-reserved, pointValueCents=settings.get('pointValueCents', 100), events=events,
+                       **payment_eligibility(db, actor['uid'], account))
 
     @api.get('/api/loyalty/rewards')
     @api_errors
@@ -2472,7 +3468,19 @@ def register_loyalty_routes(app):
             card = str(data.get('rfidCardUid') or '')
             if not card:
                 profile = db.collection('users').document(actor['uid']).get().to_dict() or {}
-                card = profile.get('rfidUid', '')
+                card = profile.get('physicalRfidUid') or profile.get('rfidUid', '')
+            normalized_card = re.sub(r'[\s:-]', '', card).upper()
+            binding = db.collection('rfid_cards').document(normalized_card).get().to_dict() if re.fullmatch(r'(?:[0-9A-F]{8}|[0-9A-F]{14}|[0-9A-F]{20})', normalized_card) else None
+            if binding and binding.get('active'):
+                owner = customer_identity(uid=binding.get('uid'))
+                if actor['role'] != 'admin' and actor['uid'] != owner['uid']:
+                    raise PermissionError('This card belongs to another customer.')
+                db.collection('rfid_logs').document().set({
+                    'cardUid': normalized_card, 'customerUid': owner['uid'],
+                    'customerName': owner.get('name') or owner.get('email'),
+                    'pointsAdded': 0, 'timestamp': firestore.SERVER_TIMESTAMP,
+                    'source': 'identification'})
+                return jsonify(success=True, earnedPoints=0, message='Card identified.')
             matches = []
             for collection in ['users', 'customers']:
                 matches.extend(db.collection(collection).where('rfidUid', '==', card).stream())
@@ -2486,23 +3494,22 @@ def register_loyalty_routes(app):
             return jsonify(success=True, earnedPoints=0, message='Card identified. Points are earned on paid completed purchases.')
         if path == '/api/orders' and request.method == 'POST':
             data = body()
-            if data.get('pointsUsed') or data.get('rewardId') or request.headers.get('Authorization'):
-                actor = identity()
-                if actor['role'] == 'admin':
-                    raise PermissionError('Use POS for customer counter orders.')
-                record = submit_order(db, actor, data)
-                return jsonify(success=True, orderId=record['id'], order=record)
+            actor = identity()
+            if actor['role'] == 'admin':
+                raise PermissionError('Use POS for customer counter orders.')
+            record = submit_order(db, actor, data)
+            return jsonify(success=True, orderId=record['id'], order=record)
         match = re.fullmatch(r'/api/orders/([^/]+)/(status|cancel)', path)
         if match and request.method in ['POST', 'PUT']:
             actor = identity(admin=match[2] == 'status')
             data = body()
             target = 'Cancelled' if match[2] == 'cancel' else str(data.get('status') or '')
-            # UID is resolved through Firebase Auth for legacy order owners.
+            # Loyalty effects require an already canonical order owner.
             snapshot = orders_ref(db).document(match[1]).get()
             order_data = snapshot.to_dict() or {}
-            if not order_data.get('loyaltyUid') and order_data.get('source') != 'POS':
+            if order_data.get('customerId') and not order_data.get('loyaltyUid') and order_data.get('source') != 'POS':
                 try:
-                    owner = customer_identity(email=order_data.get('email') or order_data.get('customerEmail'))
+                    owner = customer_identity(uid=order_data.get('customerId'))
                     if owner['role'] != 'admin':
                         actor['orderCustomerUid'] = owner['uid']
                 except (auth.UserNotFoundError, ValueError, PermissionError):
@@ -2614,7 +3621,17 @@ class ServerValidators:
 load_dotenv()
 
 app = Flask(__name__)
-app.secret_key = "printingshop_secret_key"
+app.secret_key = os.getenv('SESSION_SECRET')
+if not app.secret_key or len(app.secret_key) < 32:
+    raise RuntimeError('Set SESSION_SECRET to a private random value of at least 32 characters.')
+app.config.update(SESSION_COOKIE_HTTPONLY=True, SESSION_COOKIE_SAMESITE='Lax',
+                  SESSION_COOKIE_SECURE=os.getenv('APP_ENV') == 'production' or bool(os.getenv('VERCEL')))
+if os.getenv('APP_ENV') == 'production' or os.getenv('VERCEL'):
+    if db is None:
+        raise RuntimeError('Configure Firebase credentials before starting production.')
+    readiness = db.collection('settings').document('security_config').get().to_dict() or {}
+    if readiness.get('normalizedIdentityVersion') != 1:
+        raise RuntimeError('Complete the reviewed identity normalization before starting production.')
 # Allow up to 30 MB per request (25 MB combined upload limit + multipart overhead)
 app.config['MAX_CONTENT_LENGTH'] = 30 * 1024 * 1024
 
@@ -2624,7 +3641,39 @@ app.config['MAX_CONTENT_LENGTH'] = 30 * 1024 * 1024
 def ensure_push_delivery():
     start_push_worker(db, send_fcm_push_notification)
 
+@app.before_request
+@api_errors
+def verify_protected_request():
+    public = {'static', 'index', 'login', 'api_login', 'api_google_login', 'request_signup_otp', 'api_signup',
+              'forgot_password', 'verify_reset_otp', 'reset_password', 'service_worker_file',
+              'get_notification_public_config', 'store_page', 'logout'}
+    public_get = {'handle_store_products', 'handle_samples', 'handle_services', 'handle_gcash_settings'}
+    if request.endpoint in {'rfid.device_state', 'rfid.device_tap'}:
+        return None
+    if request.endpoint is None or request.endpoint in public or (request.method == 'GET' and request.endpoint in public_get):
+        return None
+    actor = identity()
+    session.update(uid=actor['uid'], email=actor['email'], username=actor['name'], role=actor['role'], authTime=actor['authTime'])
+
+
+@app.after_request
+def add_conditional_response_tag(response):
+    tag = getattr(g, 'response_etag', None)
+    if tag and response.status_code == 200:
+        response.set_etag(tag)
+    return response
+
+
+@app.route('/api/auth/me', methods=['GET'])
+@api_errors
+def current_account():
+    actor = identity()
+    return jsonify(success=True, user={'uid': actor['uid'], 'email': actor['email'], 'role': actor['role'],
+        'username': actor['name'], 'profileResolution': actor['profileResolution'], 'rfidReviewRequired': actor['rfidReviewRequired']})
+
+
 register_loyalty_routes(app)
+register_rfid_routes(app)
 
 # ---------------------------------------------------------------------------
 # ADMIN ACCOUNT CREDENTIALS
@@ -2634,15 +3683,14 @@ ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD") or ""
 # ---------------------------------------------------------------------------
 # SMTP EMAIL CONFIGURATION
 # ---------------------------------------------------------------------------
-SMTP_SERVER = "smtp.gmail.com"
-SMTP_PORT = 587
+SMTP_SERVER = os.getenv('SMTP_SERVER', 'smtp.gmail.com')
+SMTP_PORT = int(os.getenv('SMTP_PORT', '587'))
 SMTP_EMAIL = os.getenv("SMTP_EMAIL")
-SMTP_PASSWORD = os.getenv("SMTP_PASSWORD")     
+SMTP_PASSWORD = (os.getenv("SMTP_PASSWORD") or '').replace(' ', '')
 
 
 # In-memory storage para sa OTPs (with expiration, attempt counts, cooldowns)
-otp_memory_store = {}
-signup_otp_store = {}
+
 
 FIREBASE_API_KEY = os.getenv("FIREBASE_API_KEY") or "AIzaSyBDk0kto8_VpvtzkQBdjrVP2YHOuUZ17rQ"
 
@@ -2672,21 +3720,23 @@ def verify_password_with_firebase(email, password):
 # ---------------------------------------------------------------------------
 # BACKEND API SECURITY DECORATORS
 # ---------------------------------------------------------------------------
-def login_required(f):
-    @wraps(f)
-    def decorated_function(*args, **kwargs):
-        if 'email' not in session:
-            return jsonify({"success": False, "status": "unauthorized", "message": "Please sign in to use this feature."}), 401
-        return f(*args, **kwargs)
-    return decorated_function
+def login_required(function):
+    @wraps(function)
+    @api_errors
+    def handle(*args, **kwargs):
+        actor = identity()
+        session.update(uid=actor['uid'], email=actor['email'], username=actor['name'], role=actor['role'], authTime=actor['authTime'])
+        return function(*args, **kwargs)
+    return handle
 
-def admin_required(f):
-    @wraps(f)
-    def decorated_function(*args, **kwargs):
-        if session.get('role') != 'admin':
-            return jsonify({"success": False, "status": "forbidden", "message": "Admin access is required for this action."}), 403
-        return f(*args, **kwargs)
-    return decorated_function
+def admin_required(function):
+    @wraps(function)
+    @api_errors
+    def handle(*args, **kwargs):
+        actor = identity(admin=True)
+        session.update(uid=actor['uid'], email=actor['email'], username=actor['name'], role=actor['role'], authTime=actor['authTime'])
+        return function(*args, **kwargs)
+    return handle
 
 # ---------------------------------------------------------------------------
 # STRICT FIELD VALIDATION HELPERS (MATCHING FLUTTER APPVALIDATORS)
@@ -2723,7 +3773,7 @@ def validate_strong_password(password, full_name='', email=''):
         return False, "Password must contain uppercase and lowercase letters."
     if not re.search(r'[0-9!@#$%^&*(),.?":{}|<>_\-\+=]', password):
         return False, "Password must contain at least one number or symbol."
-    if ' ' in password:
+    if re.search(r'\s', password):
         return False, "Password must not contain spaces."
 
     # Flutter req5: Can't include name or email prefix
@@ -2816,14 +3866,16 @@ def send_smtp_email(to_email, subject, body_html):
         msg['Subject'] = subject
         msg.attach(MIMEText(body_html, 'html'))
 
-        server = smtplib.SMTP(SMTP_SERVER, SMTP_PORT)
-        server.starttls()
-        server.login(SMTP_EMAIL, SMTP_PASSWORD)
-        server.sendmail(SMTP_EMAIL, to_email, msg.as_string())
-        server.quit()
+        context = ssl.create_default_context()
+        connection = smtplib.SMTP_SSL(SMTP_SERVER, SMTP_PORT, timeout=15, context=context) if SMTP_PORT == 465 else smtplib.SMTP(SMTP_SERVER, SMTP_PORT, timeout=15)
+        with connection as server:
+            if SMTP_PORT != 465:
+                server.starttls(context=context)
+            server.login(SMTP_EMAIL, SMTP_PASSWORD)
+            server.sendmail(SMTP_EMAIL, to_email, msg.as_string())
         return True
     except Exception as e:
-        print(f"❌ SMTP Error: {e}")
+        print(f"SMTP delivery failed: {type(e).__name__}")
         return False
 
 # In-memory store para sa chat messages thread
@@ -2935,67 +3987,30 @@ def sync_or_create_customer_profile(email, uid=None, full_name='', phone=''):
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
-    if request.method == 'POST':
-        data = request.json or request.form or {}
-        email = (data.get('email') or data.get('username') or '').strip().lower()
-        password = (data.get('password') or '').strip()
-
-        if not email or not password:
-            return jsonify({"success": False, "message": "Email and password are required."}), 400
-
-        if email == ADMIN_EMAIL:
-            if password == ADMIN_PASSWORD:
-                session['username'] = "Admin"
-                session['email'] = ADMIN_EMAIL
-                session['role'] = 'admin'
-                return jsonify({"success": True, "status": "success", "redirect": "/admin", "message": "Admin Login successful"})
-            else:
-                return jsonify({"success": False, "message": "Incorrect admin password."}), 400
-
-        # Try Firebase Authentication first
-        fb_valid, fb_res = verify_password_with_firebase(email, password)
-        if fb_valid:
-            uid = fb_res.get('localId')
-            customer_profile = sync_or_create_customer_profile(email, uid=uid)
-            display_name = (customer_profile.get('fullName') if customer_profile else None) or fb_res.get('displayName') or email.split('@')[0]
-
-            session['username'] = display_name
-            session['email'] = email
-            session['role'] = 'customer'
-            session['uid'] = uid
-
-            return jsonify({
-                "success": True,
-                "status": "success",
-                "redirect": "/customer",
-                "message": "Login successful"
-            })
-
-        # Fallback to Firestore customer password check (for legacy customers)
-        customers = get_customers() or []
-        user_found = None
-        for c in customers:
-            if isinstance(c, dict) and c.get('email', '').strip().lower() == email:
-                user_found = c
-                break
-
-        if user_found and str(user_found.get('password', '')) == password:
-            username_clean = user_found.get('fullName') or (email.split('@')[0] if '@' in email else email)
-            session['username'] = username_clean
-            session['email'] = email
-            session['role'] = 'customer'
-            session['uid'] = user_found.get('uid', user_found.get('id'))
-
-            return jsonify({
-                "success": True,
-                "status": "success",
-                "redirect": "/customer",
-                "message": "Login successful"
-            })
-
-        return jsonify({"success": False, "message": "Incorrect email or password."}), 400
-
-    return render_template('login.html')
+    if request.method == 'GET':
+        return render_template('login.html')
+    data = request.get_json(silent=True) or request.form or {}
+    email = str(data.get('email') or data.get('username') or '').strip().lower()
+    password = data.get('password')
+    if not email or not isinstance(password, str) or not password:
+        return jsonify(success=False, message='Email and password are required.'), 400
+    valid, result = verify_password_with_firebase(email, password)
+    if not valid:
+        if result in ['NETWORK_ERROR', 'NO_FIREBASE_API_KEY'] or result not in ['INVALID_LOGIN_CREDENTIALS', 'INVALID_PASSWORD', 'EMAIL_NOT_FOUND', 'INVALID_CREDENTIALS']:
+            return jsonify(success=False, message='Sign-in is temporarily unavailable. Please try again later.'), 503
+        return jsonify(success=False, message='Incorrect email or password. Use Forgot password to reset your app password.'), 400
+    try:
+        actor = customer_identity(uid=result['localId'])
+    except (PermissionError, ValueError) as error:
+        return jsonify(success=False, message=str(error)), 403
+    except ResourceExhausted:
+        return jsonify(success=False, message='The shop has reached its Firestore quota. Your password was accepted, but account data is temporarily unavailable.'), 503
+    except Exception:
+        app.logger.exception('Account profile lookup failed')
+        return jsonify(success=False, message='Unable to load your account profile. Please try again later.'), 503
+    session.clear()
+    session.update(uid=actor['uid'], username=actor['name'], email=actor['email'], role=actor['role'], authTime=datetime.datetime.now(datetime.timezone.utc).timestamp())
+    return jsonify(success=True, status='success', redirect='/admin' if actor['role'] == 'admin' else '/customer', message='Login successful.')
 
 @app.route('/logout')
 def logout():
@@ -3031,83 +4046,19 @@ def store_page():
 
 @app.route('/api/login', methods=['POST'])
 def api_login():
-    try:
-        data = request.json or request.form or {}
-        email = (data.get('email') or data.get('username') or '').strip().lower()
-        password = (data.get('password') or '').strip()
-
-        if not email or not password:
-            return jsonify({"success": False, "status": "error", "message": "Please enter your email and password."}), 400
-
-        if email == ADMIN_EMAIL:
-            if password == ADMIN_PASSWORD:
-                session['username'] = "Admin"
-                session['email'] = ADMIN_EMAIL
-                session['role'] = "admin"
-                return jsonify({
-                    "success": True,
-                    "status": "success",
-                    "message": "Admin Login Successful",
-                    "redirect": "/admin",
-                    "redirectUrl": "/admin",
-                    "user": {"email": session['email'], "role": session['role'], "username": "Admin"}
-                }), 200
-            else:
-                return jsonify({"success": False, "status": "error", "message": "Incorrect admin password."}), 400
-
-        # Try Firebase Authentication first
-        fb_valid, fb_res = verify_password_with_firebase(email, password)
-        if fb_valid:
-            uid = fb_res.get('localId')
-            customer_profile = sync_or_create_customer_profile(email, uid=uid)
-            display_name = (customer_profile.get('fullName') if customer_profile else None) or fb_res.get('displayName') or email.split('@')[0]
-
-            session['username'] = display_name
-            session['email'] = email
-            session['role'] = "customer"
-            session['uid'] = uid
-
-            return jsonify({
-                "success": True,
-                "status": "success",
-                "message": "Login Successful",
-                "redirect": "/customer",
-                "redirectUrl": "/customer",
-                "user": {"email": session['email'], "role": session['role'], "username": display_name}
-            }), 200
-
-        # Fallback to Firestore customer password check (for legacy customers)
-        customers = get_customers() or []
-        user_found = None
-        for c in customers:
-            if isinstance(c, dict) and c.get('email', '').strip().lower() == email:
-                user_found = c
-                break
-
-        if not user_found:
-            return jsonify({"success": False, "status": "error", "message": "This email address is not registered."}), 400
-
-        stored_password = str(user_found.get('password', ''))
-        if stored_password != password:
-            return jsonify({"success": False, "status": "error", "message": "Incorrect password. Please try again."}), 400
-
-        username_clean = user_found.get('fullName') or email.split('@')[0]
-        session['username'] = username_clean
-        session['email'] = email
-        session['role'] = "customer"
-        session['uid'] = user_found.get('uid', user_found.get('id'))
-
-        return jsonify({
-            "success": True,
-            "status": "success",
-            "message": "Login Successful",
-            "redirect": "/customer",
-            "redirectUrl": "/customer",
-            "user": {"email": session['email'], "role": session['role'], "username": username_clean}
-        }), 200
-
-    except Exception as e:
-        return jsonify({"success": False, "status": "error", "message": str(e)}), 400
+    response = app.make_response(login())
+    payload = response.get_json()
+    payload['status'] = 'success' if payload.get('success') else 'error'
+    if payload.get('success'):
+        payload['redirectUrl'] = payload['redirect']
+        payload['user'] = {
+            'email': session['email'],
+            'role': session['role'],
+            'username': session['username'],
+        }
+        if session.get('uid'):
+            payload['user']['uid'] = session['uid']
+    return jsonify(payload), response.status_code
 
 
 def google_login_identity(id_token):
@@ -3140,34 +4091,16 @@ def sync_google_profile(uid, email, display_name):
     def apply(transaction):
         canonical = user_ref.get(transaction=transaction)
         profile = canonical.to_dict() or {}
-        # Normalize legacy email casing as well. These are small profile collections.
-        matches = {}
-        for collection in ['users', 'customers']:
-            matches[collection] = [snapshot for snapshot in db.collection(collection).stream(transaction=transaction)
-                                   if str((snapshot.to_dict() or {}).get('email') or '').strip().lower() == email]
-        for snapshot in db.collection('archives').stream(transaction=transaction):
-            archived = snapshot.to_dict() or {}
-            data = archived.get('data') or {}
-            if (archived.get('itemType') == 'user' and
-                    (data.get('uid') == uid or str(data.get('email') or '').strip().lower() == email)):
-                raise PermissionError('This account is archived. Contact the shop administrator.')
-        documents = [canonical, *matches['users'], *matches['customers']]
-        for snapshot in documents:
-            data = snapshot.to_dict() or {}
-            if (data.get('archived') or data.get('isArchived') or data.get('disabled')
-                    or data.get('isDisabled') or str(data.get('status', '')).lower() in ['archived', 'disabled']):
-                raise PermissionError('This account is archived or disabled. Contact the shop administrator.')
-            if data.get('uid') and data['uid'] != uid:
-                raise ValueError('Your account has conflicting identities. Contact the shop administrator to resolve it.')
-            if data.get('loyaltyUid') and data['loyaltyUid'] != uid:
-                raise ValueError('Your points account needs identity review. Contact the shop administrator.')
-        if (profile.get('email') and str(profile['email']).strip().lower() != email
-                or len(matches['customers']) > 1
-                or any(s.id != uid and (s.to_dict() or {}).get('uid') != uid for s in matches['users'])):
-            raise ValueError('Your account has an ambiguous legacy profile. Contact the shop administrator to resolve it.')
+        matches = matching_profiles(uid, email, canonical, transaction)
+        resolution = resolve_customer_profile(uid, email, canonical, matches['users'], matches['customers'])
+        role = str(profile.get('role') or 'customer').lower()
+        name = profile.get('fullName') or profile.get('full_name') or profile.get('name') or display_name
+        if resolution['profileResolution'] == 'needs_review':
+            if not profile.get('uid'):
+                transaction.set(user_ref, {'uid': uid}, merge=True)
+            return {'uid': uid, 'email': email, 'role': role, 'username': name,
+                    'profileResolution': 'needs_review', 'rfidReviewRequired': True}
         mirror = matches['customers'][0] if matches['customers'] else None
-        if mirror and profile.get('customerId') and str(profile['customerId']) != mirror.id:
-            raise ValueError('Your customer profile has conflicting identifiers. Contact the shop administrator to resolve it.')
         customer_id = mirror.id if mirror else str(profile.get('customerId') or uid)
         if '/' in customer_id:
             raise ValueError('Your customer profile needs identity review. Contact the shop administrator.')
@@ -3181,7 +4114,7 @@ def sync_google_profile(uid, email, display_name):
             raise PermissionError('This account role is unavailable. Contact the shop administrator.')
         existing = {**mirror_data, **profile}
         name = (existing.get('fullName') or existing.get('full_name') or existing.get('name') or display_name)
-        shared = {'uid': uid, 'email': email, 'role': role, 'customerId': customer_id,
+        shared = {'uid': uid, 'email': email, 'emailNormalized': email, 'role': role, 'customerId': customer_id,
                   'fullName': name, 'full_name': name}
         # Fill missing fields only. RFID, historical IDs and point mirrors stay intact.
         user_data = {**existing, **shared}
@@ -3199,7 +4132,10 @@ def sync_google_profile(uid, email, display_name):
                 transaction.set(account_ref, {'balance': 0, 'reserved': 0, 'createdAt': firestore.SERVER_TIMESTAMP})
         transaction.set(user_ref, user_data, merge=True)
         transaction.set(mirror_ref, mirror_updates, merge=True)
-        return {'uid': uid, 'email': email, 'role': role, 'username': name}
+        transaction.set(db.collection('account_identity_index').document(hashlib.sha256(email.encode()).hexdigest()),
+                        {'uid': uid, 'emailNormalized': email, 'profilePaths': [user_ref.path, mirror_ref.path], 'archivePaths': []})
+        return {'uid': uid, 'email': email, 'role': role, 'username': name,
+                'profileResolution': 'resolved', 'rfidReviewRequired': False}
 
     return apply(db.transaction())
 
@@ -3213,395 +4149,259 @@ def api_google_login():
     uid, email, name = google_login_identity(data.get('idToken'))
     user = sync_google_profile(uid, email, name)
     session.clear()
-    session.update(uid=user['uid'], username=user['username'], email=user['email'], role=user['role'])
+    session.update(uid=user['uid'], username=user['username'], email=user['email'], role=user['role'], authTime=datetime.datetime.now(datetime.timezone.utc).timestamp())
     destination = '/admin' if user['role'] == 'admin' else '/customer'
     return jsonify(success=True, status='success', message='Google sign-in successful.',
-                   redirect=destination, redirectUrl=destination, uid=user['uid'], role=user['role'], user=user)
+                   redirect=destination, redirectUrl=destination, uid=user['uid'], role=user['role'], user=user,
+                   profileResolution=user['profileResolution'], rfidReviewRequired=user['rfidReviewRequired'])
 
 
-@app.route('/api/request-signup-otp', methods=['POST'])
-def request_signup_otp():
-    try:
-        data = request.json or {}
-        email = data.get('email', '').strip().lower()
-
-        if not email:
-            return jsonify({"success": False, "message": "Please enter your email address."}), 400
-
-        if not is_valid_gmail(email):
-            return jsonify({"success": False, "message": "Please enter a valid @gmail.com address."}), 400
-
-        if is_email_registered(email):
-            return jsonify({"success": False, "message": "This email address is already registered."}), 400
-
-        now = datetime.datetime.now()
-
-        # Rate limiting: 60 seconds cooldown between resend requests
-        existing = signup_otp_store.get(email)
-        if existing:
-            last_sent = existing.get("timestamp")
-            if last_sent and (now - last_sent).total_seconds() < 60:
-                wait_sec = int(60 - (now - last_sent).total_seconds())
-                return jsonify({
-                    "success": False,
-                    "message": f"Please wait {wait_sec} seconds before requesting another verification code."
-                }), 429
-
-        otp = ''.join(random.choices(string.digits, k=6))
-        signup_otp_store[email] = {
-            "otp": otp,
-            "timestamp": now,
-            "attempts": 0,
-            "expires_at": now + datetime.timedelta(minutes=5)
-        }
-
-        # Match mobile app email template and subject
-        otp_html = f"""
-        <div style="font-family: Arial, sans-serif; padding: 24px; background-color: #0b0f19; color: #ffffff; border-radius: 12px; border: 1px solid #1e293b; max-width: 500px;">
-          <h2 style="color: #6366f1; margin-top: 0;">Kez C-Em Zek Printing Shop</h2>
-          <p style="color: #cbd5e1;">Hello,</p>
-          <p style="color: #cbd5e1;">Your 6-digit account verification code is:</p>
-          <div style="background-color: #111827; padding: 14px 24px; border-radius: 8px; display: inline-block; margin: 12px 0;">
-            <h1 style="color: #38bdf8; letter-spacing: 6px; margin: 0; font-size: 32px;">{otp}</h1>
-          </div>
-          <p style="color: #94a3b8; font-size: 12px;">This code will expire in 5 minutes. If you did not request this, please ignore this email.</p>
-        </div>
-        """
-
-        email_sent = send_smtp_email(email, "Account Verification - Kez C-Em Zek", otp_html)
-
-        if email_sent:
-            return jsonify({
-                "success": True, 
-                "message": f"A 6-digit verification code has been sent to {email}."
-            }), 200
-        else:
-            return jsonify({"success": False, "message": "Unable to send the verification email. Please check the SMTP configuration."}), 500
-
-    except Exception as e:
-        return jsonify({"success": False, "message": str(e)}), 500
+class PasswordResetError(ValueError):
+    def __init__(self, message, status=400):
+        super().__init__(message)
+        self.status = status
 
 
-@app.route('/api/signup', methods=['POST'])
-def api_signup():
-    try:
-        data = request.json or request.form or {}
-        email = data.get('email', '').strip().lower()
-        full_name = (data.get('fullName') or f"{data.get('firstName', '')} {data.get('lastName', '')}").strip()
-        contact = data.get('contact', '').strip()
-        password = data.get('password', '').strip()
-        confirm_password = data.get('confirmPassword', '').strip()
-        otp_input = data.get('otp', '').strip()
+def challenge_ref(purpose, email):
+    return db.collection('verification_challenges').document(hashlib.sha256(f'{purpose}:{email}'.encode()).hexdigest())
 
-        # Strict Name Validation (AppValidators)
-        is_name_valid, name_msg = validate_name(full_name)
-        if not is_name_valid:
-            return jsonify({"success": False, "message": name_msg}), 400
 
-        # Strict Contact Validation (PH 11 digits starting with 09)
-        if not is_valid_ph_contact(contact):
-            return jsonify({"success": False, "message": "Enter an 11-digit Philippine mobile number (for example, 09123456789)."}), 400
+def verification_operation(data):
+    secret = current_app.secret_key
+    if isinstance(secret, str):
+        secret = secret.encode()
+    payload = __import__('json').dumps(data, sort_keys=True, separators=(',', ':')).encode()
+    return hmac.new(secret, payload, hashlib.sha256).hexdigest()
 
-        # Strict Gmail Validation
-        if not is_valid_gmail(email):
-            return jsonify({"success": False, "message": "Please enter a valid @gmail.com address."}), 400
 
-        if not confirm_password:
-            return jsonify({"success": False, "message": "Please confirm your password."}), 400
+def issue_challenge(purpose, email, uid=None):
+    now = datetime.datetime.now(datetime.timezone.utc)
+    code = f'{secrets.randbelow(1000000):06d}'
+    ref = challenge_ref(purpose, email)
+    record = {'purpose': purpose, 'email': email, 'uid': uid, 'nonce': secrets.token_hex(16),
+              'otpHash': generate_password_hash(code), 'sentAt': now,
+              'expiresAt': now + datetime.timedelta(minutes=5), 'attempts': 0, 'state': 'active'}
+    @firestore.transactional
+    def issue(transaction):
+        prior = ref.get(transaction=transaction).to_dict() or {}
+        if prior.get('state') == 'processing' and prior.get('leaseUntil', now) > now:
+            raise PasswordResetError('Verification is being completed. Please retry shortly.', 409)
+        if prior.get('sentAt') and (now - prior['sentAt']).total_seconds() < 60:
+            raise PasswordResetError('Please wait 60 seconds before requesting another verification code.', 429)
+        transaction.set(ref, record)
+    issue(db.transaction())
+    html = f'<h2>KCZ Printing email verification</h2><p>Your verification code is <b>{code}</b>.</p><p>This code expires in five minutes.</p>'
+    if not send_smtp_email(email, 'KCZ Printing verification code', html):
+        @firestore.transactional
+        def invalidate(transaction):
+            current = ref.get(transaction=transaction).to_dict() or {}
+            if current.get('nonce') == record['nonce']:
+                transaction.set(ref, {**current, 'state': 'failed', 'sentAt': now - datetime.timedelta(seconds=60)})
+        invalidate(db.transaction())
+        raise PasswordResetError('Unable to send the verification email. Please try again.', 503)
+    return record
 
-        if password != confirm_password:
-            return jsonify({"success": False, "message": "Passwords do not match."}), 400
 
-        # Strict Strong Password Validation (Matching Flutter Requirements)
-        is_strong, pass_msg = validate_strong_password(password, full_name=full_name, email=email)
-        if not is_strong:
-            return jsonify({"success": False, "message": f"Password requirement error: {pass_msg}"}), 400
+def verify_challenge(purpose, email, code, claim=False, operation=None):
+    ref = challenge_ref(purpose, email)
+    now = datetime.datetime.now(datetime.timezone.utc)
+    @firestore.transactional
+    def verify(transaction):
+        record = ref.get(transaction=transaction).to_dict() or {}
+        if not record or record.get('state') in ['consumed', 'failed']:
+            return None, ('There is no active verification request. Please request a new code.', 400)
+        if record.get('expiresAt', now) <= now:
+            return None, ('The verification code has expired. Please request a new code.', 400)
+        if record.get('attempts', 0) >= 5:
+            return None, ('Too many verification attempts. Please request a new code.', 429)
+        if not isinstance(code, str) or not re.fullmatch(r'[0-9]{6}', code) or not check_password_hash(record.get('otpHash', ''), code):
+            attempts = record.get('attempts', 0) + 1
+            transaction.set(ref, {**record, 'attempts': attempts})
+            return None, ('Too many verification attempts. Please request a new code.' if attempts >= 5 else 'Incorrect verification code. Please check your email.', 429 if attempts >= 5 else 400)
+        if claim:
+            if record.get('operation') and record['operation'] != operation:
+                return None, ('Retry the same verified request or request a new code.', 409)
+            if record.get('state') == 'processing' and record.get('leaseUntil', now) > now:
+                return None, ('Verification is being completed. Please retry shortly.', 409)
+            record.update(state='processing', lease=secrets.token_hex(16), leaseUntil=now + datetime.timedelta(seconds=60), operation=operation)
+            transaction.set(ref, record)
+        return record, None
+    record, error = verify(db.transaction())
+    if error:
+        raise PasswordResetError(*error)
+    return record
 
-        # Pre-check email existence
-        if is_email_registered(email):
-            return jsonify({"success": False, "message": "An account with this email address already exists."}), 400
 
-        # Validate OTP, expiration, and attempt limits
-        stored = signup_otp_store.get(email)
-        if not stored:
-            return jsonify({
-                "success": False, 
-                "message": "Verification is missing or has expired. Please request a new code."
-            }), 400
+def finish_challenge(purpose, email, record, succeeded):
+    ref = challenge_ref(purpose, email)
+    @firestore.transactional
+    def finish(transaction):
+        current = ref.get(transaction=transaction).to_dict() or {}
+        if current.get('nonce') != record['nonce'] or current.get('lease') != record.get('lease'):
+            raise PasswordResetError('Verification changed. Please request a new code.', 409)
+        current.update(state='consumed' if succeeded else 'active', leaseUntil=datetime.datetime.now(datetime.timezone.utc))
+        if succeeded:
+            current.pop('otpHash', None)
+        transaction.set(ref, current)
+    finish(db.transaction())
 
-        now = datetime.datetime.now()
-        if now > stored.get("expires_at", now):
-            signup_otp_store.pop(email, None)
-            return jsonify({
-                "success": False,
-                "message": "The verification code has expired after 5 minutes. Please request a new code."
-            }), 400
 
-        # Limit verification attempts to 5
-        stored["attempts"] = stored.get("attempts", 0) + 1
-        if stored["attempts"] > 5:
-            signup_otp_store.pop(email, None)
-            return jsonify({
-                "success": False,
-                "message": "Too many verification attempts. Please request a new code."
-            }), 429
-
-        if stored['otp'] != otp_input:
-            remaining_attempts = max(0, 5 - stored["attempts"])
-            return jsonify({
-                "success": False,
-                "message": f"Incorrect verification code. ({remaining_attempts} attempts remaining)"
-            }), 400
-
-        # OTP is verified! Remove from store to prevent replay attacks
-        signup_otp_store.pop(email, None)
-
-        # 1. Create account in Firebase Authentication
-        firebase_uid = create_firebase_customer(email, password)
-        if not firebase_uid:
-            return jsonify({
-                "success": False,
-                "message": "Unable to create the account. The email address may already be registered."
-            }), 400
-
-        # Set Firebase Auth Display Name
+def password_reset_errors(function):
+    @wraps(function)
+    def handle(*args, **kwargs):
         try:
-            firebase_auth.update_user(firebase_uid, display_name=full_name)
-        except Exception as e:
-            print(f"Warning updating display name in Auth: {e}")
+            return function(*args, **kwargs)
+        except PasswordResetError as error:
+            return jsonify(success=False, message=str(error)), error.status
+        except PermissionError as error:
+            return jsonify(success=False, message=str(error)), 403
+        except (ValueError, TypeError):
+            return jsonify(success=False, message='Check the recovery details and try again.'), 400
+        except Exception:
+            from flask import current_app
+            current_app.logger.exception('Password recovery failed')
+            return jsonify(success=False, message='Unable to complete password recovery. Please reconnect and try again.'), 503
+    return handle
 
-        # 2. Save customer record in Firestore 'customers' collection (for Web portal)
-        username_clean = email.split('@')[0]
-        cust_id = f"CUST-{int(datetime.datetime.now().timestamp())}"
-        new_customer = {
-            "id": cust_id,
-            "uid": firebase_uid,
-            "fullName": full_name,
-            "contact": contact,
-            "phone": contact,
-            "email": email,
-            "username": username_clean,
-            "regDate": datetime.datetime.now().strftime('%Y-%m-%d • %I:%M %p'),
-            "rfidUid": f"RFID-KCZ-{random.randint(100000, 999999)}",
-            "role": "customer"
-        }
 
-        if not create_customer(new_customer):
-            delete_firebase_customer(firebase_uid)
-            return jsonify({
-                "success": False,
-                "message": "Unable to save the customer profile."
-            }), 500
+def reset_request_data():
+    data = request.get_json(silent=True)
+    if not isinstance(data, dict):
+        raise PasswordResetError('Send valid password recovery details.')
+    email = data.get('email')
+    if not isinstance(email, str) or not is_valid_gmail(email.strip().lower()):
+        raise PasswordResetError('Please enter your registered @gmail.com address.')
+    return data, email.strip().lower()
 
-        # 3. Save matching record in Firestore 'users' collection (for Mobile App compatibility)
-        if db:
-            try:
-                db.collection('users').document(firebase_uid).set({
-                    "uid": firebase_uid,
-                    "full_name": full_name,
-                    "phone": contact,
-                    "email": email,
-                    "role": "customer",
-                    "created_at": datetime.datetime.now(datetime.timezone.utc)
-                })
-            except Exception as dbe:
-                print(f"Warning syncing users collection: {dbe}")
 
-        welcome_html = f"""
-        <div style="font-family: Arial, sans-serif; padding: 20px; border: 1px solid #e2e8f0; border-radius: 12px; max-width: 500px;">
-            <h2 style="color: #6366f1;">Welcome sa Kez C-Em Zek Print Shop! 🎉</h2>
-            <p>Hi <b>{full_name}</b>,</p>
-            <p>Your new account has been verified and registered successfully.</p>
-            <br>
-            <p><b>Registered Email:</b> {email}</p>
-            <p><b>Contact Number:</b> {contact}</p>
-        </div>
-        """
-        send_smtp_email(email, "Welcome sa Kez C-Em Zek Print Shop!", welcome_html)
+def reset_account(email):
+    try:
+        user = auth.get_user_by_email(email)
+    except auth.UserNotFoundError:
+        return None
+    if user.disabled:
+        raise PermissionError('This account is disabled. Contact the shop administrator.')
+    return user
 
-        return jsonify({"success": True, "message": "Registration successful! You can now log in."}), 200
-    except Exception as e:
-        return jsonify({"success": False, "message": str(e)}), 500
+
 
 
 @app.route('/api/forgot-password', methods=['POST'])
+@password_reset_errors
 def forgot_password():
-    try:
-        data = request.json or {}
-        email = data.get('email', '').strip().lower()
-
-        if not email:
-            return jsonify({"success": False, "message": "Please enter your email address."}), 400
-
-        if not is_valid_gmail(email):
-            return jsonify({"success": False, "message": "Please enter a valid @gmail.com address."}), 400
-
-        if not is_email_registered(email):
-            return jsonify({"success": False, "message": "This email address is not registered."}), 400
-
-        now = datetime.datetime.now()
-
-        # Rate limiting: 60 seconds cooldown between resend requests
-        existing = otp_memory_store.get(email)
-        if existing:
-            last_sent = existing.get("timestamp")
-            if last_sent and (now - last_sent).total_seconds() < 60:
-                wait_sec = int(60 - (now - last_sent).total_seconds())
-                return jsonify({
-                    "success": False,
-                    "message": f"Please wait {wait_sec} seconds before requesting another verification code."
-                }), 429
-
-        otp = ''.join(random.choices(string.digits, k=6))
-        otp_memory_store[email] = {
-            "otp": otp,
-            "timestamp": now,
-            "attempts": 0,
-            "expires_at": now + datetime.timedelta(minutes=5),
-            "verified": False
-        }
-
-        # Mobile app matching email layout
-        email_body = f"""
-        <div style="font-family: Arial, sans-serif; padding: 20px; background-color: #0b0f19; color: #ffffff; border-radius: 10px; max-width: 500px;">
-          <h2 style="color: #6366f1;">Kez C-Em Zek Printing Shop</h2>
-          <p style="color: #cbd5e1;">Hello,</p>
-          <p style="color: #cbd5e1;">Your password reset code is:</p>
-          <div style="background-color: #111827; padding: 12px 20px; border-radius: 8px; display: inline-block; margin: 10px 0;">
-            <h1 style="color: #38bdf8; letter-spacing: 5px; margin: 0;">{otp}</h1>
-          </div>
-          <p style="color: #94a3b8; font-size: 12px;">This code will expire in 5 minutes. If you did not request this, please ignore this email.</p>
-        </div>
-        """
-
-        email_sent = send_smtp_email(email, "Password Reset OTP - Kez C-Em Zek", email_body)
-
-        if email_sent:
-            return jsonify({"success": True, "message": f"A password reset code has been sent to {email}."}), 200
-        else:
-            return jsonify({"success": False, "message": "Bigo sa pagpapadala ng OTP via SMTP."}), 500
-
-    except Exception as e:
-        return jsonify({"success": False, "message": str(e)}), 500
+    _, email = reset_request_data()
+    user = reset_account(email)
+    if user is None:
+        raise PasswordResetError('This email address is not registered.')
+    issue_challenge('reset', email, user.uid)
+    return jsonify(success=True, message='A verification code has been sent to your registered email.')
 
 
 @app.route('/api/verify-reset-otp', methods=['POST'])
+@password_reset_errors
 def verify_reset_otp():
-    """
-    Step 2 verification endpoint: Validates OTP before user provides new password.
-    Marks OTP session as verified.
-    """
-    try:
-        data = request.json or {}
-        email = data.get('email', '').strip().lower()
-        otp_input = data.get('otp', '').strip()
-
-        if not email or not otp_input:
-            return jsonify({"success": False, "message": "Please enter your email address and 6-digit verification code."}), 400
-
-        stored = otp_memory_store.get(email)
-        if not stored:
-            return jsonify({"success": False, "message": "There is no active verification request, or it has expired."}), 400
-
-        now = datetime.datetime.now()
-        if now > stored.get("expires_at", now):
-            otp_memory_store.pop(email, None)
-            return jsonify({"success": False, "message": "The verification code has expired after 5 minutes. Please request a new code."}), 400
-
-        stored["attempts"] = stored.get("attempts", 0) + 1
-        if stored["attempts"] > 5:
-            otp_memory_store.pop(email, None)
-            return jsonify({"success": False, "message": "Too many attempts. Please request a new code."}), 429
-
-        if stored['otp'] != otp_input:
-            remaining = max(0, 5 - stored["attempts"])
-            return jsonify({"success": False, "message": f"Incorrect verification code. ({remaining} attempts remaining)"}), 400
-
-        # Mark as verified
-        stored['verified'] = True
-        return jsonify({"success": True, "message": "Code verified successfully. You can now enter your new password."}), 200
-
-    except Exception as e:
-        return jsonify({"success": False, "message": str(e)}), 500
+    data, email = reset_request_data()
+    verify_challenge('reset', email, data.get('otp'))
+    return jsonify(success=True, message='Code verified. You can now set your app password.')
 
 
 @app.route('/api/reset-password', methods=['POST'])
+@password_reset_errors
 def reset_password():
+    data, email = reset_request_data()
+    password = data.get('newPassword')
+    if not isinstance(password, str):
+        raise PasswordResetError('Enter a new password.')
+    valid, message = validate_strong_password(password, email=email)
+    if not valid:
+        raise PasswordResetError(message)
+    record = verify_challenge('reset', email, data.get('otp'), claim=True, operation=verification_operation({'password': password}))
     try:
-        data = request.json or {}
-        email = data.get('email', '').strip().lower()
-        otp_input = data.get('otp', '').strip()
-        new_password = data.get('newPassword', '').strip()
+        user = reset_account(email)
+        if user is None or record.get('uid') != user.uid:
+            raise PasswordResetError('The account changed during verification. Please request a new code.', 409)
+        auth.update_user(user.uid, password=password, email_verified=True)
+    except Exception:
+        finish_challenge('reset', email, record, False)
+        raise
+    finish_challenge('reset', email, record, True)
+    return jsonify(success=True, message='Password updated. Sign in with your email and new app password.')
 
-        if not email or not otp_input or not new_password:
-            return jsonify({"success": False, "message": "Please complete all required fields."}), 400
 
-        is_strong, pass_msg = validate_strong_password(new_password, email=email)
-        if not is_strong:
-            return jsonify({"success": False, "message": f"The new password does not meet the requirements. {pass_msg}"}), 400
 
-        if email == ADMIN_EMAIL:
-            stored_admin = otp_memory_store.get(email)
-            if stored_admin and (stored_admin.get('verified') or stored_admin['otp'] == otp_input):
-                global ADMIN_PASSWORD
-                ADMIN_PASSWORD = new_password
-                otp_memory_store.pop(email, None)
-                return jsonify({"success": True, "message": "Admin password updated successfully."}), 200
+@app.route('/api/request-signup-otp', methods=['POST'])
+@password_reset_errors
+def request_signup_otp():
+    _, email = reset_request_data()
+    user = reset_account(email)
+    uid = 'customer_' + secrets.token_hex(16)
+    if user is not None:
+        prior = challenge_ref('signup', email).get().to_dict() or {}
+        if prior.get('uid') != user.uid or prior.get('state') == 'consumed' or db.collection('users').document(user.uid).get().exists:
+            raise PasswordResetError('An account with this email address already exists.', 409)
+        uid = user.uid
+    index = db.collection('account_identity_index').document(hashlib.sha256(email.encode()).hexdigest()).get()
+    if index.exists:
+        raise PasswordResetError('Your existing account needs identity review. Contact the shop administrator.', 409)
+    issue_challenge('signup', email, uid)
+    return jsonify(success=True, message='A six-digit verification code has been sent to your email.')
 
-        stored = otp_memory_store.get(email)
-        if not stored:
-            return jsonify({"success": False, "message": "There is no active verification request, or it has expired."}), 400
 
-        now = datetime.datetime.now()
-        if now > stored.get("expires_at", now):
-            otp_memory_store.pop(email, None)
-            return jsonify({"success": False, "message": "The verification code has expired. Please request a new code."}), 400
-
-        if not stored.get('verified') and stored['otp'] != otp_input:
-            stored["attempts"] = stored.get("attempts", 0) + 1
-            if stored["attempts"] > 5:
-                otp_memory_store.pop(email, None)
-                return jsonify({"success": False, "message": "Too many verification attempts."}), 429
-            return jsonify({"success": False, "message": "The verification code is incorrect."}), 400
-
-        # 1. Update REAL Firebase Authentication password
-        fb_user = get_firebase_user_by_email(email)
-        auth_updated = False
-        if fb_user:
-            auth_updated = update_firebase_password(fb_user.uid, new_password)
-            if not auth_updated:
-                return jsonify({"success": False, "message": "Unable to update the password."}), 500
-
-        # 2. Update Firestore 'customers' password field (legacy backward compatibility)
-        updated_in_db = False
+@app.route('/api/signup', methods=['POST'])
+@password_reset_errors
+def api_signup():
+    data, email = reset_request_data()
+    name = str(data.get('fullName') or f"{data.get('firstName', '')} {data.get('lastName', '')}").strip()
+    contact = str(data.get('contact') or '').strip()
+    password = data.get('password')
+    for valid, message in [validate_name(name), validate_strong_password(password if isinstance(password, str) else '', full_name=name, email=email)]:
+        if not valid:
+            raise PasswordResetError(message)
+    if not is_valid_ph_contact(contact):
+        raise PasswordResetError('Enter an 11-digit Philippine mobile number starting with 09.')
+    if password != data.get('confirmPassword'):
+        raise PasswordResetError('Passwords do not match.')
+    record = verify_challenge('signup', email, data.get('otp'), claim=True,
+                              operation=verification_operation({'email': email, 'name': name, 'contact': contact, 'password': password}))
+    uid = record['uid']
+    try:
         try:
-            if db:
-                customers_ref = db.collection('customers')
-                docs = customers_ref.where('email', '==', email).stream()
-                for doc in docs:
-                    doc.reference.update({'password': new_password})
-                    updated_in_db = True
-        except Exception as db_err:
-            print(f"⚠ Firebase Customers Update Error: {db_err}")
-
-        # In-memory customer list update
-        customers = get_customers() or []
-        for c in customers:
-            if isinstance(c, dict) and c.get('email', '').strip().lower() == email:
-                c['password'] = new_password
-                updated_in_db = True
-                break
-
-        # Consume OTP session
-        otp_memory_store.pop(email, None)
-
-        if auth_updated or updated_in_db:
-            return jsonify({"success": True, "message": "Password updated successfully. You can now sign in with your new password."}), 200
-        else:
-            return jsonify({"success": False, "message": "The account could not be found."}), 400
-
-    except Exception as e:
-        return jsonify({"success": False, "message": str(e)}), 500
+            user = auth.get_user_by_email(email)
+            if user.uid != uid or user.disabled:
+                raise PasswordResetError('This account already exists. Please sign in.', 409)
+            if not db.collection('users').document(uid).get().exists:
+                auth.update_user(uid, password=password, display_name=name, email_verified=True)
+        except auth.UserNotFoundError:
+            auth.create_user(uid=uid, email=email, password=password, display_name=name, email_verified=True)
+        user_ref = db.collection('users').document(uid)
+        customer_ref = db.collection('customers').document(uid)
+        account_ref = db.collection('loyalty_accounts').document(uid)
+        index_ref = db.collection('account_identity_index').document(hashlib.sha256(email.encode()).hexdigest())
+        @firestore.transactional
+        def provision(transaction):
+            current = user_ref.get(transaction=transaction)
+            mirror = customer_ref.get(transaction=transaction)
+            account = account_ref.get(transaction=transaction)
+            index = index_ref.get(transaction=transaction).to_dict() or {}
+            if index.get('uid', uid) != uid:
+                raise PermissionError('This account needs identity review.')
+            profile = {'uid': uid, 'customerId': uid, 'email': email, 'emailNormalized': email,
+                       'role': 'customer', 'fullName': name, 'full_name': name, 'phone': contact,
+                       'contact': contact, 'created_at': firestore.SERVER_TIMESTAMP}
+            if not current.exists:
+                transaction.set(user_ref, profile)
+            if not mirror.exists:
+                transaction.set(customer_ref, {**profile, 'id': uid})
+            if not account.exists:
+                transaction.set(account_ref, {'balance': 0, 'reserved': 0, 'createdAt': firestore.SERVER_TIMESTAMP})
+            transaction.set(index_ref, {'uid': uid, 'emailNormalized': email, 'profilePaths': [user_ref.path, customer_ref.path], 'archivePaths': []})
+        provision(db.transaction())
+    except Exception:
+        finish_challenge('signup', email, record, False)
+        raise
+    finish_challenge('signup', email, record, True)
+    send_smtp_email(email, 'Welcome to KCZ Printing', '<h2>Welcome to KCZ Printing</h2><p>Your account has been verified and registered successfully.</p>')
+    return jsonify(success=True, message='Registration successful! You can now log in.')
 
 
 # ---------------------------------------------------------------------------
@@ -3630,7 +4430,11 @@ def handle_users():
                             "role": c.get('role', 'customer'),
                             "rfidUid": c.get("rfidUid", ""),
                             "points": c.get("points", c.get("loyaltyPoints", 0)),
-                            "lastTap": c.get("lastTap", "")
+                            "lastTap": c.get("lastTap", ""),
+                            "uid": c.get("uid"),
+                            "legacyCustomerIds": c.get("legacyCustomerIds", []),
+                            "profileResolution": c.get("profileResolution", "resolved"),
+                            "rfidReviewRequired": c.get("rfidReviewRequired", False)
                         })
             elif isinstance(customers, list):
                 for idx, c in enumerate(customers):
@@ -3645,7 +4449,11 @@ def handle_users():
                             "role": c.get('role', 'customer'),
                             "rfidUid": c.get("rfidUid", ""),
                             "points": c.get("points", c.get("loyaltyPoints", 0)),
-                            "lastTap": c.get("lastTap", "")
+                            "lastTap": c.get("lastTap", ""),
+                            "uid": c.get("uid"),
+                            "legacyCustomerIds": c.get("legacyCustomerIds", []),
+                            "profileResolution": c.get("profileResolution", "resolved"),
+                            "rfidReviewRequired": c.get("rfidReviewRequired", False)
                         })
 
             return jsonify(users_list), 200
@@ -3710,6 +4518,8 @@ def handle_single_user(user_id):
         try:
             if db:
                 doc = db.collection('customers').document(user_id).get()
+                if not doc.exists:
+                    doc = db.collection('users').document(user_id).get()
                 if doc.exists:
                     d = doc.to_dict()
                     d['id'] = doc.id
@@ -3749,6 +4559,12 @@ def handle_single_user(user_id):
                     for doc in docs:
                         sync_customer_profile(doc.id, {**doc.to_dict(), **update_data})
                         updated = True
+
+            if not updated and db:
+                canonical = db.collection('users').document(user_id).get()
+                if canonical.exists:
+                    sync_customer_profile(user_id, {**canonical.to_dict(), **update_data})
+                    updated = True
 
             return jsonify({
                 "success": True,
@@ -3967,35 +4783,9 @@ def handle_gcash_settings():
             return jsonify({'success': False, 'error': str(e)}), 500
 
 @app.route('/api/settings/gcash/upload-qr', methods=['POST'])
+@admin_required
 def upload_gcash_qr_endpoint():
-    if session.get('role') != 'admin':
-        return jsonify({'success': False, 'message': 'Unauthorized! Admin access required.'}), 403
-    try:
-        if 'qrFile' not in request.files:
-            return jsonify({'success': False, 'message': 'No file uploaded.'}), 400
-        file = request.files['qrFile']
-        if file.filename == '':
-            return jsonify({'success': False, 'message': 'No file selected.'}), 400
-
-        # Save locally to static/images/gcash_qr.png or timestamped
-        ext = file.filename.rsplit('.', 1)[-1].lower() if '.' in file.filename else 'png'
-        if ext not in ['png', 'jpg', 'jpeg', 'webp']:
-            return jsonify({'success': False, 'message': 'Image formats only (PNG, JPG, WEBP).'}), 400
-
-        save_name = f"gcash_qr.{ext}"
-        save_path = os.path.join(os.path.dirname(__file__), 'static', 'images', save_name)
-        file.save(save_path)
-
-        web_url = f"/static/images/{save_name}?v={int(datetime.datetime.now().timestamp())}"
-
-        # Auto update settings
-        current = get_gcash_settings()
-        current['qrUrl'] = web_url
-        save_gcash_settings(current)
-
-        return jsonify({'success': True, 'qrUrl': web_url, 'message': 'GCash QR Code updated successfully!'}), 200
-    except Exception as e:
-        return jsonify({'success': False, 'error': str(e)}), 500
+    return upload_order_file_endpoint('merchant_qr')
 
 # ---------------------------------------------------------------------------
 # FILE UPLOAD ENDPOINT  (Step 1 of two-step order submission)
@@ -4003,85 +4793,70 @@ def upload_gcash_qr_endpoint():
 
 @app.route('/api/upload', methods=['POST'])
 @login_required
-def upload_order_file_endpoint():
-    """
-    Accept a multipart/form-data file upload, validate it server-side,
-    upload it to Supabase Storage, and return the storage path + signed URL.
-
-    The frontend calls this BEFORE submitting the order JSON so that
-    no orphaned order records are created if the upload fails.
-    """
+def upload_order_file_endpoint(purpose=None):
+    actor = identity()
+    purpose = purpose or request.form.get('purpose', 'document')
+    if purpose not in ['document', 'receipt', 'catalog', 'merchant_qr']:
+        return jsonify(success=False, message='Invalid upload type.'), 400
+    public_asset = purpose in ['catalog', 'merchant_qr']
+    if public_asset and actor['role'] != 'admin':
+        return jsonify(success=False, message='Admin access is required for catalog uploads.'), 403
+    files = request.files.getlist('file') or request.files.getlist('files') or (request.files.getlist('qrFile') if purpose == 'merchant_qr' else [])
+    if not 1 <= len(files) <= sc.MAX_FILES_PER_REQUEST:
+        return jsonify(success=False, message='Attach between one and five files.'), 400
+    total = 0
+    for file in files:
+        valid, message = sc.validate_upload_file(file)
+        if not valid:
+            return jsonify(success=False, message=message), 400
+        if purpose != 'document' and sc._get_extension(file.filename) not in ['png', 'jpg', 'jpeg']:
+            return jsonify(success=False, message='Choose a PNG or JPG image.'), 400
+        file.seek(0, 2)
+        total += file.tell()
+        file.seek(0)
+    if total > sc.MAX_COMBINED_SIZE_BYTES:
+        return jsonify(success=False, message='The combined upload limit is 25 MB.'), 400
+    bucket = sc.BUCKET_NAME if public_asset else sc.PRIVATE_BUCKET_NAME
+    uploaded = []
+    results = []
+    ownership = db.batch() if not public_asset else None
     try:
-        files = request.files.getlist('file') or request.files.getlist('files')
-        if not files or all(f.filename == '' for f in files):
-            return jsonify({'success': False, 'message': 'No file was sent. Please attach a file.'}), 400
+        for file in files:
+            contents = file.read()
+            file.seek(0)
+            path, url = sc.upload_order_file(file, actor['uid'], actor['uid'], bucket_name=bucket)
+            uploaded.append(path)
+            if not url:
+                raise RuntimeError('Unable to prepare the uploaded file link. Please retry.')
+            if public_asset:
+                url = sc._get_client().storage.from_(bucket).get_public_url(path)
+            else:
+                key = hashlib.sha256(f'{bucket}/{path}'.encode()).hexdigest()
+                ownership.set(db.collection('file_ownership').document(key), {'uid': actor['uid'], 'bucket': bucket,
+                    'path': path, 'purpose': purpose, 'name': file.filename,
+                    'sha256': hashlib.sha256(contents).hexdigest(), 'size': len(contents),
+                    'createdAt': firestore.SERVER_TIMESTAMP})
+            results.append({'fileName': file.filename, 'fileUrl': url, 'storagePath': path})
+    except Exception:
+        for path in uploaded:
+            sc.delete_file(path, bucket_name=bucket)
+        raise
+    if ownership is not None:
+        # Preserve private objects if the metadata commit response is interrupted.
+        ownership.commit()
+    return jsonify(success=True, url=results[0]['fileUrl'], qrUrl=results[0]['fileUrl'] if purpose == 'merchant_qr' else '', **results[0]) if len(results) == 1 else jsonify(success=True, files=results)
 
-        # Enforce max files per request
-        if len(files) > sc.MAX_FILES_PER_REQUEST:
-            return jsonify({
-                'success': False,
-                'message': f'Too many files. Maximum {sc.MAX_FILES_PER_REQUEST} files per upload.'
-            }), 400
 
-        # Validate each file individually
-        validated = []
-        combined_size = 0
-        for f in files:
-            ok, err = sc.validate_upload_file(f)
-            if not ok:
-                return jsonify({'success': False, 'message': err}), 400
-            f.seek(0)
-            size = len(f.read())
-            f.seek(0)
-            combined_size += size
-            validated.append(f)
+@app.route('/api/uploads/prepare', methods=['POST'])
+@api_errors
+def prepare_upload_endpoint():
+    return jsonify(success=True, files=prepare_direct_upload(identity(), body()))
 
-        # Combined size limit
-        if combined_size > sc.MAX_COMBINED_SIZE_BYTES:
-            mb = combined_size / (1024 * 1024)
-            return jsonify({
-                'success': False,
-                'message': f'Total upload size ({mb:.1f} MB) exceeds the 25 MB combined limit.'
-            }), 400
 
-        # Upload to Supabase (use a temporary ID; the real order ID comes later)
-        cust_email = session.get('email') or 'unknown'
-        temp_id = f"tmp-{cust_email.split('@')[0]}-{datetime.datetime.now().strftime('%H%M%S%f')[:12]}"
-
-        results = []
-        uploaded_paths = []
-        try:
-            for f in validated:
-                path, signed_url = sc.upload_order_file(
-                    file_obj=f,
-                    order_id=temp_id,
-                    customer_id=cust_email,
-                )
-                uploaded_paths.append(path)
-                results.append({
-                    'fileName': f.filename,
-                    'storagePath': path,
-                    'fileUrl': signed_url,
-                })
-        except RuntimeError as upload_err:
-            # Clean up any partially uploaded files
-            for p in uploaded_paths:
-                sc.delete_file(p)
-            return jsonify({'success': False, 'message': str(upload_err)}), 500
-
-        # Return single-file response if only one file (most common case)
-        if len(results) == 1:
-            return jsonify({
-                'success': True,
-                'fileName': results[0]['fileName'],
-                'storagePath': results[0]['storagePath'],
-                'fileUrl': results[0]['fileUrl'],
-            }), 200
-
-        return jsonify({'success': True, 'files': results}), 200
-
-    except Exception as e:
-        return jsonify({'success': False, 'message': f'Upload error: {str(e)}'}), 500
+@app.route('/api/uploads/finalize', methods=['POST'])
+@api_errors
+def finalize_upload_endpoint():
+    return jsonify(success=True, **finalize_direct_upload(identity(), body().get('fileId')))
 
 
 # ---------------------------------------------------------------------------
@@ -4118,125 +4893,48 @@ def pos_sales():
 @app.route('/api/orders', methods=['GET', 'POST'])
 @login_required
 def handle_orders():
+    actor = identity()
     if request.method == 'POST':
-        try:
-            # File was already uploaded via /api/upload — we only receive JSON here
-            data = request.json or {}
+        record = submit_order(db, actor, body())
+        return jsonify(success=True, orderId=record['id'], order=record, message='Order submitted successfully!')
+    revision = order_history_revision(actor)
+    if request.if_none_match.contains(revision):
+        return '', 304
+    response = jsonify(customer_order_records(actor))
+    response.set_etag(revision)
+    return response
 
-            file_name    = str(data.get('file', '')).strip()
-            file_url_val = str(data.get('fileUrl', '')).strip()
-            storage_path = str(data.get('storagePath', '')).strip()
 
-            if not file_name:
-                return jsonify({"success": False, "message": "Upload a document or design file before submitting your order."}), 400
+def order_history_revision(actor):
+    revision = db.collection('settings').document('order_revision').get().to_dict() or {}
+    return record_digest({'schema': 2, 'uid': actor['uid'], 'role': actor['role'], 'revision': revision})
 
-            # Sanity-check: storagePath must start with expected prefix if provided
-            if storage_path and not storage_path.startswith('orders/'):
-                return jsonify({"success": False, "message": "Invalid file reference. Please re-upload the file."}), 400
 
-            try:
-                qty_val = int(data.get('quantity') or data.get('copies') or 1)
-                pages_val = int(data.get('pages') or 1)
-                total_amount = float(data.get('totalAmount') or data.get('total') or 0.0)
+def customer_order_records(actor):
+    query = get_orders_ref()
+    if actor['role'] == 'admin':
+        documents = list(query.stream())
+    else:
+        owned = list(query.where('customerId', '==', actor['uid']).stream())
+        legacy = list(query.where('email', '==', actor['email']).stream())
+        allowed_legacy = set(actor.get('legacyCustomerIds', [])) | {actor['email'], '', None}
+        documents = owned + [doc for doc in legacy if doc.to_dict().get('customerId') in allowed_legacy or str(doc.to_dict().get('customerId') or '').startswith('CUST-')]
+    rows = {}
+    for doc in documents:
+        data = doc.to_dict() or {}
+        data.update(id=doc.id, ownershipReviewRequired=data.get('customerId') != actor['uid'] and actor['role'] != 'admin')
+        rows[doc.id] = format_proper_order_info(data)
+    return sorted(rows.values(), key=lambda row: str(row.get('createdAt') or row.get('timestamp') or ''), reverse=True)
 
-                if qty_val <= 0 or pages_val <= 0:
-                    return jsonify({"success": False, "message": "Quantity and pages must be greater than zero."}), 400
-                if qty_val > 100000:
-                    return jsonify({"success": False, "message": "The maximum quantity is 100,000 units."}), 400
-                if pages_val > 5000:
-                    return jsonify({"success": False, "message": "The maximum page count is 5,000."}), 400
-                if total_amount <= 0 or total_amount > 5000000:
-                    return jsonify({"success": False, "message": "Invalid order total. The maximum is ₱5,000,000."}), 400
-            except (ValueError, TypeError):
-                return jsonify({"success": False, "message": "Check the numeric values for quantity, pages, and total."}), 400
 
-            order_id = f"PRNT-{uuid.uuid4().hex[:20]}"
-            cust_name = session.get('username') or data.get('customer') or 'Customer'
-            if '@' in cust_name: cust_name = cust_name.split('@')[0]
-            cust_email = session.get('email') or data.get('email') or f"{cust_name}@gmail.com"
-
-            service_id = str(data.get('serviceId') or '')
-            if service_id:
-                matched_service = next((svc for svc in get_services() if svc['id'] == service_id), None)
-                if not matched_service:
-                    return jsonify({'success': False, 'message': 'Service is unavailable. Refresh the service list.'}), 400
-                try:
-                    validate_requirements(matched_service, data.get('customRequirements') or {})
-                except ValueError as validation_error:
-                    return jsonify({'success': False, 'message': str(validation_error)}), 400
-
-            # Customer Note / Special Instructions (Optional, max 500 chars)
-            customer_note = str(data.get('customerNote') if data.get('customerNote') is not None else (data.get('note') or '')).strip()
-            if len(customer_note) > 500:
-                return jsonify({"success": False, "message": "Order notes and special instructions must not exceed 500 characters."}), 400
-
-            # GCash Payment Fields Validation (if GCash Online is selected)
-            payment_method = str(data.get('payment') or 'GCash Online').strip()
-            gcash_ref = str(data.get('gcashRef') or data.get('referenceNumber') or '').strip()
-            gcash_receipt_url = str(data.get('gcashReceiptUrl') or '').strip()
-
-            merchant_account = ''
-            try:
-                payment_method, gcash_ref = validate_payment(payment_method, gcash_ref)
-                if 'gcash' in payment_method.lower():
-                    merchant_account = validate_merchant(get_gcash_settings(), str(data.get('merchantAccountNumber') or ''))
-                    if data.get('paperSize') == 'Store Supply' or data.get('items'):
-                        gcash_receipt_url = validate_receipt(gcash_receipt_url)
-                else:
-                    gcash_receipt_url = ''
-            except ValueError as error:
-                return jsonify({'success': False, 'message': str(error)}), 400
-
-            new_order = {
-                "id": order_id,
-                "customerId": session.get("uid") or cust_email,
-                "customer": cust_name,
-                "email": cust_email,
-                "serviceId": service_id,
-                "service": data.get('service') or 'Document Printing (Full Color)',
-                "customRequirements": data.get("customRequirements") or {},
-                "details": data.get("details") or data.get("customRequirements") or {},
-                "items": data.get("items") or [],
-                "stockDeducted": False,
-                "quantity": qty_val,
-                "copies": qty_val,
-                "pages": pages_val,
-                "paperSize": data.get('paperSize') or 'Short Letter (8.5" x 11")',
-                "colorMode": data.get('colorMode', 'Full Color'),
-                "customerNote": customer_note,
-                "payment": payment_method,
-                "gcashRef": gcash_ref,
-                "gcashReceiptUrl": gcash_receipt_url,
-                "merchantAccountNumber": merchant_account,
-                "total": total_amount,
-                "status": "Order Submitted",
-                "file": file_name,
-                "fileUrl": file_url_val,
-                "storagePath": storage_path,
-                "orderDate": datetime.datetime.now().strftime('%b %d, %Y • %I:%M %p'),
-                "createdAt": datetime.datetime.now().isoformat(),
-                "timestamp": datetime.datetime.now().isoformat()
-            }
-            formatted_new_order = format_proper_order_info(new_order)
-            if not create_order(formatted_new_order):
-                return jsonify({'success': False, 'message': 'Order could not be saved. Please retry.'}), 503
-            return jsonify({"success": True, "orderId": order_id, "message": "Order submitted successfully!"}), 200
-        except Exception as e:
-            return jsonify({"success": False, "error": str(e)}), 500
-
-    elif request.method == 'GET':
-        try:
-            orders = get_orders() or []
-
-            if session.get('role') == 'customer':
-                user_email = session.get('email', '').strip().lower()
-                orders = [o for o in orders if isinstance(o, dict) and o.get('email', '').strip().lower() == user_email]
-
-            formatted_orders = [format_proper_order_info(o) for o in orders if isinstance(o, dict)]
-            formatted_orders.sort(key=lambda x: str(x.get('createdAt') or x.get('timestamp') or x.get('orderDate') or ''))
-            return jsonify(formatted_orders), 200
-        except Exception as e:
-            return jsonify({"success": False, "error": str(e)}), 500
+@app.route('/api/orders/history', methods=['GET'])
+@login_required
+def order_history():
+    actor = identity()
+    revision = order_history_revision(actor)
+    if request.args.get('revision') == revision:
+        return jsonify(success=True, notModified=True, revision=revision)
+    return jsonify(success=True, orders=customer_order_records(actor), revision=revision)
 
 @app.route('/api/orders/<order_id>/cancel', methods=['POST'])
 def cancel_order_endpoint(order_id):
@@ -4263,33 +4961,29 @@ def cancel_order_endpoint(order_id):
         return jsonify(success=False, message='Unable to confirm cancellation. Reconnect and retry this order.'), 503
 
 @app.route('/api/orders/<order_id>/file', methods=['GET'])
-@admin_required
+@login_required
 def get_order_file_url(order_id):
-    """
-    Generate a fresh signed URL for the file attached to an order.
-    Admin-only — never exposed to customers.
-    """
-    try:
-        orders = get_orders() or []
-        order = next((o for o in orders if isinstance(o, dict) and o.get('id') == order_id), None)
-        if not order:
-            return jsonify({'success': False, 'message': 'Order not found.'}), 404
-
-        storage_path = order.get('storagePath', '')
-        if not storage_path:
-            # Fall back to existing fileUrl if no storagePath (legacy orders)
-            existing_url = order.get('fileUrl', '')
-            if existing_url and existing_url.startswith('http'):
-                return jsonify({'success': True, 'fileUrl': existing_url}), 200
-            return jsonify({'success': False, 'message': 'No file attached to this order.'}), 404
-
-        signed_url = sc.get_signed_url(storage_path, expires_in=3600)
-        if not signed_url:
-            return jsonify({'success': False, 'message': 'Could not generate file access URL.'}), 500
-
-        return jsonify({'success': True, 'fileUrl': signed_url}), 200
-    except Exception as e:
-        return jsonify({'success': False, 'error': str(e)}), 500
+    actor = identity()
+    order = get_orders_ref().document(safe_key(order_id)).get().to_dict()
+    if not order:
+        return jsonify(success=False, message='Order not found.'), 404
+    if actor['role'] != 'admin' and order.get('customerId') != actor['uid']:
+        return jsonify(success=False, message='You can only access your own order files.'), 403
+    links = {}
+    for field in ['fileUrl', 'gcashReceiptUrl']:
+        value = str(order.get(field) or '')
+        if not value or value.startswith('data:'):
+            links[field] = value
+            continue
+        file_actor = {**actor, 'uid': order.get('customerId')}
+        record = upload_metadata(value, file_actor)
+        links[field] = sc.get_signed_url(record['path'], bucket_name=record['bucket'])
+        if not links[field]:
+            raise RuntimeError('Unable to generate a file download link.')
+    target = links.get('gcashReceiptUrl' if request.args.get('kind') == 'receipt' else 'fileUrl')
+    if request.args.get('redirect') == '1' and target:
+        return redirect(target)
+    return jsonify(success=True, url=links.get('fileUrl', ''), receiptUrl=links.get('gcashReceiptUrl', ''))
 
 @app.route('/api/orders/<order_id>/status', methods=['PUT', 'POST'])
 @admin_required
@@ -4313,42 +5007,48 @@ def update_status(order_id):
 @app.route('/api/analytics', methods=['GET'])
 @admin_required
 def get_analytics():
+    revision = 'analytics-v2-' + order_history_revision(identity(admin=True))
+    if request.if_none_match.contains(revision):
+        return '', 304
+    g.response_etag = revision
     try:
         orders = get_orders() or []
         total_sales, total_pages, print_rev, store_rev = 0.0, 0, 0.0, 0.0
+        revenue_orders = 0
         customers, status_counts, service_breakdown = set(), {}, {}
 
         for o in orders:
-            price = float(o.get('total') or o.get('price') or 0.0)
+            price = analytics_order_amount(o)
             copies = int(o.get('copies') or o.get('quantity') or 1)
             pages_per_copy = int(o.get('pages') or 1)
             status = o.get('status') or 'Order Submitted'
             service = o.get('service') or 'Document Printing'
             cust = o.get('customer') or o.get('email')
 
-            if str(status).lower() == 'cancelled':
-                price = 0.0
+            stopped = is_stopped_order_status(status)
+            if not stopped:
+                revenue_orders += 1
             total_sales += price
-            if o.get('source') != 'POS' and str(status).lower() != 'cancelled':
+            if o.get('source') != 'POS' and not stopped:
                 total_pages += (copies * pages_per_copy)
             if cust: customers.add(str(cust).lower().strip())
 
             clean_status = "Order Submitted"
-            s_lower = str(status).lower()
-            if s_lower == 'cancelled': clean_status = "Cancelled"
+            s_lower = str(status).strip().lower()
+            if 'cancel' in s_lower: clean_status = "Cancelled"
             elif 'reject' in s_lower: clean_status = "Rejected"
             elif 'complete' in s_lower: clean_status = "Completed"
             elif 'ready' in s_lower or 'pickup' in s_lower: clean_status = "Ready for Pickup"
-            elif 'print' in s_lower or 'prepar' in s_lower: clean_status = "Printing"
+            elif 'print' in s_lower or 'prepar' in s_lower or 'process' in s_lower: clean_status = "Processing"
             elif 'approve' in s_lower: clean_status = "Approved"
 
             status_counts[clean_status] = status_counts.get(clean_status, 0) + 1
             service_breakdown[service] = service_breakdown.get(service, 0) + 1
 
             if o.get('source') == 'POS':
-                store_rev += float(o.get('productTotal') or 0)
-                print_rev += float(o.get('serviceTotal') or 0)
-            elif any(k in service.lower() for k in ['store', 'supply', 'in-store', 'notebook', 'pen']):
+                store_rev += analytics_order_amount(o, 'productTotal')
+                print_rev += analytics_order_amount(o, 'serviceTotal')
+            elif any(k in service.lower() for k in ['store', 'supply', 'supplies', 'in-store', 'notebook', 'pen']):
                 store_rev += price
             else:
                 print_rev += price
@@ -4358,8 +5058,8 @@ def get_analytics():
             'formattedTotalSales': f"₱ {total_sales:,.2f}",
             'totalOrders': len(orders),
             'totalPagesPrinted': total_pages,
-            'avgOrderValue': round((total_sales / len(orders)) if orders else 0.0, 2),
-            'formattedAvgOrderValue': f"₱ {((total_sales / len(orders)) if orders else 0.0):,.2f}",
+            'avgOrderValue': round((total_sales / revenue_orders) if revenue_orders else 0.0, 2),
+            'formattedAvgOrderValue': f"₱ {((total_sales / revenue_orders) if revenue_orders else 0.0):,.2f}",
             'activeCustomers': len(customers),
             'storeRevenue': round(store_rev, 2),
             'formattedStoreRevenue': f"₱ {store_rev:,.2f}",
@@ -4389,19 +5089,36 @@ def get_conversations_endpoint():
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
 
+@app.route('/api/chat/conversations/resolve', methods=['POST'])
+@admin_required
+def resolve_conversation():
+    data = body()
+    customer = customer_identity(uid=safe_key(data['uid'])) if data.get('uid') else customer_identity(email=str(data.get('email') or '').strip().lower())
+    if customer['role'] != 'customer':
+        raise PermissionError('Select a customer account.')
+    conversation = get_or_create_conversation(customer['email'], customer_name=customer['name'], customer_id=customer['uid'])
+    return jsonify(success=True, conversation=conversation)
+
+
 @app.route('/api/chat/conversations/<conv_id>/messages', methods=['GET', 'POST'])
 @login_required
 def conversation_messages_endpoint(conv_id):
     role = session.get('role')
     user_email = (session.get('email') or '').strip().lower()
 
-    # Security check: Customers can only access their own conversation!
-    if role != 'admin':
-        expected_conv_id = get_safe_conversation_id(user_email)
-        if conv_id != expected_conv_id:
-            return jsonify({"success": False, "message": "Unauthorized! You can only access your own chat conversation."}), 403
+    conversation = db.collection('conversations').document(conv_id).get().to_dict() or {}
+    if not conversation:
+        return jsonify(success=False, message='Conversation not found.'), 404
+    owner = str(conversation.get('customerId') or '')
+    if role != 'admin' and (str(conversation.get('customerEmail') or '').strip().lower() != user_email or
+            (owner and not owner.startswith('CUST-') and owner != session.get('uid'))):
+        return jsonify(success=False, message='You can only access your own conversation.'), 403
 
     if request.method == 'GET':
+        tag = record_digest(conversation)
+        if request.if_none_match.contains(tag):
+            return '', 304
+        g.response_etag = tag
         try:
             # Mark messages as read based on who is reading
             mark_role = 'admin' if role == 'admin' else 'customer'
@@ -4443,10 +5160,13 @@ def mark_conversation_read_endpoint(conv_id):
     role = session.get('role')
     user_email = (session.get('email') or '').strip().lower()
 
-    if role != 'admin':
-        expected_conv_id = get_safe_conversation_id(user_email)
-        if conv_id != expected_conv_id:
-            return jsonify({"success": False, "message": "Unauthorized"}), 403
+    conversation = db.collection('conversations').document(conv_id).get().to_dict() or {}
+    if not conversation:
+        return jsonify(success=False, message='Conversation not found.'), 404
+    owner = str(conversation.get('customerId') or '')
+    if role != 'admin' and (str(conversation.get('customerEmail') or '').strip().lower() != user_email or
+            (owner and not owner.startswith('CUST-') and owner != session.get('uid'))):
+        return jsonify(success=False, message='You can only access your own conversation.'), 403
 
     try:
         mark_role = 'admin' if role == 'admin' else 'customer'
@@ -4465,6 +5185,12 @@ def get_my_conversation_endpoint():
 
         user_name = session.get('username') or user_email.split('@')[0]
         conv = get_or_create_conversation(user_email, customer_name=user_name)
+        tag = record_digest(conv)
+        if request.if_none_match.contains(tag):
+            return '', 304
+        g.response_etag = tag
+        if request.args.get('metadataOnly') == '1':
+            return jsonify(success=True, conversation=conv, messages=[])
         messages = get_conversation_messages(conv['id'], mark_read_for_role='customer')
         return jsonify({"success": True, "conversation": conv, "messages": messages}), 200
     except Exception as e:
@@ -4561,9 +5287,12 @@ def _notification_identity():
     return recipient, email, uid
 
 
-@app.route('/api/notifications', methods=['GET'])
+@app.route('/api/notifications', methods=['GET', 'POST'])
 @login_required
 def get_user_notifications():
+    if request.method == 'POST':
+        identity(admin=True)
+        return jsonify(success=True, created=refresh_stock_notifications())
     try:
         user_id, email, state_uid = _notification_identity()
         notifs = get_notifications(user_id, email, state_uid) or []
@@ -4633,47 +5362,34 @@ def get_notification_public_config():
 @app.route('/api/notifications/fcm-token', methods=['POST'])
 @login_required
 def save_fcm_token_endpoint():
-    """
-    Associates an FCM push token with the authenticated session user.
-    """
-    try:
-        data = request.json or {}
-        token = (data.get('token') or '').strip()
-        device = (data.get('device') or 'Web Browser').strip()
-
-        if not token:
-            return jsonify({"success": False, "message": "Missing FCM token."}), 400
-
-        user_email = (session.get('email') or '').strip().lower()
-        role = session.get('role', 'customer')
-
-        if not user_email and role == 'admin':
-            user_email = ADMIN_EMAIL
-
-        success = register_fcm_token(user_email, role, token, device)
-        if success:
-            return jsonify({"success": True, "message": "Push notification token registered."}), 200
-        else:
-            return jsonify({"success": False, "message": "Failed to save push token."}), 500
-    except Exception as e:
-        return jsonify({"success": False, "error": str(e)}), 500
+    actor = identity()
+    data = body()
+    token = data.get('token')
+    if not isinstance(token, str) or not 20 <= len(token) <= 4096:
+        return jsonify(success=False, message='Invalid FCM token.'), 400
+    ref = db.collection('fcm_tokens').document(hashlib.sha256(token.encode()).hexdigest())
+    ref.set({'token': token, 'uid': actor['uid'], 'email': actor['email'], 'role': actor['role'],
+             'platform': 'android' if data.get('platform') == 'android' else 'web',
+             'device': str(data.get('device') or 'Device')[:100], 'active': True,
+             'serverVerified': True, 'updatedAt': firestore.SERVER_TIMESTAMP}, merge=True)
+    return jsonify(success=True, message='Push notification token registered.')
 
 @app.route('/api/notifications/fcm-token', methods=['DELETE'])
 @login_required
 def delete_fcm_token_endpoint():
-    """
-    Unregisters or removes a push token upon user opt-out or sign-out.
-    """
-    try:
-        data = request.json or {}
-        token = (data.get('token') or '').strip()
-        if not token:
-            return jsonify({"success": False, "message": "Missing FCM token."}), 400
-
-        remove_fcm_token(token)
-        return jsonify({"success": True, "message": "Push token deleted."}), 200
-    except Exception as e:
-        return jsonify({"success": False, "error": str(e)}), 500
+    actor = identity()
+    token = body().get('token')
+    if not isinstance(token, str) or not 20 <= len(token) <= 4096:
+        return jsonify(success=False, message='Invalid FCM token.'), 400
+    for key in [hashlib.sha256(token.encode()).hexdigest(), re.sub(r'[^a-zA-Z0-9]', '_', token[-40:])]:
+        ref = db.collection('fcm_tokens').document(key)
+        @firestore.transactional
+        def remove(transaction):
+            record = ref.get(transaction=transaction).to_dict() or {}
+            if record and (record.get('uid') == actor['uid'] or (not record.get('uid') and record.get('email') == actor['email'])):
+                transaction.delete(ref)
+        remove(db.transaction())
+    return jsonify(success=True)
 
 @app.route('/api/notifications/test-push', methods=['POST'])
 @login_required
@@ -4705,10 +5421,8 @@ def test_push_endpoint():
 # ---------------------------------------------------------------------------
 
 @app.route('/api/archive', methods=['GET'])
+@admin_required
 def get_archives():
-    is_admin = session.get('role') == 'admin' or session.get('username') == 'Admin'
-    if not is_admin:
-        return jsonify({'success': False, 'message': 'Unauthorized! Admin access required.'}), 403
     try:
         item_type = request.args.get('type', 'all')
         archives = get_archived_items(item_type)
@@ -4718,10 +5432,8 @@ def get_archives():
         return jsonify({'success': True, 'archives': []}), 200
 
 @app.route('/api/archive/<archive_id>/restore', methods=['POST'])
+@admin_required
 def restore_archive(archive_id):
-    is_admin = session.get('role') == 'admin' or session.get('username') == 'Admin'
-    if not is_admin:
-        return jsonify({'success': False, 'message': 'Unauthorized! Admin access required.'}), 403
     try:
         success, message = restore_archived_item(archive_id)
         return jsonify({'success': success, 'message': message}), 200 if success else 400
@@ -4729,10 +5441,8 @@ def restore_archive(archive_id):
         return jsonify({'success': False, 'error': str(e)}), 500
 
 @app.route('/api/archive/<archive_id>', methods=['DELETE'])
+@admin_required
 def delete_archive_permanent(archive_id):
-    is_admin = session.get('role') == 'admin' or session.get('username') == 'Admin'
-    if not is_admin:
-        return jsonify({'success': False, 'message': 'Unauthorized! Admin access required.'}), 403
     try:
         success = permanently_delete_archived_item(archive_id)
         return jsonify({'success': success, 'message': 'Item permanently deleted from archive.'}), 200 if success else 400
@@ -4740,10 +5450,8 @@ def delete_archive_permanent(archive_id):
         return jsonify({'success': False, 'error': str(e)}), 500
 
 @app.route('/api/store/products/<product_id>', methods=['DELETE'])
+@admin_required
 def delete_store_product_endpoint(product_id):
-    is_admin = session.get('role') == 'admin' or session.get('username') == 'Admin'
-    if not is_admin:
-        return jsonify({'success': False, 'message': 'Unauthorized! Admin access required.'}), 403
     try:
         current_products = get_store_products()
         target_prod = None
@@ -4772,4 +5480,4 @@ if __name__ == '__main__':
         print('=' * 60)
         print('KCZ Printing backend running on http://127.0.0.1:5000')
         print('=' * 60)
-        app.run(debug=True, port=5000)
+        app.run(debug=os.getenv('APP_ENV') != 'production', host='127.0.0.1', port=int(os.getenv('PORT', '5000')))

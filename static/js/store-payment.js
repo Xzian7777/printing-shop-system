@@ -15,7 +15,9 @@ function updateStorePaymentControls() {
     panel.classList.toggle('hidden', !gcash);
     const ready = storeGcashSettings && storeGcashSettings.isActive !== false && storeGcashSettings.accountNumber;
     const state = document.getElementById('storeGcashStatus');
-    state.textContent = !storeGcashSettings ? 'Loading GCash details…' : ready ? '' : 'GCash is unavailable. Choose Cash Pickup.';
+    const cashAllowed = typeof PaymentEligibility !== 'undefined' && PaymentEligibility.allowed;
+    state.textContent = !storeGcashSettings ? 'Loading GCash details…' : ready ? '' : cashAllowed
+        ? 'GCash is unavailable. Choose Cash Pickup.' : 'GCash is unavailable. Contact the shop to arrange your first payment.';
     document.getElementById('storeGcashAccountName').textContent = ready ? storeGcashSettings.accountName || 'GCash' : '';
     document.getElementById('storeGcashAccountNumber').textContent = ready ? storeGcashSettings.accountNumber : '';
     const qr = document.getElementById('storeGcashQr');
@@ -28,7 +30,7 @@ function updateStorePaymentControls() {
     const error = document.getElementById('storePaymentError');
     if (invalidPrices) error.textContent = priceError;
     else if (error.textContent === priceError) error.textContent = '';
-    button.disabled = invalidPrices || storeCheckoutPending || storeReceiptPending || Object.keys(cartState).length === 0 || (gcash && !ready);
+    button.disabled = invalidPrices || storeCheckoutPending || storeReceiptPending || Object.keys(cartState).length === 0 || (gcash ? !ready : !cashAllowed);
     button.textContent = storeCheckoutPending ? 'Submitting order…' : 'Confirm & Place Store Order';
 }
 

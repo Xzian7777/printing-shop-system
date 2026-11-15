@@ -10,8 +10,10 @@ from pathlib import Path
 class ReviewRenderingTests(unittest.TestCase):
     def render_order(self, order):
         source = (Path(__file__).parents[1] / 'templates/admin.html').read_text(encoding='utf-8')
-        start = source.index('function openReviewSpecsModal(')
+        start = source.index('async function openReviewSpecsModal(')
         end = source.index('function closeSpecsModal(', start)
+        base = (Path(__file__).parents[1] / 'templates/base.html').read_text(encoding='utf-8')
+        helpers = base[base.index('    function orderStatusLabel'):base.index('    let actionNoticeTimer;')]
         script = """
 const vm = require('node:vm');
 const body = {innerHTML:'', querySelector:()=>null};
@@ -22,9 +24,8 @@ const context = {
   formatInteger: value => String(value), formatCurrency: value => 'PHP ' + value,
 };
 vm.runInNewContext(SOURCE,context);
-context.openReviewSpecsModal('test');
-process.stdout.write(body.innerHTML);
-""".replace('ORDER', json.dumps({'id': 'test', **order})).replace('SOURCE', json.dumps(source[start:end]))
+Promise.resolve(context.openReviewSpecsModal('test')).then(() => process.stdout.write(body.innerHTML));
+""".replace('ORDER', json.dumps({'id': 'test', **order})).replace('SOURCE', json.dumps(helpers + source[start:end]))
         result = subprocess.run(['node'], input=script, text=True, capture_output=True, encoding='utf-8')
         self.assertEqual(result.returncode, 0, result.stderr)
         return result.stdout

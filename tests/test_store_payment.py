@@ -50,42 +50,50 @@ class PaymentRulesTests(unittest.TestCase):
 
 class StorePaymentEndpointTests(unittest.TestCase):
     def setUp(self):
-        app = Flask(__name__); app.secret_key = 'test-only'
-        self.saved = []
-        self.merchant = {'accountNumber':'09123456789','isActive':True}
-        self.save_ok = True
-        def save(order):
-            if self.save_ok: self.saved.append(order)
-            return self.save_ok
-        env = {'app':app,'wraps':wraps,'jsonify':jsonify,'request':request,'session':session,
-            'uuid':uuid,'datetime':datetime,'re':re,'validate_payment':validate_payment,
-            'validate_merchant':validate_merchant,'validate_receipt':validate_receipt,
-            'get_gcash_settings':lambda:self.merchant,'create_order':save,'get_services':lambda:[],
-            'format_proper_order_info':lambda order:order}
-        source = Path(__file__).parents[1] / 'app.py'
-        tree = ast.parse(source.read_text(encoding='utf-8'))
-        nodes = [node for node in tree.body if isinstance(node,ast.FunctionDef) and node.name in ['login_required','handle_orders']]
-        exec(compile(ast.Module(body=nodes,type_ignores=[]),str(source),'exec'),env)
-        self.client = app.test_client()
-        with self.client.session_transaction() as state:
-            state.update(email='customer@example.com',uid='owner-uid',role='customer',username='Customer')
-        self.payload = {'file':'Store_Receipt.pdf','service':'In-Store: Paper (2x)', 'paperSize':'Store Supply',
-            'items':[{'id':'paper','qty':2,'price':5}], 'copies':2,'pages':1,'total':10,
-            'payment':'GCash','gcashRef':'1234567890123','merchantAccountNumber':'09123456789'}
+        import types
+        from backend_test_support import load_backend
+        from test_admin_sync import Database, transactional, Transaction
+        self.db = Database()
+        self.merchant = {'accountNumber': '09123456789', 'isActive': True}
+        self.db.records = {
+            'settings/loyalty_config': {'enabled': True, 'epoch': 'test', 'pointValueCents': 100},
+            'settings/gcash_config': self.merchant,
+            'products/paper': {'price': 5, 'stock': 100, 'name': 'Paper'},
+            'loyalty_accounts/owner-uid': {'balance': 0, 'reserved': 0, 'cashOnPickupUnlocked': True},
+        }
+        Transaction.create = Transaction.set
+        actor = {'uid': 'owner-uid', 'email': 'customer@example.com', 'role': 'customer', 'name': 'Customer', 'authTime': 1}
+        self.backend = load_backend({'db': self.db, 'identity': lambda **kwargs: actor,
+            'firestore': types.SimpleNamespace(transactional=transactional, SERVER_TIMESTAMP='server-time')})
+        self.backend.store_inline_receipt = lambda value, actor: 'https://storage.example.com/private-receipt'
+        self.backend.upload_metadata = lambda value, actor, purpose=None: {'uid': actor['uid'], 'purpose': purpose, 'path': 'receipt.jpg'}
+        self.backend.app = Flask(__name__)
+        self.backend.app.secret_key = 'test-only'
+        self.backend.app.logger.disabled = True
+        tree = ast.parse((Path(__file__).parents[1] / 'app.py').read_text(encoding='utf-8'))
+        node = next(node for node in tree.body if isinstance(node, ast.FunctionDef) and node.name == 'handle_orders')
+        exec(compile(ast.Module(body=[node], type_ignores=[]), 'app.py', 'exec'), self.backend.__dict__)
+        self.client = self.backend.app.test_client()
+        self.payload = {'submissionId': 'a' * 32, 'items': [{'id': 'paper', 'qty': 2}], 'total': 10,
+            'payment': 'GCash', 'gcashRef': '1234567890123', 'merchantAccountNumber': '09123456789'}
+
+    @property
+    def saved(self):
+        return [value for path, value in self.db.records.items() if path.startswith('artifacts/printcraft-pro/public/data/orders/')]
 
     def test_store_gcash_saves_reference_and_receipt(self):
         receipt = 'data:image/png;base64,' + base64.b64encode(b'receipt').decode()
         response = self.client.post('/api/orders', json={**self.payload,'gcashReceiptUrl':receipt})
         self.assertEqual(response.status_code,200,response.json)
         self.assertEqual(self.saved[0]['gcashRef'],'1234567890123')
-        self.assertEqual(self.saved[0]['gcashReceiptUrl'],receipt)
+        self.assertEqual(self.saved[0]['gcashReceiptUrl'],'https://storage.example.com/private-receipt')
         self.assertEqual(self.saved[0]['merchantAccountNumber'],'09123456789')
         self.assertEqual(self.saved[0]['total'],10)
 
     def test_invalid_reference_paymaya_and_stale_merchant_fail_without_order(self):
         for change in [{'gcashRef':''},{'gcashRef':'x'*13},{'payment':'Paymaya'},{'merchantAccountNumber':'09999999999'}]:
             response = self.client.post('/api/orders',json={**self.payload,**change})
-            self.assertEqual(response.status_code,400,response.json)
+            self.assertEqual(response.status_code,409,response.json)
         self.assertEqual(self.saved,[])
 
     def test_cash_clears_gcash_fields(self):
@@ -95,7 +103,8 @@ class StorePaymentEndpointTests(unittest.TestCase):
         self.assertEqual(self.saved[0]['gcashReceiptUrl'],'')
 
     def test_failed_save_reports_failure(self):
-        self.save_ok = False
+        from unittest.mock import Mock
+        self.db.transaction = Mock(side_effect=RuntimeError('database unavailable'))
         response = self.client.post('/api/orders',json=self.payload)
         self.assertEqual(response.status_code,503)
         self.assertFalse(response.json['success'])

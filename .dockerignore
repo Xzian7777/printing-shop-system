@@ -1,0 +1,15 @@
+.git
+.env
+.env.*
+firebase-service-account.json
+serviceAccountKey.json
+venv
+__pycache__
+**/__pycache__
+*.pyc
+security-backups
+loyalty-backups
+rfid-local
+firmware
+tests
+public

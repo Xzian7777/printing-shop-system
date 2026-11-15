@@ -38,7 +38,10 @@ class Collection:
     def stream(self, transaction=None):
         return [Snapshot(Ref(self.db, p)) for p in self.db.records if p.rsplit('/', 1)[0] == self.path]
     def where(self, field, op, value):
-        return types.SimpleNamespace(stream=lambda: [s for s in self.stream() if s.to_dict().get(field) == value])
+        def matches(snapshot):
+            actual = snapshot.to_dict().get(field)
+            return actual in value if op == 'in' else actual == value
+        return types.SimpleNamespace(stream=lambda **kwargs: [s for s in self.stream() if matches(s)])
 
 
 class Transaction:

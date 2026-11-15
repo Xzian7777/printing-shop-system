@@ -34,6 +34,7 @@ class LoyaltyTransactionTests(unittest.TestCase):
         self.db = Database()
         self.db.records['settings/loyalty_config'] = {'enabled': True, 'epoch': 'test', 'pointValueCents': 100}
         self.db.records['loyalty_accounts/u1'] = {'balance': 100, 'reserved': 0}
+        self.db.records['orders/previous-paid-order'] = {'customerId': 'u1', 'status': 'Completed', 'paymentStatus': 'Paid', 'total': 5}
         self.db.records['products/p1'] = {'name': 'Paper', 'price': 10, 'stock': 10}
         self.actor = {'uid': 'u1', 'email': 'u1@example.com', 'name': 'Customer', 'role': 'customer'}
         self.admin = {'uid': 'admin1', 'email': 'admin@example.com', 'role': 'admin'}

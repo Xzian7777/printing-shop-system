@@ -1,0 +1,25 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "buildCommand": "python tools/vercel_build.py",
+  "rewrites": [
+    {
+      "source": "/__/auth/:path*",
+      "destination": "https://printingshop-7fd66.firebaseapp.com/__/auth/:path*"
+    }
+  ],
+  "functions": {
+    "app.py": {
+      "maxDuration": 120,
+      "excludeFiles": "{venv/**,tests/**,firmware/**,rfid-local/**,security-backups/**,loyalty-backups/**,firebase-service-account.json,serviceAccountKey.json,.env*,.git/**}"
+    }
+  },
+  "daemons": {
+    "notifications": {
+      "root": ".",
+      "entrypoint": "Dockerfile.worker",
+      "instances": { "sin1": 1 },
+      "resources": { "requests": { "memory": "1Gi" } },
+      "terminationGracePeriodSeconds": 60
+    }
+  }
+}

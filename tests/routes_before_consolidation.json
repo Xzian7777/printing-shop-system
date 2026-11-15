@@ -418,7 +418,8 @@
     "methods": [
       "GET",
       "HEAD",
-      "OPTIONS"
+      "OPTIONS",
+      "POST"
     ],
     "endpoint": "get_user_notifications"
   },
@@ -512,5 +513,89 @@
       "OPTIONS"
     ],
     "endpoint": "delete_store_product_endpoint"
+  },
+  {
+    "rule": "/api/auth/me",
+    "methods": [
+      "GET",
+      "HEAD",
+      "OPTIONS"
+    ],
+    "endpoint": "current_account"
+  },
+  {
+    "rule": "/api/orders/history",
+    "methods": [
+      "GET",
+      "HEAD",
+      "OPTIONS"
+    ],
+    "endpoint": "order_history"
+  },
+  {
+    "rule": "/api/chat/conversations/resolve",
+    "methods": [
+      "OPTIONS",
+      "POST"
+    ],
+    "endpoint": "resolve_conversation"
+  },
+  {
+    "rule": "/api/admin/rfid/readers",
+    "methods": [
+      "GET",
+      "HEAD",
+      "OPTIONS",
+      "POST"
+    ],
+    "endpoint": "rfid.readers"
+  },
+  {
+    "rule": "/api/admin/rfid/capture",
+    "methods": [
+      "OPTIONS",
+      "POST"
+    ],
+    "endpoint": "rfid.capture"
+  },
+  {
+    "rule": "/api/admin/rfid/cards",
+    "methods": [
+      "OPTIONS",
+      "POST"
+    ],
+    "endpoint": "rfid.enroll"
+  },
+  {
+    "rule": "/api/iot/rfid/state",
+    "methods": [
+      "OPTIONS",
+      "POST"
+    ],
+    "endpoint": "rfid.device_state"
+  },
+  {
+    "rule": "/api/iot/rfid/taps",
+    "methods": [
+      "OPTIONS",
+      "POST"
+    ],
+    "endpoint": "rfid.device_tap"
+  },
+  {
+    "rule": "/api/uploads/prepare",
+    "methods": [
+      "OPTIONS",
+      "POST"
+    ],
+    "endpoint": "prepare_upload_endpoint"
+  },
+  {
+    "rule": "/api/uploads/finalize",
+    "methods": [
+      "OPTIONS",
+      "POST"
+    ],
+    "endpoint": "finalize_upload_endpoint"
   }
 ]

@@ -56,7 +56,7 @@ class GoogleLoginTests(unittest.TestCase):
     def test_new_customer_zero_balance_idempotent_and_ignores_supplied_admin_identity(self):
         first = self.login(email='admin@example.com', uid='admin', fullName='Spoofed', role='admin')
         self.assertEqual(first.status_code, 200)
-        self.assertEqual(first.json['user'], {'uid': 'u1', 'email': 'person@example.com', 'role': 'customer', 'username': 'Person'})
+        self.assertEqual(first.json['user'], {'uid': 'u1', 'email': 'person@example.com', 'role': 'customer', 'username': 'Person', 'profileResolution': 'resolved', 'rfidReviewRequired': False})
         before = copy.deepcopy(self.db.records)
         self.assertEqual(self.login().status_code, 200)
         self.assertEqual(self.db.records, before)
@@ -86,12 +86,12 @@ class GoogleLoginTests(unittest.TestCase):
     def test_archived_disabled_and_ambiguous_identities_do_not_write(self):
         fixtures = [
             {'users/u1': {'archived': True}},
-            {'customers/legacy': {'email': 'PERSON@example.com', 'isArchived': True}},
+            {'customers/legacy': {'email': 'PERSON@example.com', 'emailNormalized': 'person@example.com', 'isArchived': True}},
             {'users/u1': {'disabled': True}},
             {'customers/legacy': {'email': 'person@example.com', 'uid': 'another-uid'}},
             {'users/legacy': {'email': 'person@example.com', 'role': 'admin'}},
             {'customers/a': {'email': 'person@example.com'}, 'customers/b': {'email': 'person@example.com'}},
-            {'archives/user_old': {'itemType': 'user', 'data': {'email': 'person@example.com'}}},
+            {'archives/user_old': {'itemType': 'user', 'emailNormalized': 'person@example.com', 'data': {'email': 'person@example.com'}}},
             {'users/u1': {'email': 'another@example.com'}},
             {'users/u1': {'loyaltyUid': 'another-uid'}},
             {'users/u1': {'customerId': 'old-id'}, 'customers/different-id': {'email': 'person@example.com', 'uid': 'u1'}},
@@ -105,6 +105,67 @@ class GoogleLoginTests(unittest.TestCase):
         self.record.disabled = True
         self.assertEqual(self.login().status_code, 403)
         self.assertEqual(self.db.records, {})
+
+    def test_duplicate_legacy_profiles_use_canonical_uid_without_mutations(self):
+        self.db.records = {
+            'users/u1': {'uid': 'u1', 'email': 'person@example.com', 'fullName': 'Canonical', 'role': 'customer'},
+            'customers/a': {'uid': 'u1', 'email': 'person@example.com', 'rfidUid': 'card-a'},
+            'customers/b': {'loyaltyUid': 'u1', 'email': 'PERSON@example.com', 'rfidUid': 'card-b'},
+            'customers/c': {'uid': 'u1', 'email': 'person@example.com', 'rfidUid': 'card-c'},
+            'loyalty_accounts/u1': {'balance': 12, 'reserved': 2},
+            'orders/legacy': {'customerId': 'a', 'total': 100},
+        }
+        before = copy.deepcopy(self.db.records)
+        for _ in range(2):
+            result = self.login()
+            self.assertEqual(result.status_code, 200)
+            self.assertEqual(result.json['user']['username'], 'Canonical')
+            self.assertEqual(result.json['profileResolution'], 'needs_review')
+            self.assertTrue(result.json['rfidReviewRequired'])
+        self.assertEqual(self.db.records, before)
+        actor = self.backend.customer_identity(uid='u1')
+        self.assertEqual(actor['uid'], 'u1')
+        self.assertTrue(actor['rfidReviewRequired'])
+        rows = self.backend.get_customers()
+        self.assertEqual(len(rows), 1)
+        self.assertEqual(rows[0]['fullName'], 'Canonical')
+        self.assertEqual(rows[0]['legacyCustomerIds'], ['a', 'b', 'c'])
+        self.assertEqual(rows[0]['points'], 10)
+        self.assertEqual(rows[0]['rfidUid'], '')
+
+    def test_canonical_uid_metadata_is_filled_without_touching_legacy_records(self):
+        self.db.records = {
+            'users/u1': {'email': 'person@example.com', 'role': 'customer'},
+            'customers/a': {'uid': 'u1', 'email': 'person@example.com', 'rfidUid': 'card-a'},
+            'customers/b': {'email': 'person@example.com', 'rfidUid': 'card-b'},
+        }
+        mirrors = {key: copy.deepcopy(value) for key, value in self.db.records.items() if key.startswith('customers/')}
+        self.assertEqual(self.login().status_code, 200)
+        self.assertEqual(self.db.records['users/u1']['uid'], 'u1')
+        self.assertEqual({key: value for key, value in self.db.records.items() if key.startswith('customers/')}, mirrors)
+
+    def test_editing_canonical_profile_preserves_legacy_identifiers_and_cards(self):
+        self.db.records = {
+            'users/u1': {'uid': 'u1', 'email': 'person@example.com', 'role': 'customer', 'fullName': 'Canonical'},
+            'customers/a': {'uid': 'u1', 'email': 'person@example.com', 'rfidUid': 'card-a'},
+            'customers/b': {'uid': 'u1', 'email': 'person@example.com', 'rfidUid': 'card-b'},
+        }
+        mirrors = {key: copy.deepcopy(value) for key, value in self.db.records.items() if key.startswith('customers/')}
+        self.backend.sync_customer_profile('u1', {'fullName': 'Updated', 'email': 'person@example.com'})
+        self.assertEqual(self.db.records['users/u1']['fullName'], 'Updated')
+        self.assertEqual({key: value for key, value in self.db.records.items() if key.startswith('customers/')}, mirrors)
+
+    def test_duplicate_profiles_still_reject_foreign_loyalty_uid_and_archives(self):
+        self.db.records = {
+            'users/u1': {'uid': 'u1', 'email': 'person@example.com', 'role': 'customer'},
+            'customers/a': {'uid': 'u1', 'email': 'person@example.com'},
+            'customers/b': {'email': 'person@example.com', 'loyaltyUid': 'another'},
+        }
+        before = copy.deepcopy(self.db.records)
+        self.assertEqual(self.login().status_code, 409)
+        self.assertEqual(self.db.records, before)
+        self.db.records['customers/b'] = {'email': 'person@example.com', 'archived': True}
+        self.assertEqual(self.login().status_code, 403)
 
     def test_interrupted_transaction_does_not_establish_web_session(self):
         self.db.transaction = Mock(side_effect=RuntimeError('database unavailable'))
@@ -133,6 +194,19 @@ class GoogleProfileEmulatorTests(unittest.TestCase):
         self.assertEqual(len(mirrors), 1)
         self.assertEqual(mirrors[0].id, self.uid)
         self.assertEqual(self.db.collection('loyalty_accounts').document(self.uid).get().to_dict()['balance'], 0)
+
+    def test_duplicate_customer_profiles_are_read_only_during_login(self):
+        self.db.collection('users').document(self.uid).set({'uid': self.uid, 'email': self.email, 'role': 'customer', 'fullName': 'Canonical'})
+        records = {}
+        for suffix in ['a', 'b', 'c']:
+            ref = self.db.collection('customers').document(self.uid + suffix)
+            ref.set({'uid': self.uid, 'email': self.email, 'rfidUid': 'card-' + suffix})
+            records[ref.id] = ref.get().to_dict()
+        result = self.backend.sync_google_profile(self.uid, self.email, 'Google name')
+        self.assertEqual(result['profileResolution'], 'needs_review')
+        self.assertTrue(result['rfidReviewRequired'])
+        actual = {doc.id: doc.to_dict() for doc in self.db.collection('customers').where('email', '==', self.email).stream()}
+        self.assertEqual(actual, records)
 
     def test_returning_account_retains_balance_and_archive_blocks_new_writes(self):
         profile = self.db.collection('users').document(self.uid)

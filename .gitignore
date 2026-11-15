@@ -1,9 +1,19 @@
 venv/
 __pycache__/
 *.pyc
+*.log
+*.logs
 .env
 .env.*
 firebase-service-account.json
 serviceAccountKey.json
 
 /loyalty-backups/
+/security-backups/
+/rfid-local/
+/firmware/**/build/
+!/.env.example
+/.vercel/
+/public/
+.vercel
+.env*

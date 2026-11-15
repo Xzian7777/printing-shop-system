@@ -1,0 +1,8 @@
+FROM python:3.12-slim
+WORKDIR /app
+COPY requirements.txt ./
+RUN pip install --no-cache-dir -r requirements.txt
+COPY app.py firebase_config.py supabase_config.py ./
+COPY tools/push_daemon.py ./tools/push_daemon.py
+ENV APP_ENV=production PUSH_WORKER_MODE=external PYTHONUNBUFFERED=1
+CMD ["python", "tools/push_daemon.py"]

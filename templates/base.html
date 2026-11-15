@@ -14,14 +14,14 @@
   <!-- Custom Stylesheet -->
   <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v=1.3">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/loyalty.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/responsive.css') }}?v=1">
 </head>
 <body data-loyalty-account="{{ session.get('email', 'guest') }}" class="bg-slate-50 text-slate-800 font-sans min-h-screen relative overflow-x-hidden selection:bg-emerald-600 selection:text-white">
 
-  {% if session.get('username') %}
   <!-- ================= MOBILE HEADER TOPBAR (Visible only on mobile/tablet) ================= -->
-  <header class="md:hidden sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-slate-200 px-4 py-3 flex items-center justify-between shadow-xs text-slate-800">
+  <header id="mobileHeader" class="lg:hidden sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-slate-200 px-4 py-3 flex items-center justify-between shadow-xs text-slate-800">
     <div class="flex items-center gap-2.5">
-      <button onclick="toggleMobileSidebar()" class="p-2 rounded-xl text-black hover:text-emerald-700 font-bold hover:bg-slate-100 focus:outline-none transition" title="Open Menu">
+      <button id="mobileMenuButton" onclick="toggleMobileSidebar()" aria-controls="mobileSidebarDrawer" aria-expanded="false" class="p-2 rounded-xl text-black hover:text-emerald-700 font-bold hover:bg-slate-100 focus:outline-none transition" title="Open Menu">
         <i class="fa-solid fa-bars text-lg"></i>
       </button>
       <div class="flex items-center gap-2.5 select-none pointer-events-none">
@@ -31,6 +31,7 @@
     </div>
 
     <div class="flex items-center gap-2">
+      <div id="mobileNotificationsSlot"></div>
       {% if session.get('username') %}
         <div class="flex items-center gap-1.5 bg-slate-100 px-2.5 py-1 rounded-full text-[11px] font-bold text-slate-700 border border-slate-200">
           <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
@@ -46,11 +47,10 @@
       {% endif %}
     </div>
   </header>
-  {% endif %}
 
   <!-- ================= MOBILE / POPUP SIDEBAR BACKDROP & DRAWER ================= -->
   <div id="mobileSidebarBackdrop" onclick="toggleMobileSidebar()" class="fixed inset-0 bg-slate-900/50 backdrop-blur-xs z-50 hidden transition-opacity"></div>
-  <aside id="mobileSidebarDrawer" class="fixed inset-y-0 left-0 w-72 bg-white text-slate-800 z-50 transform -translate-x-full transition-transform duration-300 ease-in-out flex flex-col justify-between shadow-2xl border-r border-slate-200">
+  <aside id="mobileSidebarDrawer" inert aria-label="Main navigation" class="fixed inset-y-0 left-0 w-72 bg-white text-slate-800 z-50 transform -translate-x-full transition-transform duration-300 ease-in-out flex flex-col justify-between shadow-2xl border-r border-slate-200">
     <div class="p-5 flex items-center justify-between border-b border-slate-100">
       <div class="flex items-center gap-3 select-none pointer-events-none">
         <img src="{{ url_for('static', filename='images/kcz_logo.jpg') }}" alt="KCZ Logo" class="w-9 h-9 rounded-xl object-cover shadow-xs border border-emerald-500/40">
@@ -125,7 +125,7 @@
 
   {% if session.get('username') %}
   <!-- ================= DESKTOP SIDEBAR NAVIGATION (Collapsible on md+ screens) ================= -->
-  <aside id="desktopSidebar" class="hidden md:flex flex-col w-56 fixed inset-y-0 left-0 bg-white/95 backdrop-blur-md border-r border-slate-200 z-40 shadow-xl transition-all duration-300 text-slate-800">
+  <aside id="desktopSidebar" class="hidden lg:flex flex-col w-56 fixed inset-y-0 left-0 bg-white/95 backdrop-blur-md border-r border-slate-200 z-40 shadow-xl transition-all duration-300 text-slate-800">
     
     <!-- Sidebar Top: Brand Logo & Toggle Button -->
     <div class="p-4 border-b border-slate-100 flex items-center justify-between">
@@ -251,7 +251,7 @@
   {% endif %}
 
   <!-- ================= MAIN CONTENT WRAPPER (Dynamic margin based on sidebar) ================= -->
-  <div id="mainContentWrapper" class="{% if session.get('username') %}md:pl-56{% endif %} flex flex-col min-h-screen transition-all duration-300 w-full min-w-0 max-w-full overflow-x-hidden">
+  <div id="mainContentWrapper" class="{% if session.get('username') %}lg:pl-56{% endif %} flex flex-col min-h-screen transition-all duration-300 w-full min-w-0 max-w-full overflow-x-hidden">
     
     <!-- Main Content Body -->
     <main class="flex-grow {% if request.endpoint in ['index', 'login'] %}p-0{% else %}p-3 sm:p-5 md:p-6{% endif %} w-full min-w-0 max-w-full">
@@ -278,17 +278,18 @@
 
   </div>
 
+  <div id="actionNotice" role="status" aria-live="polite" class="hidden fixed top-4 left-4 z-[100] max-w-[calc(100vw-2rem)] sm:max-w-sm rounded-xl border p-3 shadow-lg text-sm font-semibold"></div>
   <!-- ================= LOGOUT CONFIRMATION MODAL ================= -->
-  <div id="logoutModal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm transition-opacity">
+  <div id="logoutModal" role="dialog" aria-modal="true" aria-labelledby="logoutTitle" aria-describedby="logoutDescription" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm transition-opacity">
     <div class="bg-white rounded-2xl shadow-2xl border border-slate-100 max-w-sm w-full p-6 text-center transform transition-all scale-100">
-      <h3 class="text-lg font-bold text-slate-900 mb-1">Logout Confirmation</h3>
-      <p class="text-xs text-black mb-6">Are you sure you want to logout?</p>
+      <h3 id="logoutTitle" class="text-lg font-bold text-emerald-900 mb-2">Logout Confirmation</h3>
+      <p id="logoutDescription" class="text-sm text-slate-600 mb-6">Are you sure you want to log out?</p>
 
       <div class="flex items-center justify-center gap-3">
-        <a href="/logout" class="flex-1 bg-gradient-to-r from-[#f09433] via-[#dc2743] to-[#bc1888] text-white font-semibold text-sm py-2.5 px-4 rounded-xl transition-colors text-center shadow-sm">
+        <a href="/logout" onclick="beginLogout(this); return false;" class="flex-1 min-h-[44px] bg-emerald-700 hover:bg-emerald-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-700 text-white font-semibold text-sm py-2.5 px-4 rounded-xl transition-colors text-center shadow-sm">
           Confirm
         </a>
-        <button onclick="closeLogoutModal()" class="flex-1 bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 font-semibold text-sm py-2.5 px-4 rounded-xl transition-colors">
+        <button onclick="closeLogoutModal()" class="flex-1 min-h-[44px] bg-white hover:bg-emerald-50 text-emerald-800 border border-emerald-200 font-semibold text-sm py-2.5 px-4 rounded-xl transition-colors">
           Cancel
         </button>
       </div>
@@ -296,7 +297,7 @@
   </div>
 
   <!-- ================= TERMS & CONDITIONS MODAL ================= -->
-  <div id="termsModal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm transition-opacity">
+  <div id="termsModal" role="dialog" aria-modal="true" aria-labelledby="termsTitle" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm transition-opacity">
     <div class="bg-white rounded-2xl shadow-2xl border border-slate-100 max-w-lg w-full p-6 transform transition-all scale-100 max-h-[85vh] flex flex-col">
       
       <!-- Modal Header -->
@@ -305,45 +306,22 @@
           <div class="w-8 h-8 rounded-lg bg-rose-100 text-[#dc2743] flex items-center justify-center font-bold">
             <i class="fa-solid fa-gavel text-sm"></i>
           </div>
-          <h3 class="text-base font-bold text-slate-900">Terms & Conditions</h3>
+          <h3 id="termsTitle" class="text-base font-bold text-slate-900">Terms & Conditions</h3>
         </div>
-        <button onclick="closeTermsModal()" class="text-slate-400 hover:text-slate-600 p-1 rounded-lg">
+        <button onclick="closeTermsModal()" aria-label="Close Terms and Conditions" class="text-slate-400 hover:text-slate-600 p-1 rounded-lg">
           <i class="fa-solid fa-xmark text-lg"></i>
         </button>
       </div>
 
       <!-- Modal Body (Scrollable) -->
-      <div class="overflow-y-auto py-4 space-y-4 text-xs text-slate-600 pr-1">
-        <div>
-          <h4 class="font-bold text-slate-800 text-sm mb-1">1. Print File Proofing & Responsibility</h4>
-          <p class="leading-relaxed">Customers are responsible for checking the dimensions, spelling, and quality of uploaded files or layouts before submitting a print order.</p>
-        </div>
-
-        <div>
-          <h4 class="font-bold text-slate-800 text-sm mb-1">2. Processing & Turnaround Time</h4>
-          <p class="leading-relaxed">Printing usually takes 1–2 business days, depending on the quantity and service. Bulk orders, including tarpaulins and shirt printing, may require additional time.</p>
-        </div>
-
-        <div>
-          <h4 class="font-bold text-slate-800 text-sm mb-1">3. Cancellation & Non-Refund Policy</h4>
-          <p class="leading-relaxed">Orders may only be cancelled before admin approval. Approved orders can no longer be cancelled.</p>
-        </div>
-
-        <div>
-          <h4 class="font-bold text-slate-800 text-sm mb-1">4. Unclaimed Print Items Disposal</h4>
-          <p class="leading-relaxed">Printed items that remain unclaimed at the shop for <strong class="text-slate-800">30 calendar days</strong> after completion will be disposed of and will not be eligible for a refund.</p>
-        </div>
-
-        <div>
-          <h4 class="font-bold text-slate-800 text-sm mb-1">5. Data Privacy & RFID Tapping</h4>
-          <p class="leading-relaxed">Your personal information, uploaded documents, and RFID card activity are protected and used only for order fulfillment, account authentication, and loyalty points tracking.</p>
-        </div>
+      <div id="termsContent" class="min-h-0 overflow-y-auto py-4 space-y-4 text-sm text-slate-700 leading-relaxed pr-2">
+        {% include 'terms_content.html' %}
       </div>
 
       <!-- Modal Footer -->
       <div class="pt-4 border-t border-slate-100 flex justify-end">
         <button onclick="closeTermsModal()" class="w-full bg-slate-900 hover:bg-slate-800 text-white font-semibold text-xs py-2.5 px-4 rounded-xl transition-colors">
-          I Understand and Agree
+          Close
         </button>
       </div>
 
@@ -352,11 +330,59 @@
 
   <!-- ================= SCRIPTS ================= -->
   <script>
+    function orderStatusLabel(value) {
+      const status = String(value || 'Order Submitted').trim();
+      return /^(printing|preparing|processing)$/i.test(status) ? 'Processing' : status;
+    }
+
+    function orderStatusBucket(value) {
+      const status = String(value || 'Order Submitted').toLowerCase().trim();
+      if (status.includes('cancel')) return 'cancelled';
+      if (status.includes('reject')) return 'rejected';
+      if (/complete|done|finish/.test(status)) return 'completed';
+      if (/ready|pickup/.test(status)) return 'pickup';
+      if (status === 'approved' || /print|prepar|process/.test(status)) return 'printing';
+      return 'approval';
+    }
+
+    let actionNoticeTimer;
+    function showActionNotice(message, kind = 'success') {
+      const notice = document.getElementById('actionNotice');
+      clearTimeout(actionNoticeTimer);
+      notice.textContent = message;
+      notice.classList.remove('hidden');
+      const colors = kind === 'error' ? ['#fff1f2', '#9f1239', '#fda4af'] : ['#f0fdf4', '#14532d', '#86efac'];
+      [notice.style.backgroundColor, notice.style.color, notice.style.borderColor] = colors;
+      if (kind !== 'pending') actionNoticeTimer = setTimeout(() => notice.classList.add('hidden'), 5000);
+    }
+
+    let loggingOut = false;
+    async function beginLogout(link) {
+      if (loggingOut) return;
+      loggingOut = true;
+      link.setAttribute('aria-disabled', 'true');
+      link.innerHTML = '<i class="fas fa-spinner fa-spin mr-2" aria-hidden="true"></i>Logging out…';
+      const cancel = document.querySelector('#logoutModal button');
+      cancel.disabled = true;
+      try {
+        const response = await fetch('/logout');
+        if (!response.ok) throw new Error('Unable to log out. Please try again.');
+        window.location.assign(response.url || '/');
+      } catch (error) {
+        loggingOut = false;
+        link.removeAttribute('aria-disabled');
+        link.textContent = 'Confirm';
+        cancel.disabled = false;
+        showActionNotice('Unable to log out. Check your connection and retry.', 'error');
+      }
+    }
+
     function openLogoutModal() {
       document.getElementById('logoutModal').classList.remove('hidden');
     }
 
     function closeLogoutModal() {
+      if (loggingOut) return;
       document.getElementById('logoutModal').classList.add('hidden');
     }
 
@@ -378,14 +404,18 @@
       const drawer = document.getElementById('mobileSidebarDrawer');
       if (backdrop && drawer) {
         const isClosed = drawer.classList.contains('-translate-x-full');
+        drawer.inert = !isClosed;
+        document.getElementById('mobileMenuButton')?.setAttribute('aria-expanded', String(isClosed));
         if (isClosed) {
           backdrop.classList.remove('hidden');
           drawer.classList.remove('-translate-x-full');
           document.body.style.overflow = 'hidden';
+          drawer.querySelector('button')?.focus();
         } else {
           backdrop.classList.add('hidden');
           drawer.classList.add('-translate-x-full');
           document.body.style.overflow = '';
+          document.getElementById('mobileMenuButton')?.focus();
         }
       }
     }
@@ -402,8 +432,8 @@
       if (!isCollapsed) {
         // Collapse Sidebar to hidden
         sidebar.classList.add('sidebar-collapsed', '-translate-x-full');
-        wrapper.classList.remove('md:pl-56');
-        wrapper.classList.add('md:pl-0');
+        wrapper.classList.remove('lg:pl-56');
+        wrapper.classList.add('lg:pl-0');
         if (floatingBtn) {
           floatingBtn.classList.remove('!hidden');
           floatingBtn.classList.add('flex');
@@ -412,8 +442,8 @@
       } else {
         // Expand Sidebar back to full width
         sidebar.classList.remove('sidebar-collapsed', '-translate-x-full');
-        wrapper.classList.remove('md:pl-0');
-        wrapper.classList.add('md:pl-56');
+        wrapper.classList.remove('lg:pl-0');
+        wrapper.classList.add('lg:pl-56');
         if (floatingBtn) {
           floatingBtn.classList.remove('flex');
           floatingBtn.classList.add('!hidden');
@@ -426,13 +456,13 @@
     document.addEventListener('DOMContentLoaded', () => {
       const savedCollapsed = localStorage.getItem('kcz_sidebar_collapsed');
       const floatingBtn = document.getElementById('desktopFloatingToggleBtn');
-      if (savedCollapsed === 'true' && window.innerWidth >= 768) {
+      if (savedCollapsed === 'true') {
         const sidebar = document.getElementById('desktopSidebar');
         const wrapper = document.getElementById('mainContentWrapper');
         if (sidebar && wrapper) {
           sidebar.classList.add('sidebar-collapsed', '-translate-x-full');
-          wrapper.classList.remove('md:pl-56');
-          wrapper.classList.add('md:pl-0');
+          wrapper.classList.remove('lg:pl-56');
+          wrapper.classList.add('lg:pl-0');
         }
         if (floatingBtn) {
           floatingBtn.classList.remove('!hidden');
@@ -453,9 +483,9 @@
         function checkAdminStockAlerts() {
       // Only run if user is admin
       const role = "{{ session.get('role', '') }}";
-      if (role !== 'admin') return;
+      if (role !== 'admin' || document.hidden) return;
 
-      fetch('/api/products')
+      fetch('/api/store/products')
         .then(res => res.json())
         .then(products => {
           if (!Array.isArray(products)) return;
@@ -469,6 +499,7 @@
     }
 
     function fetchInAppNotifications() {
+      if (!{{ 'true' if session.get('uid') else 'false' }} || document.hidden) return;
       fetch('/api/notifications')
         .then(res => res.json())
         .then(data => {
@@ -546,6 +577,8 @@
     });
   </script>
 
+<script src="{{ url_for('static', filename='js/uploads.js') }}"></script>
 <script src="{{ url_for('static', filename='js/loyalty.js') }}"></script>
+<script src="{{ url_for('static', filename='js/responsive.js') }}?v=1"></script>
 </body>
 </html>

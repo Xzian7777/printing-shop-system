@@ -196,7 +196,7 @@
                 <div class="text-center pt-2">
                     <p class="text-xs font-semibold text-slate-800">
                         Do not have an account yet?
-                        <button type="button" onclick="switchAuthView('signUp')" class="font-extrabold text-emerald-600 hover:underline cursor-pointer">Sign up dito</button>
+                        <button type="button" onclick="switchAuthView('signUp')" class="font-extrabold text-emerald-600 hover:underline cursor-pointer">Sign up here</button>
                     </p>
                 </div>
             </div>
@@ -1188,7 +1188,8 @@ function submitNewPasswordWithOTP() {
 // ---------------------------------------------------------------------------
 const firebaseConfig = {
     apiKey: "AIzaSyBDk0kto8_VpvtzkQBdjrVP2YHOuUZ17rQ",
-    authDomain: "printingshop-7fd66.firebaseapp.com",
+    authDomain: ['printing-shop-system.vercel.app', 'kezcemzek.vercel.app'].includes(window.location.hostname)
+        ? window.location.hostname : 'printingshop-7fd66.firebaseapp.com',
     projectId: "printingshop-7fd66",
     storageBucket: "printingshop-7fd66.firebasestorage.app",
     messagingSenderId: "800500466642",
@@ -1219,96 +1220,116 @@ function resetGoogleBtn() {
     `;
 }
 
-async function handleGoogleSignIn() {
+let googleSignInBusy = false;
+
+function googleSignInMessage(message, success = false) {
     const alertBox = document.getElementById('loginAlertBox');
-    const googleBtn = document.getElementById('googleSignInBtn');
+    alertBox.className = 'p-3.5 rounded-2xl text-xs font-bold flex items-center gap-2 border ' +
+        (success ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-rose-50 text-rose-700 border-rose-200');
+    alertBox.textContent = message;
+    alertBox.classList.remove('hidden');
+}
 
-    // Auto-check terms when logging in via Google
-    const loginTerms = document.getElementById('loginTerms');
-    if (loginTerms) {
-        loginTerms.checked = true;
+function setGoogleSignInBusy(busy) {
+    googleSignInBusy = busy;
+    document.querySelectorAll('[onclick="handleGoogleSignIn()"], #loginSubmitBtn').forEach(button => {
+        button.disabled = busy;
+    });
+    if (!busy) resetGoogleBtn();
+}
+
+async function finishGoogleSignIn(result) {
+    if (!result || !result.user) return;
+    setGoogleSignInBusy(true);
+    googleSignInMessage('Verifying your Google account...', true);
+    const idToken = await result.user.getIdToken();
+    const response = await fetch('/api/google-login', {
+        method: 'POST', headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({idToken})
+    });
+    const data = await response.json();
+    if (!response.ok || !(data.success || data.status === 'success')) {
+        throw Error(data.message || 'Unable to verify your Google account. Please retry.');
     }
+    googleSignInMessage('Google sign-in successful. Redirecting...', true);
+    window.location.href = data.redirect || data.redirectUrl || '/customer';
+}
 
+async function googleSignInFailed(error) {
+    try { await firebase.auth().signOut(); } catch (_) {}
+    let message = 'Google sign-in failed. Please try again.';
+    if (error.code === 'auth/popup-closed-by-user') {
+        message = 'Google sign-in was closed before completion. Please try again.';
+    } else if (error.code === 'auth/unauthorized-domain') {
+        message = 'This website address needs Google sign-in configuration. Contact the shop administrator.';
+    } else if (error.code === 'auth/web-storage-unsupported' || error.name === 'SecurityError') {
+        message = 'Allow browser storage or open this website in Chrome to use Google sign-in.';
+    } else if (error.code === 'auth/network-request-failed') {
+        message = 'Unable to connect to Google. Check your connection and retry.';
+    } else if (!error.code && error.message) {
+        message = error.message;
+    }
+    googleSignInMessage(message);
+    setGoogleSignInBusy(false);
+}
+
+async function handleGoogleSignIn() {
+    if (googleSignInBusy) return;
     if (typeof firebase === 'undefined' || !firebase.auth) {
-        alertBox.className = "p-3.5 rounded-2xl text-xs font-bold flex items-center gap-2 bg-rose-50 text-rose-700 border border-rose-200";
-        alertBox.innerHTML = `<i class="fas fa-exclamation-circle"></i> Unable to load Google sign-in. Please refresh the page.`;
-        alertBox.classList.remove('hidden');
+        googleSignInMessage('Unable to load Google sign-in. Please refresh the page.');
         return;
     }
-
+    const loginTerms = document.getElementById('loginTerms');
+    if (!loginTerms || !loginTerms.checked) {
+        googleSignInMessage('Please read and accept the Terms & Conditions to continue with Google.');
+        return;
+    }
+    setGoogleSignInBusy(true);
+    const provider = new firebase.auth.GoogleAuthProvider();
+    provider.setCustomParameters({prompt: 'select_account'});
     try {
-        if (googleBtn) {
-            googleBtn.disabled = true;
-            googleBtn.innerHTML = `
-                <i class="fas fa-spinner fa-spin text-sm text-slate-800"></i>
-                <span class="text-xs font-semibold text-black">Connecting to Google...</span>
-            `;
-        }
-
-        const provider = new firebase.auth.GoogleAuthProvider();
-        provider.setCustomParameters({ prompt: 'select_account' });
-
+        // Start directly in the click handler to retain browser user activation.
         const result = await firebase.auth().signInWithPopup(provider);
-        const user = result.user;
-        const idToken = await user.getIdToken();
-
-        if (googleBtn) {
-            googleBtn.innerHTML = `
-                <i class="fas fa-spinner fa-spin text-sm text-slate-800"></i>
-                <span class="text-xs font-semibold text-black">Verifying your account...</span>
-            `;
-        }
-
-        const response = await fetch('/api/google-login', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                idToken: idToken,
-                email: user.email,
-                fullName: user.displayName,
-                uid: user.uid,
-                photoURL: user.photoURL
-            })
-        });
-
-        const data = await response.json();
-
-        if (data && (data.success || data.status === 'success')) {
-            alertBox.className = "p-3.5 rounded-2xl text-xs font-bold flex items-center gap-2 bg-emerald-50 text-emerald-700 border border-emerald-200";
-            alertBox.innerHTML = `<i class="fas fa-check-circle"></i> Google sign-in successful. Redirecting...`;
-            alertBox.classList.remove('hidden');
-
-            setTimeout(() => {
-                window.location.href = data.redirect || data.redirectUrl || '/customer';
-            }, 800);
+        await finishGoogleSignIn(result);
+    } catch (error) {
+        if (error.code === 'auth/popup-blocked' || error.code === 'auth/operation-not-supported-in-this-environment') {
+            try {
+                sessionStorage.setItem('kcz_google_redirect', '1');
+                googleSignInMessage('Opening Google sign-in in this tab...', true);
+                await firebase.auth().signInWithRedirect(provider);
+                return;
+            } catch (redirectError) {
+                try { sessionStorage.removeItem('kcz_google_redirect'); } catch (_) {}
+                await googleSignInFailed(redirectError);
+            }
         } else {
-            await firebase.auth().signOut();
-            alertBox.className = "p-3.5 rounded-2xl text-xs font-bold flex items-center gap-2 bg-rose-50 text-rose-700 border border-rose-200";
-            alertBox.innerHTML = `<i class="fas fa-exclamation-circle"></i> ${data.message || 'Google sign-in failed.'}`;
-            alertBox.classList.remove('hidden');
-            resetGoogleBtn();
+            await googleSignInFailed(error);
         }
-    } catch (err) {
-        await firebase.auth().signOut();
-        console.error("Google Sign-In Error:", err);
-        let errorMsg = 'Google sign-in failed.';
-        if (err.code === 'auth/popup-closed-by-user') {
-            errorMsg = 'The Google sign-in popup was closed before completion.';
-        } else if (err.code === 'auth/cancelled-popup-request') {
-            errorMsg = 'The previous sign-in popup request was cancelled.';
-        } else if (err.code === 'auth/popup-blocked') {
-            errorMsg = 'Your browser blocked the Google sign-in popup. Please allow popups.';
-        } else if (err.code === 'auth/unauthorized-domain') {
-            errorMsg = 'This domain is not authorized for Firebase Authentication. Add localhost to Authorized Domains in the Firebase Console.';
-        } else if (err.message) {
-            errorMsg = err.message;
-        }
-
-        alertBox.className = "p-3.5 rounded-2xl text-xs font-bold flex items-center gap-2 bg-rose-50 text-rose-700 border border-rose-200";
-        alertBox.innerHTML = `<i class="fas fa-exclamation-circle"></i> ${errorMsg}`;
-        alertBox.classList.remove('hidden');
-        resetGoogleBtn();
     }
 }
+
+async function restoreGoogleRedirect() {
+    if (typeof firebase === 'undefined' || !firebase.auth) return;
+    try {
+        const pending = sessionStorage.getItem('kcz_google_redirect') === '1';
+        if (pending) {
+            setGoogleSignInBusy(true);
+            googleSignInMessage('Finishing Google sign-in...', true);
+        }
+        const result = await firebase.auth().getRedirectResult();
+        sessionStorage.removeItem('kcz_google_redirect');
+        if (result && result.user) {
+            await finishGoogleSignIn(result);
+        } else if (pending) {
+            googleSignInMessage('Google sign-in could not resume. Open this website in Chrome and allow browser storage, then retry.');
+            setGoogleSignInBusy(false);
+        }
+    } catch (error) {
+        await googleSignInFailed(error);
+    }
+}
+
+restoreGoogleRedirect();
+
 </script>
 {% endblock %}

@@ -43,7 +43,7 @@ class NotificationRulesTests(push.PushRulesTests):
         self.assertEqual(self.call('POST', ':commit', {'writes': [write]}, token('customer1')), 403)
         order = {'update': {'name': self.name + '/artifacts/printcraft-pro/public/data/orders/' + key,
                             'fields': {'customerId': {'stringValue': 'customer1'}, 'status': {'stringValue': 'Order Submitted'}}}}
-        self.assertEqual(self.call('POST', ':commit', {'writes': [order, write]}, token('customer1')), 200)
+        self.assertEqual(self.call('POST', ':commit', {'writes': [order, write]}, token('customer1')), 403)
         self.assertEqual(self.call('POST', ':commit', {'writes': [write]}, token('customer1')), 403)
 
     def test_customer_chat_notification_requires_same_message_commit(self):
@@ -59,5 +59,6 @@ class NotificationRulesTests(push.PushRulesTests):
         message = {'update': {'name': self.name + '/conversations/' + key + '/messages/' + key,
                              'fields': {'senderRole': {'stringValue': 'customer'}, 'senderId': {'stringValue': 'customer1@example.com'}}}}
         self.assertEqual(self.call('POST', ':commit', {'writes': [write]}, token('customer1')), 403)
-        self.assertEqual(self.call('POST', ':commit', {'writes': [conversation, message, write]}, token('customer1')), 200)
+        self.assertEqual(self.call('PATCH', '/conversations/' + key, {'fields': {'customerEmail': {'stringValue': 'customer1@example.com'}}}, 'owner'), 200)
+        self.assertEqual(self.call('POST', ':commit', {'writes': [message, write]}, token('customer1')), 200)
 

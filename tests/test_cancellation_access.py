@@ -27,10 +27,10 @@ class CancellationAccessTests(unittest.TestCase):
             'updateTransforms': [{'fieldPath': 'cancelledAt', 'setToServerValue': 'REQUEST_TIME'}],
         }]}, access.token(uid))
 
-    def test_pending_owner_can_cancel_both_shared_and_root_orders(self):
+    def test_pending_owner_reads_but_cancellation_requires_backend(self):
         for root in [False, True]:
             self.seed(root=root)
-            self.assertEqual(self.cancel(), 200)
+            self.assertEqual(self.cancel(), 403)
             self.assertEqual(self.call('GET', self.path, bearer=access.token('customer1')), 200)
 
     def test_approved_flags_and_non_owner_block_cancellation(self):
@@ -48,14 +48,14 @@ class CancellationAccessTests(unittest.TestCase):
         self.assertEqual(self.cancel(reason='x' * 501), 403)
         self.assertEqual(self.call('DELETE', self.path, bearer=access.token('customer1')), 403)
         self.assertEqual(self.call('PATCH', self.path + '?updateMask.fieldPaths=status', {'fields': {'status': {'stringValue': 'Approved'}}}, access.token('customer1')), 403)
-        self.assertEqual(self.cancel(), 200)
+        self.assertEqual(self.cancel(), 403)
         self.assertEqual(self.call('PATCH', self.path + '?updateMask.fieldPaths=status', {'fields': {'status': {'stringValue': 'Approved'}}}, access.token('admin1')), 403)
 
-    def test_legacy_email_ownership_and_sibling_artifact_access_remain_supported(self):
+    def test_legacy_ownership_and_token_mutations_require_backend(self):
         self.seed(customerId={'stringValue': 'legacy-customer-id'})
-        self.assertEqual(self.cancel(), 200)
+        self.assertEqual(self.cancel(), 403)
         self.assertEqual(self.call('PATCH', '/artifacts/printcraft-pro/public/data/notification_tokens/legacy',
-            {'fields': {'token': {'stringValue': 'test'}}}, access.token('customer1')), 200)
+            {'fields': {'token': {'stringValue': 'test'}}}, access.token('customer1')), 403)
 
 
 if __name__ == '__main__': unittest.main()

@@ -135,7 +135,7 @@
         <div class="flex items-center gap-2 overflow-x-auto pb-2 text-xs font-bold no-scrollbar">
             <button onclick="filterCustomerOrders('all')" id="custFilter-all" class="cust-filter-btn kcz-filter-pill-active">All Orders</button>
             <button onclick="filterCustomerOrders('approval')" id="custFilter-approval" class="cust-filter-btn kcz-filter-pill-inactive">For Approval</button>
-            <button onclick="filterCustomerOrders('in-progress')" id="custFilter-in-progress" class="cust-filter-btn kcz-filter-pill-inactive">Approved & Printing</button>
+            <button onclick="filterCustomerOrders('in-progress')" id="custFilter-in-progress" class="cust-filter-btn kcz-filter-pill-inactive">Approved & Processing</button>
             <button onclick="filterCustomerOrders('pickup')" id="custFilter-pickup" class="cust-filter-btn kcz-filter-pill-inactive">Ready for Pickup</button>
             <button onclick="filterCustomerOrders('completed')" id="custFilter-completed" class="cust-filter-btn kcz-filter-pill-inactive">Completed</button>
             <button onclick="filterCustomerOrders('rejected')" id="custFilter-rejected" class="cust-filter-btn kcz-filter-pill-inactive">Rejected</button>
@@ -1507,7 +1507,7 @@ function getStatusStepIndex(status) {
     if (s.includes('reject') || s.includes('cancel')) return -1;
     if (s.includes('completed')) return 4;
     if (s.includes('ready') || s.includes('pickup')) return 3;
-    if (s.includes('print')) return 2;
+    if (/print|prepar|process/.test(s)) return 2;
     if (s.includes('approve')) return 1;
     return 0;
 }
@@ -1592,7 +1592,7 @@ function renderCustomerFilteredOrders() {
         if (currentCustFilter === 'rejected') return s.includes('reject');
         if (currentCustFilter === 'completed') return isCompleted;
         if (currentCustFilter === 'pickup') return s.includes('ready') || s.includes('pickup');
-        if (currentCustFilter === 'in-progress') return s.includes('print') || (s.includes('approve') && !s.includes('ready'));
+        if (currentCustFilter === 'in-progress') return /print|prepar|process/.test(s) || (s.includes('approve') && !s.includes('ready'));
         if (currentCustFilter === 'approval') return s.includes('submitted') || s === 'for approval';
         return true;
     });
@@ -1624,7 +1624,7 @@ function renderCustomerFilteredOrders() {
     const stages = [
         { key: 0, label: "Submitted", icon: "fas fa-file-invoice" },
         { key: 1, label: "Approved", icon: "fas fa-check-circle" },
-        { key: 2, label: "Printing", icon: "fas fa-print" },
+        { key: 2, label: "Processing", icon: "fas fa-print" },
         { key: 3, label: "Ready", icon: "fas fa-box-open" },
         { key: 4, label: "Completed", icon: "fas fa-flag-checkered" }
     ];
@@ -1648,9 +1648,9 @@ function renderCustomerFilteredOrders() {
                 <div class="bg-white border-2 border-rose-100 rounded-2xl p-4 shadow-2xs space-y-3 hover:border-rose-200 transition">
                     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 border-b border-slate-100 pb-3">
                         <div class="flex items-center gap-2 flex-wrap">
-                            <span class="font-mono font-bold text-black text-xs">${o.id}</span>
+                            <span class="font-mono font-bold text-black text-xs">${escapeHtml(o.id)}</span>
                             ${serviceCategoryBadge}
-                            <span class="text-[10px] text-slate-700 font-medium">🕒 ${o.orderDate || ((o.createdAt || o.timestamp) ? new Date(o.createdAt || o.timestamp).toLocaleString('en-PH') : 'Date unavailable')}</span>
+                            <span class="text-[10px] text-slate-700 font-medium">🕒 ${escapeHtml(o.orderDate || ((o.createdAt || o.timestamp) ? new Date(o.createdAt || o.timestamp).toLocaleString('en-PH') : 'Date unavailable'))}</span>
                         </div>
                         <div class="flex items-center gap-2">
                             <span class="${o.status === 'Cancelled' ? 'bg-slate-100 text-slate-700 border-slate-300' : 'bg-rose-50 text-rose-700 border-rose-200'} border px-3 py-0.5 rounded-full text-[10px] font-bold">
@@ -1660,10 +1660,10 @@ function renderCustomerFilteredOrders() {
                     </div>
                     <div class="flex justify-between items-center text-xs text-black">
                         <div>
-                            <div class="font-bold text-black text-xs">${o.service || 'Document Printing'}</div>
+                            <div class="font-bold text-black text-xs">${escapeHtml(o.service || 'Document Printing')}</div>
                             <div class="text-[11px] text-slate-700">${properPaper} • ${properQty}</div>
                         </div>
-                        <div class="text-right font-mono font-extrabold text-black text-sm">${o.formattedTotal || ('₱ ' + parseFloat(o.total || 0).toFixed(2))}</div>
+                        <div class="text-right font-mono font-extrabold text-black text-sm">${escapeHtml(o.formattedTotal || ('₱ ' + parseFloat(o.total || 0).toFixed(2)))}</div>
                     </div>
                     ${o.cancellationReason ? `<p class="text-xs text-slate-700">Reason: ${escapeHtml(o.cancellationReason)}</p>` : ''}
                 </div>
@@ -1694,23 +1694,23 @@ function renderCustomerFilteredOrders() {
             <div class="kcz-card space-y-4">
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 border-b border-slate-100 pb-3">
                     <div class="flex items-center gap-2.5 flex-wrap">
-                        <span class="font-mono font-bold text-black text-xs bg-slate-100 px-2.5 py-1 rounded-lg">${o.id}</span>
+                        <span class="font-mono font-bold text-black text-xs bg-slate-100 px-2.5 py-1 rounded-lg">${escapeHtml(o.id)}</span>
                         ${serviceCategoryBadge}
                         <span class="${payBadgeClass}">${payIcon}</span>
-                        <span class="text-[11px] text-slate-700 font-medium ms-1"><i class="far fa-clock"></i> ${o.orderDate || ((o.createdAt || o.timestamp) ? new Date(o.createdAt || o.timestamp).toLocaleString('en-PH') : 'Date unavailable')}</span>
+                        <span class="text-[11px] text-slate-700 font-medium ms-1"><i class="far fa-clock"></i> ${escapeHtml(o.orderDate || ((o.createdAt || o.timestamp) ? new Date(o.createdAt || o.timestamp).toLocaleString('en-PH') : 'Date unavailable'))}</span>
                     </div>
                     <div class="flex items-center gap-3 self-end sm:self-auto">
                         <div class="text-right">
-                            <div class="font-mono font-black text-black text-base">${o.formattedTotal || ('₱ ' + parseFloat(o.total || 0).toFixed(2))}</div>
+                            <div class="font-mono font-black text-black text-base">${escapeHtml(o.formattedTotal || ('₱ ' + parseFloat(o.total || 0).toFixed(2)))}</div>
                         </div>
-                        ${customerCanCancel(o) ? `<button onclick="openCustomerCancellation('${o.id}')" class="text-rose-700 border border-rose-200 bg-rose-50 hover:bg-rose-100 px-3 py-2 rounded-xl text-xs font-bold" title="Cancel Order">Cancel Order</button>` : '<span class="text-xs text-slate-600">This order can no longer be cancelled because it has been approved.</span>'}
+                        ${customerCanCancel(o) ? `<button onclick="openCustomerCancellation(${escapeHtml(JSON.stringify(String(o.id)))})" class="text-rose-700 border border-rose-200 bg-rose-50 hover:bg-rose-100 px-3 py-2 rounded-xl text-xs font-bold" title="Cancel Order">Cancel Order</button>` : `<span class="text-xs text-slate-600">${o.ownershipReviewRequired ? 'This legacy order needs account review before cancellation.' : 'This order can no longer be cancelled because it has been approved.'}</span>`}
                     </div>
                 </div>
 
                 <div class="flex justify-between items-center text-xs">
                     <div>
-                        <div class="font-bold text-black text-sm">${o.service || 'Document Printing'}</div>
-                        <div class="text-[11px] text-slate-800 pt-0.5">${properPaper} • <span class="font-bold text-fuchsia-600">${properQty}</span> • <span class="font-semibold text-black">${o.file || 'Document.pdf'}</span></div>
+                        <div class="font-bold text-black text-sm">${escapeHtml(o.service || 'Document Printing')}</div>
+                        <div class="text-[11px] text-slate-800 pt-0.5">${properPaper} • <span class="font-bold text-fuchsia-600">${properQty}</span> • <span class="font-semibold text-black">${escapeHtml(o.file || 'Document.pdf')}</span></div>
                         ${o.gcashRef ? `
                             <div class="mt-1 inline-flex items-center gap-1.5 px-2 py-0.5 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-800 text-[10px] font-mono font-bold">
                                 <i class="fas fa-receipt text-emerald-600"></i> Ref: ${escapeHtml(o.gcashRef)}
@@ -1795,13 +1795,16 @@ function fetchCustomerChatMessages(scrollToBottom = false) {
     stopCustomerChatPolling();
     loadCustomerMessages(scrollToBottom || true);
     customerChatPollingTimer = setInterval(() => {
-        loadCustomerMessages(false);
+        if (!document.hidden) loadCustomerMessages(false);
     }, 5000);
 }
 
+let customerChatEtag = '';
 function loadCustomerMessages(scrollToBottom = false) {
-    fetch('/api/chat/my-conversation')
+    fetch('/api/chat/my-conversation', {headers: !scrollToBottom && customerChatEtag ? {'If-None-Match': customerChatEtag} : {}})
         .then(res => {
+            if (res.status === 304) return null;
+            customerChatEtag = res.headers.get('ETag') || '';
             if (res.status === 401) {
                 window.location.href = '/login';
                 return null;
@@ -1813,7 +1816,7 @@ function loadCustomerMessages(scrollToBottom = false) {
             customerActiveConvId = data.conversation ? data.conversation.id : null;
             const msgs = data.messages || [];
 
-            const newHash = msgs.map(m => `${m.id}:${m.read}`).join('|');
+            const newHash = msgs.map(m => `${escapeHtml(m.id)}:${m.read}`).join('|');
             if (newHash === customerLastMessagesHash && !scrollToBottom) {
                 return; // Nothing changed
             }

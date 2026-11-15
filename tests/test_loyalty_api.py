@@ -18,7 +18,7 @@ class LoyaltyApiTests(unittest.TestCase):
         for uid, role in [('u1','customer'),('other','customer'),('admin','admin')]:
             self.db.records['users/'+uid] = {'email':uid+'@example.com','role':role,'fullName':uid}
         self.db.records['settings/loyalty_config'] = {'enabled':True,'epoch':'test','pointValueCents':100}
-        self.db.records['loyalty_accounts/u1'] = {'balance':10,'reserved':0}
+        self.db.records['loyalty_accounts/u1'] = {'balance':10,'reserved':0,'cashOnPickupUnlocked':True}
         self.db.records['products/p1'] = {'name':'Paper','stock':5,'price':10}
         def user(uid):
             if 'users/'+uid not in self.db.records:
@@ -48,7 +48,7 @@ class LoyaltyApiTests(unittest.TestCase):
         self.assertEqual(self.client.get('/api/loyalty/me',headers={'Authorization':'Bearer expired'}).status_code,401)
         self.assertEqual(self.client.get('/api/loyalty/me',headers=self.headers).status_code,200)
         with self.client.session_transaction() as session:
-            session.update(email='u1@example.com',role='admin')
+            session.update(email='u1@example.com',uid='u1',authTime=9999999999,role='admin')
         self.assertEqual(self.client.get('/api/admin/loyalty/rewards').status_code,403)
         self.assertEqual(self.client.get('/api/loyalty/me').json['uid'],'u1')
 

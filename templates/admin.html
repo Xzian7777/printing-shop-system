@@ -125,7 +125,7 @@
                     <span class="text-base font-black font-mono text-amber-300" id="badgeCountApproval">0</span>
                 </div>
                 <div class="bg-blue-500/10 border border-blue-500/20 rounded-2xl px-3.5 py-1.5 text-center min-w-[80px]">
-                    <span class="block text-[9px] font-extrabold text-blue-400 uppercase tracking-wider">PRINTING</span>
+                    <span class="block text-[9px] font-extrabold text-blue-400 uppercase tracking-wider">PROCESSING</span>
                     <span class="text-base font-black font-mono text-blue-300" id="badgeCountPrinting">0</span>
                 </div>
                 <div class="bg-emerald-500/10 border border-emerald-500/20 rounded-2xl px-3.5 py-1.5 text-center min-w-[80px]">
@@ -179,7 +179,7 @@
                 <span class="text-slate-700 text-[10px] uppercase tracking-wider whitespace-nowrap shrink-0">Status:</span>
                 <button onclick="setAdminStatusFilter('all')" id="statusPill-all" class="admin-status-pill px-3 py-1.5 rounded-xl bg-emerald-600 text-white shadow-xs font-bold transition cursor-pointer whitespace-nowrap shrink-0">All Active (<span id="pillCountAll">0</span>)</button>
                 <button onclick="setAdminStatusFilter('approval')" id="statusPill-approval" class="admin-status-pill px-3 py-1.5 rounded-xl bg-slate-100 text-black hover:bg-slate-200 transition cursor-pointer whitespace-nowrap shrink-0">For Approval (<span id="pillCountApproval">0</span>)</button>
-                <button onclick="setAdminStatusFilter('printing')" id="statusPill-printing" class="admin-status-pill px-3 py-1.5 rounded-xl bg-slate-100 text-black hover:bg-slate-200 transition cursor-pointer whitespace-nowrap shrink-0">Printing (<span id="pillCountPrinting">0</span>)</button>
+                <button onclick="setAdminStatusFilter('printing')" id="statusPill-printing" class="admin-status-pill px-3 py-1.5 rounded-xl bg-slate-100 text-black hover:bg-slate-200 transition cursor-pointer whitespace-nowrap shrink-0">Processing (<span id="pillCountPrinting">0</span>)</button>
                 <button onclick="setAdminStatusFilter('pickup')" id="statusPill-pickup" class="admin-status-pill px-3 py-1.5 rounded-xl bg-slate-100 text-black hover:bg-slate-200 transition cursor-pointer whitespace-nowrap shrink-0">Ready (<span id="pillCountPickup">0</span>)</button>
                 <button onclick="setAdminStatusFilter('completed')" id="statusPill-completed" class="admin-status-pill px-3 py-1.5 rounded-xl bg-slate-100 text-black hover:bg-slate-200 transition cursor-pointer whitespace-nowrap shrink-0">Completed (<span id="pillCountCompleted">0</span>)</button>
                 <button onclick="setAdminStatusFilter('cancelled')" id="statusPill-cancelled" class="admin-status-pill px-3 py-1.5 rounded-xl bg-slate-100 text-black hover:bg-slate-200 transition cursor-pointer whitespace-nowrap shrink-0">Cancelled (<span id="pillCountCancelled">0</span>)</button>
@@ -453,6 +453,35 @@
                 <p class="text-[11px] text-slate-800">RC522 / NFC Counter Scanner</p>
             </div>
         </div>
+
+        <section class="bg-white border border-slate-200 rounded-3xl p-5 mb-5 space-y-3">
+            <h3 class="font-bold text-black">USB RFID reader</h3>
+            <p class="text-xs text-slate-700">Each new card tap earns 1 point. Remove the card before tapping again.</p>
+            <form onsubmit="pairRfidReader(event)" class="flex flex-wrap gap-2">
+                <input id="rfidDeviceId" maxlength="12" placeholder="12-character reader ID" aria-label="Reader ID" class="border rounded-xl px-3 py-2 text-sm">
+                <input id="rfidDeviceName" maxlength="80" placeholder="Counter reader" aria-label="Reader name" class="border rounded-xl px-3 py-2 text-sm">
+                <label class="text-xs flex items-center gap-2"><input id="rfidRotateKey" type="checkbox">Replace existing reader key</label>
+                <button class="bg-emerald-600 text-white rounded-xl px-4 py-2 text-sm font-bold">Pair reader</button>
+            </form>
+            <div id="rfidKeyPanel" class="hidden space-y-2">
+                <label class="text-xs font-bold" for="rfidPrivateKey">Private bridge key</label>
+                <input id="rfidPrivateKey" type="password" readonly class="border rounded-xl px-3 py-2 w-full text-sm">
+                <button type="button" onclick="copyRfidReaderKey()" class="text-emerald-700 text-sm font-bold">Copy key for bridge setup</button>
+                <p class="text-xs text-slate-600">This key is shown once. Save it in the private bridge setup on your PC.</p>
+            </div>
+            <div class="flex flex-wrap gap-2 items-center">
+                <select id="rfidReaderSelect" aria-label="Registered reader" onchange="renderRfidReaderState()" class="border rounded-xl px-3 py-2 text-sm"></select>
+                <button type="button" onclick="captureRfidCard()" class="bg-emerald-600 text-white rounded-xl px-4 py-2 text-sm font-bold">Capture card</button>
+            </div>
+            <p id="rfidReaderStatus" role="status" class="text-sm text-slate-700">Pair the USB reader to begin.</p>
+            <div class="flex flex-wrap gap-2 items-center">
+                <input id="rfidCustomerSearch" placeholder="Customer email or name" aria-label="Customer search" class="border rounded-xl px-3 py-2 text-sm">
+                <button type="button" onclick="searchRfidCustomers()" class="text-emerald-700 text-sm font-bold">Find customer</button>
+                <select id="rfidCustomerSelect" aria-label="Customer account" class="border rounded-xl px-3 py-2 text-sm"></select>
+                <label class="text-xs flex items-center gap-2"><input id="rfidReplaceCard" type="checkbox">Replace customer's existing physical card</label>
+                <button id="rfidEnrollButton" type="button" onclick="enrollRfidCard()" class="bg-emerald-600 text-white rounded-xl px-4 py-2 text-sm font-bold">Enroll captured card</button>
+            </div>
+        </section>
 
         <!-- RFID Cards Table -->
         <div class="bg-white border border-slate-200 rounded-3xl overflow-hidden shadow-xs">
@@ -1106,7 +1135,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (typeof kczInitPushNotifications === 'function') kczInitPushNotifications();
 
     fetchAdminOrders();
-    setInterval(fetchAdminOrders, 30000);
+    setInterval(() => { if (!document.hidden && currentAdminTab === 'manageOrders') fetchAdminOrders(false); }, 30000);
 
     // Support ?tab= URL parameter (e.g. /admin?tab=archive)
     const urlParams = new URLSearchParams(window.location.search);
@@ -1126,7 +1155,7 @@ document.addEventListener('DOMContentLoaded', () => {
 let currentAdminTab = 'manageOrders';
 setInterval(() => {
     const refreshers = {samplesManager: fetchAdminSamples, servicesManager: fetchAdminServices, registeredUsers: fetchRegisteredUsers, rfidLoyalty: fetchAdminRfidData, archive: fetchAdminArchives, analytics: fetchAdminAnalytics};
-    refreshers[currentAdminTab]?.();
+    if (!document.hidden) refreshers[currentAdminTab]?.();
 }, 15000);
 
 function switchAdminTab(tabId) {
@@ -1155,6 +1184,7 @@ function switchAdminTab(tabId) {
     }
     if (tabId === 'rfidLoyalty') {
         fetchAdminRfidData();
+        refreshRfidReaders();
     }
     if (tabId === 'registeredUsers') {
         fetchRegisteredUsers();
@@ -1183,7 +1213,10 @@ function fetchAdminRfidData() {
             email: u.email || 'N/A',
             rfidUid: u.rfidUid || '',
             points: u.points !== undefined ? u.points : 0,
-            lastTap: u.lastTap || 'Recent Active'
+            lastTap: u.lastTap || 'Recent Active',
+            profileResolution: u.profileResolution || 'resolved',
+            rfidReviewRequired: u.rfidReviewRequired === true,
+            legacyCustomerIds: u.legacyCustomerIds || []
         }));
         renderAdminRfidTable();
     })
@@ -1206,7 +1239,7 @@ function renderAdminRfidTable() {
 
     const totalPoints = allAdminRfidCache.reduce((sum, r) => sum + (parseInt(r.points) || 0), 0);
     if (document.getElementById('adminRfidTotalCards')) {
-        document.getElementById('adminRfidTotalCards').textContent = allAdminRfidCache.length;
+        document.getElementById('adminRfidTotalCards').textContent = new Set(allAdminRfidCache.filter(r => r.rfidUid).map(r => r.rfidUid)).size;
     }
     if (document.getElementById('adminRfidTotalPoints')) {
         document.getElementById('adminRfidTotalPoints').textContent = `${totalPoints} PTS`;
@@ -1235,7 +1268,7 @@ function renderAdminRfidTable() {
                         <td class="py-4 px-4 font-mono font-bold text-indigo-400 whitespace-nowrap">
                             <i class="fas fa-credit-card mr-1 text-slate-800"></i> ${r.rfidUid}
                         </td>
-                        <td class="py-4 px-4 font-bold text-slate-100 whitespace-nowrap">${r.name}</td>
+                        <td class="py-4 px-4 font-bold text-slate-900">${escapeHtml(r.name)}${r.rfidReviewRequired ? `<div class="text-xs text-amber-800 mt-1">RFID review required</div><div class="text-xs text-slate-600">Legacy records: ${r.legacyCustomerIds.map(id => escapeHtml(String(id))).join(", ")}</div>` : ""}</td>
                         <td class="py-4 px-4 font-mono text-slate-700 whitespace-nowrap">${r.email}</td>
                         <td class="py-4 px-4 text-center whitespace-nowrap">
                             <span class="bg-amber-500/15 text-amber-300 border border-amber-500/30 px-3 py-1 rounded-full font-mono font-extrabold text-xs">
@@ -1244,8 +1277,8 @@ function renderAdminRfidTable() {
                         </td>
                         <td class="py-4 px-4 text-slate-700 whitespace-nowrap">${r.lastTap}</td>
                         <td class="py-4 px-4 text-right whitespace-nowrap">
-                            <button onclick="adminTapSpecificCard('${r.rfidUid}')" class="bg-indigo-500/15 hover:bg-indigo-500/25 text-indigo-300 border border-indigo-500/30 font-bold px-3 py-1.5 rounded-xl transition cursor-pointer text-xs inline-flex items-center gap-1.5 shadow-2xs">
-                                <i class="fas fa-plus-circle text-indigo-400"></i> +20 Pts
+                            <button onclick="adminTapSpecificCard(${escapeHtml(JSON.stringify(String(r.rfidUid)))})" class="bg-indigo-500/15 hover:bg-indigo-500/25 text-indigo-300 border border-indigo-500/30 font-bold px-3 py-1.5 rounded-xl transition cursor-pointer text-xs inline-flex items-center gap-1.5 shadow-2xs">
+                                <i class="fas fa-satellite-dish"></i> Identify Card
                             </button>
                         </td>
                     </tr>
@@ -1333,17 +1366,17 @@ function renderRegisteredUsers() {
             <tbody class="divide-y divide-slate-100">
                 ${filtered.map(u => `
                     <tr class="hover:bg-slate-50 transition">
-                        <td class="p-4 font-mono font-bold text-black">${u.id}</td>
-                        <td class="p-4 font-bold text-black text-sm">${u.name}</td>
-                        <td class="p-4 text-black font-semibold font-mono">${u.email}</td>
-                        <td class="p-4 text-black font-semibold">${u.phone || '—'}</td>
-                        <td class="p-4 text-black font-semibold">${u.dateJoined || '—'}</td>
+                        <td class="p-4 font-mono font-bold text-black">${escapeHtml(u.id)}</td>
+                        <td class="p-4 font-bold text-black text-sm">${escapeHtml(u.name)}</td>
+                        <td class="p-4 text-black font-semibold font-mono">${escapeHtml(u.email)}</td>
+                        <td class="p-4 text-black font-semibold">${escapeHtml(u.phone || '—')}</td>
+                        <td class="p-4 text-black font-semibold">${escapeHtml(u.dateJoined || '—')}</td>
                         <td class="p-4 text-right">
                             <div class="flex items-center justify-end gap-1.5">
-                                <button onclick="openEditUserModal('${u.id}')" class="bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 font-bold px-3 py-1.5 rounded-xl transition cursor-pointer text-xs flex items-center gap-1.5">
+                                <button onclick="openEditUserModal(${escapeHtml(JSON.stringify(String(u.id)))})" class="bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 font-bold px-3 py-1.5 rounded-xl transition cursor-pointer text-xs flex items-center gap-1.5">
                                     <i class="fas fa-edit text-[10px]"></i> Edit
                                 </button>
-                                <button onclick="openDeleteUserModal('${u.id}', '${(u.name || u.email || '').replace(/'/g, "\\'")}')" class="bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 font-bold px-3 py-1.5 rounded-xl transition cursor-pointer text-xs flex items-center gap-1.5">
+                                <button onclick="openDeleteUserModal(${escapeHtml(JSON.stringify(String(u.id)))}, ${escapeHtml(JSON.stringify(String((u.name || u.email || '').replace(/'/g, "\\'"))))})" class="bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 font-bold px-3 py-1.5 rounded-xl transition cursor-pointer text-xs flex items-center gap-1.5">
                                     <i class="fas fa-box-archive text-[10px]"></i> Archive
                                 </button>
                             </div>
@@ -1516,14 +1549,21 @@ function executeDeleteUser() {
     });
 }
 
-function fetchAdminOrders() {
-    return fetch('/api/orders')
-    .then(res => res.json())
+let adminOrdersEtag = '';
+function fetchAdminOrders(force = true) {
+    return fetch('/api/orders', {headers: !force && adminOrdersEtag ? {'If-None-Match': adminOrdersEtag} : {}})
+    .then(res => {
+        if (res.status === 304) return null;
+        if (!res.ok) throw Error('Unable to refresh orders. Please try again.');
+        adminOrdersEtag = res.headers.get('ETag') || '';
+        return res.json();
+    })
     .then(orders => {
+        if (orders === null) return;
         allAdminOrdersCache = orders || [];
         updateBadgeCounters();
         renderAdminOrders();
-        fetchAdminAnalytics();
+        if (currentAdminTab === 'analytics') renderAdminAnalytics();
     })
     .catch(() => {});
 }
@@ -1532,12 +1572,12 @@ function updateBadgeCounters() {
     let approval = 0, printing = 0, ready = 0, completed = 0, rejected = 0, cancelled = 0;
 
     allAdminOrdersCache.forEach(o => {
-        const s = (o.status || '').toLowerCase();
-        if (s === 'cancelled') cancelled++;
-        else if (s.includes('reject')) rejected++;
-        else if (s.includes('complete')) completed++;
-        else if (s.includes('ready') || s.includes('pickup')) ready++;
-        else if (s.includes('print')) printing++;
+        const bucket = orderStatusBucket(o.status);
+        if (bucket === 'cancelled') cancelled++;
+        else if (bucket === 'rejected') rejected++;
+        else if (bucket === 'completed') completed++;
+        else if (bucket === 'pickup') ready++;
+        else if (bucket === 'printing') printing++;
         else approval++;
     });
 
@@ -1630,13 +1670,9 @@ function renderAdminOrders() {
         }
 
         let matchesStatus = true;
-        if (currentAdminStatusFilter === 'all') matchesStatus = !s.includes('complete') && !s.includes('reject') && !s.includes('cancel');
-        else if (currentAdminStatusFilter === 'approval') matchesStatus = s.includes('submitted') || s === 'for approval';
-        else if (currentAdminStatusFilter === 'printing') matchesStatus = s.includes('print') || (s.includes('approve') && !s.includes('ready'));
-        else if (currentAdminStatusFilter === 'pickup') matchesStatus = s.includes('ready') || s.includes('pickup');
-        else if (currentAdminStatusFilter === 'completed') matchesStatus = s.includes('complete');
-        else if (currentAdminStatusFilter === 'cancelled') matchesStatus = s === 'cancelled';
-        else if (currentAdminStatusFilter === 'rejected') matchesStatus = s.includes('reject');
+        const bucket = orderStatusBucket(o.status);
+        if (currentAdminStatusFilter === 'all') matchesStatus = ['approval', 'printing', 'pickup'].includes(bucket);
+        else matchesStatus = bucket === currentAdminStatusFilter;
 
         return matchesSearch && matchesService && matchesStatus;
     });
@@ -1737,13 +1773,13 @@ function renderAdminRowHTML(o) {
         nextStatus = 'Completed';
         btnText = '🎉 Done';
         btnBg = 'bg-emerald-600 hover:bg-emerald-700';
-    } else if (s.includes('print')) {
+    } else if (/print|prepar|process/.test(s)) {
         nextStatus = 'Ready for Pickup';
         btnText = '📦 Ready';
         btnBg = 'bg-amber-600 hover:bg-amber-700';
     } else if (s.includes('approve')) {
         nextStatus = 'Printing';
-        btnText = '🖨️ Print';
+        btnText = '🖨️ Process';
         btnBg = 'bg-blue-600 hover:bg-blue-700';
     }
 
@@ -1751,9 +1787,9 @@ function renderAdminRowHTML(o) {
     const fileTarget = o.fileUrl || o.file_url || o.url || (typeof o.file === 'string' && (o.file.startsWith('http') || o.file.startsWith('/')) ? o.file : null);
 
     return `
-        <tr class="hover:bg-slate-50 transition relative">
-            <td class="py-2.5 px-2.5 font-mono font-extrabold text-black whitespace-nowrap text-[11px] font-mono font-extrabold">${o.id}</td>
-            <td class="py-2.5 px-2.5 font-bold text-black text-xs max-w-[100px] truncate" title="${o.customer || 'Guest'}">${o.customer || 'Guest'}</td>
+        <tr data-order-id="${escapeHtml(o.id)}" class="hover:bg-slate-50 transition relative">
+            <td class="py-2.5 px-2.5 font-mono font-extrabold text-black whitespace-nowrap text-[11px] font-mono font-extrabold">${escapeHtml(o.id)}</td>
+            <td class="py-2.5 px-2.5 font-bold text-black text-xs max-w-[100px] truncate" title="${escapeHtml(o.customer || 'Guest')}">${escapeHtml(o.customer || 'Guest')}</td>
             <td class="py-2.5 px-2.5 max-w-[160px]">
                 <div class="font-bold text-black text-xs truncate" title="${escapeHtml(o.service || 'Document Printing')}">${escapeHtml(o.service || 'Document Printing')}</div>
                 <div class="text-[10px] text-black font-semibold truncate">${escapeHtml(o.paperSize || 'Specs')} • ${formatInteger(o.copies || 1)}x</div>
@@ -1778,39 +1814,39 @@ function renderAdminRowHTML(o) {
                 <div class="flex items-center justify-end gap-1 relative">
                     ${!isFinished ? `
                         <div class="relative inline-flex items-center rounded-xl shadow-2xs status-dropdown-container">
-                            <button onclick="updateOrderStatusFromBackend('${o.id}', '${nextStatus}')" class="${btnBg} text-white font-bold text-[10px] px-2 py-1.5 rounded-l-xl transition flex items-center gap-1 cursor-pointer whitespace-nowrap">
+                            <button onclick="updateOrderStatusFromBackend(${escapeHtml(JSON.stringify(String(o.id)))}, ${escapeHtml(JSON.stringify(String(nextStatus)))})" class="${btnBg} text-white font-bold text-[10px] px-2 py-1.5 rounded-l-xl transition flex items-center gap-1 cursor-pointer whitespace-nowrap">
                                 <span>${btnText}</span>
                             </button>
-                            <button onclick="toggleStatusDropdownMenu(event, '${o.id}')" class="${btnBg} text-white font-bold text-[10px] px-1.5 py-1.5 rounded-r-xl border-l border-white/20 transition cursor-pointer">
+                            <button onclick="toggleStatusDropdownMenu(event, ${escapeHtml(JSON.stringify(String(o.id)))})" class="${btnBg} text-white font-bold text-[10px] px-1.5 py-1.5 rounded-r-xl border-l border-white/20 transition cursor-pointer">
                                 <i class="fas fa-chevron-down text-[8px]"></i>
                             </button>
 
-                            <div id="statusMenu-${o.id}" class="status-dropdown-menu absolute right-0 top-full mt-1 w-44 bg-white rounded-2xl shadow-xl border border-slate-200 hidden text-left overflow-hidden divide-y divide-slate-100 z-50">
-                                <button onclick="updateOrderStatusFromBackend('${o.id}', 'Approved')" class="w-full px-3.5 py-2 hover:bg-blue-50 text-blue-800 font-bold text-xs text-left block cursor-pointer">✓ Approved</button>
-                                <button onclick="updateOrderStatusFromBackend('${o.id}', 'Printing')" class="w-full px-3.5 py-2 hover:bg-indigo-50 text-indigo-800 font-bold text-xs text-left block cursor-pointer">🖨️ Start Printing</button>
-                                <button onclick="updateOrderStatusFromBackend('${o.id}', 'Ready for Pickup')" class="w-full px-3.5 py-2 hover:bg-amber-50 text-amber-800 font-bold text-xs text-left block cursor-pointer">📦 Ready for Pickup</button>
-                                <button onclick="updateOrderStatusFromBackend('${o.id}', 'Completed')" class="w-full px-3.5 py-2 hover:bg-emerald-50 text-emerald-800 font-bold text-xs text-left block cursor-pointer">🎉 Complete Order</button>
+                            <div id="statusMenu-${escapeHtml(o.id)}" class="status-dropdown-menu absolute right-0 top-full mt-1 w-44 bg-white rounded-2xl shadow-xl border border-slate-200 hidden text-left overflow-hidden divide-y divide-slate-100 z-50">
+                                <button onclick="updateOrderStatusFromBackend(${escapeHtml(JSON.stringify(String(o.id)))}, 'Approved')" class="w-full px-3.5 py-2 hover:bg-blue-50 text-blue-800 font-bold text-xs text-left block cursor-pointer">✓ Approved</button>
+                                <button onclick="updateOrderStatusFromBackend(${escapeHtml(JSON.stringify(String(o.id)))}, 'Printing')" class="w-full px-3.5 py-2 hover:bg-indigo-50 text-indigo-800 font-bold text-xs text-left block cursor-pointer">🖨️ Start Processing</button>
+                                <button onclick="updateOrderStatusFromBackend(${escapeHtml(JSON.stringify(String(o.id)))}, 'Ready for Pickup')" class="w-full px-3.5 py-2 hover:bg-amber-50 text-amber-800 font-bold text-xs text-left block cursor-pointer">📦 Ready for Pickup</button>
+                                <button onclick="updateOrderStatusFromBackend(${escapeHtml(JSON.stringify(String(o.id)))}, 'Completed')" class="w-full px-3.5 py-2 hover:bg-emerald-50 text-emerald-800 font-bold text-xs text-left block cursor-pointer">🎉 Complete Order</button>
                             </div>
                         </div>
                     ` : ''}
 
                     <div class="relative action-menu-container">
-                        <button onclick="toggleActionMenuDropdown(event, '${o.id}')" class="w-7 h-7 rounded-xl bg-slate-100 hover:bg-slate-200 text-black border border-slate-200 flex items-center justify-center transition cursor-pointer">
+                        <button onclick="toggleActionMenuDropdown(event, ${escapeHtml(JSON.stringify(String(o.id)))})" class="w-7 h-7 rounded-xl bg-slate-100 hover:bg-slate-200 text-black border border-slate-200 flex items-center justify-center transition cursor-pointer">
                             <i class="fas fa-ellipsis-v text-[10px]"></i>
                         </button>
-                        <div id="actionMenu-${o.id}" class="action-menu-dropdown absolute right-0 top-full mt-1 w-44 bg-white rounded-2xl shadow-xl border border-slate-200 hidden text-left overflow-hidden divide-y divide-slate-100 z-50">
-                            <button onclick="openReviewSpecsModal('${o.id}')" class="w-full px-3.5 py-2 hover:bg-slate-50 text-black font-bold text-xs text-left flex items-center gap-2 cursor-pointer">
+                        <div id="actionMenu-${escapeHtml(o.id)}" class="action-menu-dropdown absolute right-0 top-full mt-1 w-44 bg-white rounded-2xl shadow-xl border border-slate-200 hidden text-left overflow-hidden divide-y divide-slate-100 z-50">
+                            <button onclick="openReviewSpecsModal(${escapeHtml(JSON.stringify(String(o.id)))})" class="w-full px-3.5 py-2 hover:bg-slate-50 text-black font-bold text-xs text-left flex items-center gap-2 cursor-pointer">
                                 <i class="fas fa-eye text-blue-400"></i> Review Specs & File
                             </button>
                             ${fileTarget ? `
-                            <a href="${fileTarget}" target="_blank" download class="w-full px-3.5 py-2 hover:bg-blue-50 text-blue-800 font-bold text-xs text-left flex items-center gap-2 cursor-pointer">
+                            <a href="/api/orders/${encodeURIComponent(o.id)}/file?redirect=1" target="_blank" download class="w-full px-3.5 py-2 hover:bg-blue-50 text-blue-800 font-bold text-xs text-left flex items-center gap-2 cursor-pointer">
                                 <i class="fas fa-file-download text-blue-400"></i> Open Attached File
                             </a>
                             ` : ''}
-                            <button onclick="openPrintSlipModal('${o.id}')" class="w-full px-3.5 py-2 hover:bg-slate-50 text-black font-bold text-xs text-left flex items-center gap-2 cursor-pointer">
+                            <button onclick="openPrintSlipModal(${escapeHtml(JSON.stringify(String(o.id)))})" class="w-full px-3.5 py-2 hover:bg-slate-50 text-black font-bold text-xs text-left flex items-center gap-2 cursor-pointer">
                                 <i class="fas fa-print text-purple-400"></i> Print Job Slip
                             </button>
-                            <button onclick="openRejectReasonModal('${o.id}')" class="w-full px-3.5 py-2 hover:bg-rose-500/20 text-rose-300 font-bold text-xs text-left flex items-center gap-2 cursor-pointer">
+                            <button onclick="openRejectReasonModal(${escapeHtml(JSON.stringify(String(o.id)))})" class="w-full px-3.5 py-2 hover:bg-rose-500/20 text-rose-300 font-bold text-xs text-left flex items-center gap-2 cursor-pointer">
                                 <i class="fas fa-times-circle text-rose-400"></i> Reject Order
                             </button>
                         </div>
@@ -1830,13 +1866,13 @@ function renderAdminCardHTML(o) {
     let nextStatus = 'Approved';
     let btnText = 'Approve Order';
     if (s.includes('ready') || s.includes('pickup')) { nextStatus = 'Completed'; btnText = 'Complete Order'; }
-    else if (s.includes('print')) { nextStatus = 'Ready for Pickup'; btnText = 'Mark Ready'; }
-    else if (s.includes('approve')) { nextStatus = 'Printing'; btnText = 'Start Printing'; }
+    else if (/print|prepar|process/.test(s)) { nextStatus = 'Ready for Pickup'; btnText = 'Mark Ready'; }
+    else if (s.includes('approve')) { nextStatus = 'Printing'; btnText = 'Start Processing'; }
 
     const isFinished = s.includes('complete') || s.includes('reject') || s.includes('cancel');
 
     return `
-        <div class="bg-white text-black border border-slate-200 rounded-2xl p-4 shadow-sm space-y-3 flex flex-col justify-between">
+        <div data-order-id="${escapeHtml(o.id)}" class="bg-white text-black border border-slate-200 rounded-2xl p-4 shadow-sm space-y-3 flex flex-col justify-between">
             <div class="space-y-2">
                 <div class="flex justify-between items-center border-b border-slate-100 pb-2">
                     <span class="font-mono font-extrabold text-black text-xs">${escapeHtml(o.id)}</span>
@@ -1864,9 +1900,9 @@ function renderAdminCardHTML(o) {
                 </div>
                 <div class="flex items-center gap-2 pt-1">
                     ${!isFinished ? `
-                        <button onclick="updateOrderStatusFromBackend('${o.id}', '${nextStatus}')" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold text-[10px] py-1.5 rounded-lg cursor-pointer">${btnText}</button>
+                        <button onclick="updateOrderStatusFromBackend(${escapeHtml(JSON.stringify(String(o.id)))}, ${escapeHtml(JSON.stringify(String(nextStatus)))})" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold text-[10px] py-1.5 rounded-lg cursor-pointer">${btnText}</button>
                     ` : ''}
-                    <button onclick="openReviewSpecsModal('${o.id}')" class="bg-slate-100 hover:bg-slate-200 text-black font-bold text-[10px] px-2.5 py-1.5 rounded-lg cursor-pointer border border-slate-200">Specs & File</button>
+                    <button onclick="openReviewSpecsModal(${escapeHtml(JSON.stringify(String(o.id)))})" class="bg-slate-100 hover:bg-slate-200 text-black font-bold text-[10px] px-2.5 py-1.5 rounded-lg cursor-pointer border border-slate-200">Specs & File</button>
                 </div>
             </div>
         </div>
@@ -1874,14 +1910,14 @@ function renderAdminCardHTML(o) {
 }
 
 function getStatusPillHTML(status) {
-    const value = String(status || 'Order Submitted');
+    const value = orderStatusLabel(status);
     const text = value.toLowerCase();
     let kind = 'pending';
     if (text.includes('cancel')) kind = 'cancelled';
     else if (text.includes('reject')) kind = 'rejected';
     else if (text.includes('complete')) kind = 'completed';
     else if (text.includes('ready') || text.includes('pickup')) kind = 'ready';
-    else if (text.includes('print') || text.includes('prepar')) kind = 'printing';
+    else if (/print|prepar|process/.test(text)) kind = 'printing';
     else if (text === 'approved') kind = 'approved';
     const label = text.startsWith('rejected:') ? 'Rejected' : value;
     return `<span class="order-status-badge status-${kind}">${escapeHtml(label)}</span>`;
@@ -1925,26 +1961,51 @@ function toggleActionMenuDropdown(event, orderId) {
     }
 }
 
-function updateOrderStatusFromBackend(orderId, newStatus) {
+const pendingOrderStatusUpdates = new Set();
+async function updateOrderStatusFromBackend(orderId, newStatus) {
+    if (pendingOrderStatusUpdates.has(orderId)) return;
     if (newStatus === 'Completed' && !confirm('Confirm that payment was received and this order was completed. Fully free rewards require no cash payment.')) return;
-    fetch(`/api/orders/${orderId}/status`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status: newStatus, paymentConfirmed: newStatus === 'Completed' })
-    })
-    .then(res => res.json())
-    .then(data => {
-        if (data && (data.success || data.status === 'success')) {
-            fetchAdminOrders().then(() => {
-                fetchAdminAnalytics();
-            });
-        } else { alert(data.message || data.error || 'Status update failed.'); }
-    }).catch(() => alert('The shop server is unavailable.'));
+    pendingOrderStatusUpdates.add(orderId);
+    const buttons = [...document.querySelectorAll('[data-order-id]')]
+        .filter(node => node.dataset.orderId === orderId)
+        .flatMap(node => [...node.querySelectorAll('button')]);
+    const previousDisabled = buttons.map(button => button.disabled);
+    buttons.forEach(button => button.disabled = true);
+    showActionNotice(`Updating order ${orderId}…`, 'pending');
+    try {
+        const response = await fetch(`/api/orders/${encodeURIComponent(orderId)}/status`, {
+            method: 'PUT', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ status: newStatus, paymentConfirmed: newStatus === 'Completed' })
+        });
+        const data = await response.json();
+        if (!response.ok || !(data.success || data.status === 'success')) throw new Error(data.message || data.error || 'Status update failed.');
+        const messages = {
+            Approved: `You approved order ${orderId}.`,
+            Printing: `You started processing order ${orderId}.`,
+            'Ready for Pickup': `Order ${orderId} is ready for pickup.`,
+            Completed: `You completed order ${orderId}.`
+        };
+        showActionNotice(messages[newStatus] || `Order ${orderId} updated to ${newStatus}.`);
+        await fetchAdminOrders();
+        fetchAdminAnalytics();
+    } catch (error) {
+        showActionNotice(error.message || 'The shop server is unavailable.', 'error');
+    } finally {
+        pendingOrderStatusUpdates.delete(orderId);
+        buttons.forEach((button, index) => button.disabled = previousDisabled[index]);
+    }
 }
 
-function openReviewSpecsModal(orderId) {
-    const order = allAdminOrdersCache.find(item => item.id === orderId);
+async function openReviewSpecsModal(orderId) {
+    let order = allAdminOrdersCache.find(item => item.id === orderId);
     if (!order) return;
+    if (order.fileUrl || order.gcashReceiptUrl) {
+        try {
+            const response = await fetch(`/api/orders/${encodeURIComponent(orderId)}/file`);
+            const files = await response.json();
+            if (response.ok && files.success) order = {...order, fileUrl: files.url, gcashReceiptUrl: files.receiptUrl};
+        } catch (_) {}
+    }
     const body = document.getElementById('specsModalBody');
     const items = Array.isArray(order.items) ? order.items.filter(item => item && typeof item === 'object') : [];
     const service = String(order.service || order.serviceName || 'Document Printing');
@@ -1973,7 +2034,7 @@ function openReviewSpecsModal(orderId) {
         <dl class="order-specs-grid">
             ${field('Order ID', order.id, true)}
             ${field('Customer', order.customer || order.email || 'Customer')}
-            ${field('Status', order.status || 'Order Submitted')}
+            ${field('Status', orderStatusLabel(order.status))}
             ${field('Service', service, true)}
             ${!store ? field('Paper Specs', order.paperSize || 'Standard Specs') + field('Copies / Quantity', formatInteger(order.copies || order.quantity || 1)) + field('Color Mode', order.colorMode || 'Not specified') : ''}
             ${field('Subtotal', formatCurrency(order.subtotal ?? order.total ?? 0))}
@@ -2020,7 +2081,7 @@ function openPrintSlipModal(orderId) {
             <div>POINTS EARNED: ${escapeHtml(String(o.pointsEarned || 0))}</div>
             <div>TOTAL: ${formatCurrency(o.total || 0)}</div>
             <div>PAYMENT: ${escapeHtml(o.payment || 'GCash')}</div>
-            <div>STATUS: ${escapeHtml(o.status || 'Submitted')}</div>
+            <div>STATUS: ${escapeHtml(orderStatusLabel(o.status || 'Submitted'))}</div>
             ${customerNote !== '' ? `<div class="border-t pt-1 mt-1 text-[11px]"><strong>NOTE:</strong> ${escapeHtml(customerNote)}</div>` : ''}
             <div class="order-ticket-date">${new Date().toLocaleString()}</div>
         `;
@@ -2057,14 +2118,28 @@ async function confirmRejectOrderAction() {
         const result = await response.json();
         if (!response.ok || !result.success) throw new Error(result.message || result.error || 'Could not reject order.');
         closeRejectModal();
+        showActionNotice(`You rejected order ${orderId}.`);
         await fetchAdminOrders();
     } catch (issue) { error.textContent = issue.message; }
     finally { button.disabled = false; }
 }
 
 function fetchAdminAnalytics() {
+    renderAdminAnalytics();
+    if (currentAdminTab === 'analytics') return fetchAdminOrders(false);
+}
+
+function analyticsOrderAmount(order, field = 'total') {
+    if (['cancelled', 'rejected'].includes(orderStatusBucket(order.status))) return 0;
+    const raw = field === 'total' ? order.total ?? order.price ?? order.amount : order[field];
+    const amount = Number(String(raw ?? 0).replace(/[₱,]/g, '').trim());
+    return Number.isFinite(amount) && amount >= 0 ? amount : 0;
+}
+
+function renderAdminAnalytics() {
     let totalSales = 0;
     let totalOrders = allAdminOrdersCache.length;
+    let revenueOrders = 0;
     let totalPages = 0;
     let customerSet = new Set();
     let statusCounts = {};
@@ -2075,13 +2150,14 @@ function fetchAdminAnalytics() {
     allAdminOrdersCache.forEach(o => {
         let status = o.status || 'Order Submitted';
         let service = o.service || 'Standard Print';
-        let price = parseFloat(o.total || o.price || o.amount || 0) || 0;
+        let price = analyticsOrderAmount(o);
         let copies = parseInt(o.copies || o.quantity || o.qty || 1) || 1;
         let pagesPerCopy = parseInt(o.pages || o.pageCount || 1) || 1;
 
-        if (String(status).toLowerCase() === 'cancelled') price = 0;
+        const stopped = ['cancelled', 'rejected'].includes(orderStatusBucket(status));
+        if (!stopped) revenueOrders++;
         totalSales += price;
-        if (o.source !== 'POS' && String(status).toLowerCase() !== 'cancelled') totalPages += (copies * pagesPerCopy);
+        if (o.source !== 'POS' && !stopped) totalPages += (copies * pagesPerCopy);
         
         if (o.customer || o.email) {
             customerSet.add(strClean(o.customer || o.email));
@@ -2093,7 +2169,7 @@ function fetchAdminAnalytics() {
         else if (sLower.includes('reject')) cleanStatus = "Rejected";
         else if (sLower.includes('complete')) cleanStatus = "Completed";
         else if (sLower.includes('ready') || sLower.includes('pickup')) cleanStatus = "Ready for Pickup";
-        else if (sLower.includes('print')) cleanStatus = "Printing";
+        else if (/print|prepar|process/.test(sLower)) cleanStatus = "Processing";
         else if (sLower.includes('approve')) cleanStatus = "Approved";
 
         statusCounts[cleanStatus] = (statusCounts[cleanStatus] || 0) + 1;
@@ -2101,8 +2177,8 @@ function fetchAdminAnalytics() {
 
         let sName = service.toLowerCase();
         if (o.source === 'POS') {
-            storeRev += Number(o.productTotal) || 0;
-            printRev += Number(o.serviceTotal) || 0;
+            storeRev += analyticsOrderAmount(o, 'productTotal');
+            printRev += analyticsOrderAmount(o, 'serviceTotal');
         } else if (sName.includes('store') || sName.includes('supply') || sName.includes('supplies') || sName.includes('in-store') || sName.includes('notebook') || sName.includes('pen')) {
             storeRev += price;
         } else {
@@ -2114,7 +2190,7 @@ function fetchAdminAnalytics() {
         totalSales: totalSales,
         totalOrders: totalOrders,
         totalPagesPrinted: totalPages,
-        avgOrderValue: totalOrders > 0 ? (totalSales / totalOrders) : 0,
+        avgOrderValue: revenueOrders > 0 ? (totalSales / revenueOrders) : 0,
         activeCustomers: customerSet.size || 0,
         storeRevenue: storeRev,
         printRevenue: printRev,
@@ -2309,20 +2385,20 @@ function fetchAdminChatThread() {
     stopAdminChatPolling();
     loadAdminConversations(true);
     adminChatPollingTimer = setInterval(() => {
-        loadAdminConversations(false);
-    }, 5000);
+        if (!document.hidden && currentAdminTab === 'liveChat') loadAdminConversations(false);
+    }, 15000);
 }
 
 function loadAdminConversations(isInitial = false) {
-    fetch('/api/chat/conversations')
+    fetch('/api/chat/conversations' + (isInitial ? '?refresh=1' : ''))
         .then(res => res.json())
         .then(data => {
             if (!data || !data.success) return;
             const newConvs = data.conversations || [];
             
             // Check if updated to avoid re-rendering DOM unnecessarily
-            const oldOrderKey = adminConversations.map(c => `${c.id}:${c.lastMessageAt}:${c.unreadCountAdmin}`).join('|');
-            const newOrderKey = newConvs.map(c => `${c.id}:${c.lastMessageAt}:${c.unreadCountAdmin}`).join('|');
+            const oldOrderKey = adminConversations.map(c => `${escapeHtml(c.id)}:${escapeHtml(c.lastMessageAt)}:${c.unreadCountAdmin}`).join('|');
+            const newOrderKey = newConvs.map(c => `${escapeHtml(c.id)}:${escapeHtml(c.lastMessageAt)}:${c.unreadCountAdmin}`).join('|');
 
             adminConversations = newConvs;
             sortAdminConversationsInPlace();
@@ -2334,7 +2410,7 @@ function loadAdminConversations(isInitial = false) {
             // Auto-select first conversation on desktop if none selected
             if (!adminActiveConvId && adminConversations.length > 0 && window.innerWidth >= 768) {
                 selectAdminConversation(adminConversations[0].id);
-            } else if (adminActiveConvId) {
+            } else if (adminActiveConvId && (oldOrderKey !== newOrderKey || isInitial)) {
                 fetchAdminActiveMessages(false);
             }
         })
@@ -2392,7 +2468,7 @@ function renderAdminConversationsList() {
         const previewText = c.lastMessage ? `${prefix}${escapeHtml(c.lastMessage)}` : '<span class="italic text-slate-700">Started a conversation</span>';
 
         return `
-            <div onclick="selectAdminConversation('${c.id}')"
+            <div onclick="selectAdminConversation(${escapeHtml(JSON.stringify(String(c.id)))})"
                  class="p-3.5 flex items-center gap-3 cursor-pointer transition-all border-l-4 ${
                      isSelected 
                          ? 'bg-emerald-50 border-emerald-500 shadow-xs' 
@@ -2472,7 +2548,7 @@ function selectAdminConversation(convId) {
         const badgeEl = document.getElementById('adminActiveUserBadge');
 
         if (nameEl) nameEl.textContent = conv.customerName || conv.customerEmail || 'Customer';
-        if (emailEl) emailEl.textContent = `${conv.customerEmail || ''} ${conv.customerPhone ? '• ' + conv.customerPhone : ''}`;
+        if (emailEl) emailEl.textContent = `${escapeHtml(conv.customerEmail || '')} ${conv.customerPhone ? '• ' + conv.customerPhone : ''}`;
         if (badgeEl) badgeEl.classList.remove('hidden');
 
         if (avatarEl) {
@@ -2495,16 +2571,21 @@ function selectAdminConversation(convId) {
     }, 100);
 }
 
+const adminMessageEtags = new Map();
 function fetchAdminActiveMessages(scrollToBottom = false) {
     if (!adminActiveConvId) return;
 
-    fetch(`/api/chat/conversations/${adminActiveConvId}/messages`)
-        .then(res => res.json())
+    fetch(`/api/chat/conversations/${adminActiveConvId}/messages`, {headers: !scrollToBottom && adminMessageEtags.has(adminActiveConvId) ? {'If-None-Match': adminMessageEtags.get(adminActiveConvId)} : {}})
+        .then(res => {
+            if (res.status === 304) return null;
+            adminMessageEtags.set(adminActiveConvId, res.headers.get('ETag') || '');
+            return res.json();
+        })
         .then(data => {
             if (!data || !data.success) return;
             const msgs = data.messages || [];
             
-            const newHash = msgs.map(m => `${m.id}:${m.read}`).join('|');
+            const newHash = msgs.map(m => `${escapeHtml(m.id)}:${m.read}`).join('|');
             if (newHash === adminLastRenderedMessagesHash && !scrollToBottom) {
                 return; // Nothing changed
             }
@@ -2771,11 +2852,11 @@ function renderAdminSamples() {
                         </div>
                     </div>
                     <div class="grid grid-cols-2 gap-2 pt-1">
-                        <button onclick="openEditSampleModal('${escapeHtml(String(item.id))}')" class="bg-slate-100 hover:bg-slate-200 text-black font-bold text-xs py-2 rounded-xl transition flex items-center justify-center gap-1.5 cursor-pointer">
+                        <button onclick="openEditSampleModal(${escapeHtml(JSON.stringify(String(escapeHtml(String(item.id)))))})" class="bg-slate-100 hover:bg-slate-200 text-black font-bold text-xs py-2 rounded-xl transition flex items-center justify-center gap-1.5 cursor-pointer">
                             <i class="fas fa-edit text-xs"></i>
                             <span>Edit</span>
                         </button>
-                        <button onclick="deleteAdminSample('${escapeHtml(String(item.id))}', '${escapeHtml(item.title || '')}')" class="bg-rose-50 hover:bg-rose-100 text-rose-600 font-bold text-xs py-2 rounded-xl transition flex items-center justify-center gap-1.5 cursor-pointer">
+                        <button onclick="deleteAdminSample(${escapeHtml(JSON.stringify(String(escapeHtml(String(item.id)))))}, ${escapeHtml(JSON.stringify(String(escapeHtml(item.title || ''))))})" class="bg-rose-50 hover:bg-rose-100 text-rose-600 font-bold text-xs py-2 rounded-xl transition flex items-center justify-center gap-1.5 cursor-pointer">
                             <i class="fas fa-box-archive text-xs"></i>
                             <span>Archive</span>
                         </button>
@@ -2980,10 +3061,10 @@ function renderAdminServicesTable() {
                 </td>
                 <td class="px-5 py-3 text-right">
                     <div class="inline-flex items-center gap-1.5">
-                        <button onclick="openEditServiceModal('${escapeHtml(String(item.id))}')" class="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-black rounded-lg font-bold transition flex items-center gap-1 cursor-pointer">
+                        <button onclick="openEditServiceModal(${escapeHtml(JSON.stringify(String(escapeHtml(String(item.id)))))})" class="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-black rounded-lg font-bold transition flex items-center gap-1 cursor-pointer">
                             <i class="fas fa-edit text-[10px]"></i> Edit
                         </button>
-                        <button onclick="deleteAdminService('${escapeHtml(String(item.id))}', '${escapeHtml(item.name || '')}')" class="px-2.5 py-1 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-lg font-bold transition flex items-center gap-1 cursor-pointer">
+                        <button onclick="deleteAdminService(${escapeHtml(JSON.stringify(String(escapeHtml(String(item.id)))))}, ${escapeHtml(JSON.stringify(String(escapeHtml(item.name || ''))))})" class="px-2.5 py-1 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-lg font-bold transition flex items-center gap-1 cursor-pointer">
                             <i class="fas fa-box-archive text-[10px]"></i> Archive
                         </button>
                     </div>
@@ -3039,7 +3120,7 @@ function addServiceRequirementRow(reqData = null) {
                     <input type="checkbox" class="req-field-required rounded text-orange-500 focus:ring-orange-400" ${isRequired ? 'checked' : ''}>
                     <span>Required Field</span>
                 </label>
-                <button type="button" onclick="document.getElementById('${rowId}').remove()" class="text-rose-500 hover:text-rose-700 text-xs px-2 py-0.5 rounded hover:bg-rose-50 transition" title="Delete requirement">
+                <button type="button" onclick="document.getElementById(${escapeHtml(JSON.stringify(String(rowId)))}).remove()" class="text-rose-500 hover:text-rose-700 text-xs px-2 py-0.5 rounded hover:bg-rose-50 transition" title="Delete requirement">
                     <i class="fas fa-trash-alt"></i> Remove
                 </button>
             </div>
@@ -3068,7 +3149,7 @@ function addServiceRequirementRow(reqData = null) {
                 <label class="block text-[10px] font-bold text-black">
                     Choices List (Each item will be a clickable choice):
                 </label>
-                <button type="button" onclick="addChoiceItemToRow('${rowId}')" class="text-orange-600 hover:text-orange-700 font-bold text-[10px] flex items-center gap-1 bg-orange-50 hover:bg-orange-100 border border-orange-200 px-2 py-0.5 rounded-lg transition">
+                <button type="button" onclick="addChoiceItemToRow(${escapeHtml(JSON.stringify(String(rowId)))})" class="text-orange-600 hover:text-orange-700 font-bold text-[10px] flex items-center gap-1 bg-orange-50 hover:bg-orange-100 border border-orange-200 px-2 py-0.5 rounded-lg transition">
                     <i class="fas fa-plus text-[9px]"></i> Add Choice
                 </button>
             </div>
@@ -3100,7 +3181,7 @@ function addChoiceItemToRow(rowId, choiceValue = '') {
     div.innerHTML = `
         <span class="text-slate-700 text-xs">▫️</span>
         <input type="text" class="choice-item-input flex-1 bg-white border border-slate-200 rounded-lg px-2.5 py-1 text-xs text-black focus:outline-none focus:border-orange-500 font-medium" placeholder="e.g. A4 Size, 300 GSM, Glossy" value="${escapeHtml(choiceValue)}">
-        <button type="button" onclick="document.getElementById('${choiceId}').remove()" class="text-slate-700 hover:text-rose-500 p-1 rounded hover:bg-slate-100 transition" title="Remove choice">
+        <button type="button" onclick="document.getElementById(${escapeHtml(JSON.stringify(String(choiceId)))}).remove()" class="text-slate-700 hover:text-rose-500 p-1 rounded hover:bg-slate-100 transition" title="Remove choice">
             <i class="fas fa-times text-xs"></i>
         </button>
     `;
@@ -3350,20 +3431,14 @@ function uploadAdminGcashQr(event) {
     const file = event.target.files[0];
     if (!file) return;
 
-    const formData = new FormData();
-    formData.append('qrFile', file);
-
     const msg = document.getElementById('adminQrUploadMsg');
     if (msg) {
         msg.textContent = 'Uploading new QR...';
         msg.className = 'text-[10px] font-bold text-blue-600 text-center';
     }
 
-    fetch('/api/settings/gcash/upload-qr', {
-        method: 'POST',
-        body: formData
-    })
-    .then(res => res.json())
+    ShopUploads.upload(file, 'merchant_qr')
+    .then(result => ({...result, success: true, qrUrl: result.fileUrl}))
     .then(data => {
         if (data.success) {
             const previewImg = document.getElementById('adminGcashQrPreview');
@@ -3531,7 +3606,7 @@ function renderArchiveTable() {
                 ${filtered.map(item => {
                     const badge = typeBadges[item.itemType] || { label: item.itemType || 'Item', bg: 'bg-slate-100 text-slate-700 border-slate-200', icon: 'fa-archive' };
                     const d = item.data || {};
-                    const name = d.name || d.title || d.username || d.email || `Item #${item.originalId}`;
+                    const name = d.name || d.title || d.username || d.email || `Item #${escapeHtml(item.originalId)}`;
                     const subtitle = d.email ? `${d.email} • ${d.phone || 'No phone'}` : 
                                     (d.category ? `Category: ${d.category} • ₱${d.price || d.basePrice || 0}` : 
                                     (d.unit ? `Price: ${d.unit}` : ''));
@@ -3553,11 +3628,11 @@ function renderArchiveTable() {
                             <td class="p-4 text-black font-semibold whitespace-nowrap">${archivedDate}</td>
                             <td class="p-4 text-right whitespace-nowrap">
                                 <div class="flex items-center justify-end gap-2">
-                                    <button onclick="restoreArchiveItem('${item.archiveDocId}', '${escapeHtml(name)}')" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 font-bold px-3 py-1.5 rounded-xl transition cursor-pointer text-xs flex items-center gap-1.5 shadow-2xs" title="Restore to active system">
+                                    <button onclick="restoreArchiveItem(${escapeHtml(JSON.stringify(String(item.archiveDocId)))}, ${escapeHtml(JSON.stringify(String(escapeHtml(name))))})" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 font-bold px-3 py-1.5 rounded-xl transition cursor-pointer text-xs flex items-center gap-1.5 shadow-2xs" title="Restore to active system">
                                         <i class="fas fa-rotate-left text-[11px]"></i>
                                         <span>Restore</span>
                                     </button>
-                                    <button onclick="deleteArchiveItemPermanently('${item.archiveDocId}', '${escapeHtml(name)}')" class="bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 font-bold px-3 py-1.5 rounded-xl transition cursor-pointer text-xs flex items-center gap-1.5 shadow-2xs" title="Permanently delete from database">
+                                    <button onclick="deleteArchiveItemPermanently(${escapeHtml(JSON.stringify(String(item.archiveDocId)))}, ${escapeHtml(JSON.stringify(String(escapeHtml(name))))})" class="bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 font-bold px-3 py-1.5 rounded-xl transition cursor-pointer text-xs flex items-center gap-1.5 shadow-2xs" title="Permanently delete from database">
                                         <i class="fas fa-trash-alt text-[10px]"></i>
                                         <span>Delete Forever</span>
                                     </button>
@@ -3612,4 +3687,5 @@ function deleteArchiveItemPermanently(archiveDocId, itemName) {
 }
 </script>
 <script src="{{ url_for('static', filename='js/pos.js') }}"></script>
+<script src="{{ url_for('static', filename='js/rfid_reader.js') }}"></script>
 {% endblock %}

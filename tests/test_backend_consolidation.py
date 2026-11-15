@@ -24,7 +24,7 @@ class BackendConsolidationTests(unittest.TestCase):
                 ast.unparse(decorator).startswith('app.') for decorator in node.decorator_list)
             registration = (isinstance(node, ast.Expr) and isinstance(node.value, ast.Call)
                             and isinstance(node.value.func, ast.Name)
-                            and node.value.func.id == 'register_loyalty_routes')
+                            and node.value.func.id in ['register_loyalty_routes', 'register_rfid_routes'])
             if route or registration:
                 exec(compile(ast.Module(body=[node], type_ignores=[]), 'app.py', 'exec'), backend.__dict__)
         actual = [{'rule': rule.rule, 'methods': sorted(rule.methods), 'endpoint': rule.endpoint}
@@ -53,14 +53,14 @@ class BackendConsolidationTests(unittest.TestCase):
             env = backend.__dict__.copy()
             sender, server, database = Mock(), Mock(), object()
             env.update(argparse=argparse, db=database, run=sender, app=server,
-                       os=types.SimpleNamespace(environ={}))
+                       os=types.SimpleNamespace(environ={}, getenv=lambda key, default=None: default))
             with patch.object(sys, 'argv', arguments), patch('builtins.print'):
                 exec(compile(ast.Module(body=main.body, type_ignores=[]), 'app.py', 'exec'), env)
             if worker:
                 sender.assert_called_once_with(database, env['send_fcm_push_notification'])
                 server.run.assert_not_called()
             else:
-                server.run.assert_called_once_with(debug=True, port=5000)
+                server.run.assert_called_once_with(debug=True, host='127.0.0.1', port=5000)
                 sender.assert_not_called()
 
     def test_worker_start_is_idempotent(self):

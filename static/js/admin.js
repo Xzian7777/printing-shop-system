@@ -1,3 +1,7 @@
+function escapeAdminText(value) {
+    return String(value ?? '').replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;').replaceAll("'", '&#39;');
+}
+
 // Staff Admin Dashboard & Orders Table Rendering Logic
 function fetchAdminOrders() {
     fetch('/api/orders')
@@ -39,7 +43,7 @@ function fetchAdminOrders() {
                         mainActionBg = 'bg-emerald-600 hover:bg-emerald-700';
                         break;
                     case 'Printing':
-                        mainActionText = '🖨️ Start Printing';
+                        mainActionText = '🖨️ Start Processing';
                         mainActionBg = 'bg-blue-600 hover:bg-blue-700';
                         break;
                     case 'Preparing':
@@ -66,53 +70,53 @@ function fetchAdminOrders() {
 
             return `
                 <tr class="border-b border-slate-100 hover:bg-slate-50/50">
-                    <td class="p-3 font-mono font-bold text-xs">${orderId.substring(0, 8)}</td>
-                    <td class="p-3 text-xs font-semibold">${o.customer || o.userId || 'Customer'}</td>
+                    <td class="p-3 font-mono font-bold text-xs">${escapeAdminText(orderId.substring(0, 8))}</td>
+                    <td class="p-3 text-xs font-semibold">${escapeAdminText(o.customer || o.userId || 'Customer')}</td>
                     <td class="p-3 text-xs">
-                        <div>${serviceName}</div>
+                        <div>${escapeAdminText(serviceName)}</div>
                         ${customerNote ? `
-                            <div class="mt-0.5 inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-amber-50 text-amber-700 border border-amber-200 text-[10px]" title="Note: ${customerNote}">
-                                <span>📝</span> <span class="max-w-[140px] truncate">${customerNote}</span>
+                            <div class="mt-0.5 inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-amber-50 text-amber-700 border border-amber-200 text-[10px]" title="Note: ${escapeAdminText(customerNote)}">
+                                <span>📝</span> <span class="max-w-[140px] truncate">${escapeAdminText(customerNote)}</span>
                             </div>
                         ` : ''}
                     </td>
                     <td class="p-3 font-mono text-xs font-bold">₱${totalAmount.toFixed(2)}</td>
                     <td class="p-3">
-                        <span class="bg-slate-100 text-slate-700 px-2 py-0.5 rounded text-[11px] font-bold">${currentStatus}</span>
+                        <span class="bg-slate-100 text-slate-700 px-2 py-0.5 rounded text-[11px] font-bold">${escapeAdminText(currentStatus)}</span>
                     </td>
                     <td class="p-3 text-right">
                         <div class="relative inline-block text-left">
                             <div class="inline-flex rounded-xl shadow-sm">
-                                <button onclick="updateStatus('${orderId}', '${nextStatus}')" class="${mainActionBg} text-white px-3 py-1.5 rounded-l-xl text-xs font-bold transition-all">
+                                <button onclick="updateStatus(${escapeAdminText(JSON.stringify(String(orderId)))}, ${escapeAdminText(JSON.stringify(String(nextStatus)))})" class="${mainActionBg} text-white px-3 py-1.5 rounded-l-xl text-xs font-bold transition-all">
                                     ${mainActionText}
                                 </button>
-                                <button onclick="toggleDropdown(event, '${orderId}')" class="${mainActionBg} text-white px-2 py-1.5 rounded-r-xl border-l border-white/20 text-xs font-bold">
+                                <button onclick="toggleDropdown(event, ${escapeAdminText(JSON.stringify(String(orderId)))})" class="${mainActionBg} text-white px-2 py-1.5 rounded-r-xl border-l border-white/20 text-xs font-bold">
                                     ▼
                                 </button>
                             </div>
 
                             <!-- MALINIS AT WALANG OVERLAPPING NA DROPDOWN MENU -->
-                            <div id="drop-${orderId}" class="hidden absolute right-0 mt-1 w-48 bg-white rounded-xl shadow-xl border border-slate-100 z-50 py-1.5 text-left overflow-hidden">
-                                <button onclick="updateStatus('${orderId}', 'Approved')" class="w-full text-left px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-emerald-50 hover:text-emerald-700 flex items-center gap-2">
+                            <div id="drop-${escapeAdminText(orderId)}" class="hidden absolute right-0 mt-1 w-48 bg-white rounded-xl shadow-xl border border-slate-100 z-50 py-1.5 text-left overflow-hidden">
+                                <button onclick="updateStatus(${escapeAdminText(JSON.stringify(String(orderId)))}, 'Approved')" class="w-full text-left px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-emerald-50 hover:text-emerald-700 flex items-center gap-2">
                                     ✓ Approve Order
                                 </button>
                                 ${isStoreItem ? `
-                                <button onclick="updateStatus('${orderId}', 'Preparing')" class="w-full text-left px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-indigo-50 hover:text-indigo-700 flex items-center gap-2">
-                                    📦 Mark as Preparing
+                                <button onclick="updateStatus(${escapeAdminText(JSON.stringify(String(orderId)))}, 'Preparing')" class="w-full text-left px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-indigo-50 hover:text-indigo-700 flex items-center gap-2">
+                                    📦 Mark as Processing
                                 </button>
                                 ` : `
-                                <button onclick="updateStatus('${orderId}', 'Printing')" class="w-full text-left px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-blue-50 hover:text-blue-700 flex items-center gap-2">
-                                    🖨️ Mark as Printing
+                                <button onclick="updateStatus(${escapeAdminText(JSON.stringify(String(orderId)))}, 'Printing')" class="w-full text-left px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-blue-50 hover:text-blue-700 flex items-center gap-2">
+                                    🖨️ Mark as Processing
                                 </button>
                                 `}
-                                <button onclick="updateStatus('${orderId}', 'Ready for Pickup')" class="w-full text-left px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-orange-50 hover:text-orange-700 flex items-center gap-2">
+                                <button onclick="updateStatus(${escapeAdminText(JSON.stringify(String(orderId)))}, 'Ready for Pickup')" class="w-full text-left px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-orange-50 hover:text-orange-700 flex items-center gap-2">
                                     🚚 Ready for Pickup
                                 </button>
-                                <button onclick="updateStatus('${orderId}', 'Completed')" class="w-full text-left px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-100 flex items-center gap-2">
+                                <button onclick="updateStatus(${escapeAdminText(JSON.stringify(String(orderId)))}, 'Completed')" class="w-full text-left px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-100 flex items-center gap-2">
                                     ✓ Complete Order
                                 </button>
                                 <div class="border-t border-slate-100 my-1"></div>
-                                <button onclick="updateStatus('${orderId}', 'Rejected')" class="w-full text-left px-3 py-1.5 text-xs font-semibold text-rose-600 hover:bg-rose-50 flex items-center gap-2">
+                                <button onclick="updateStatus(${escapeAdminText(JSON.stringify(String(orderId)))}, 'Rejected')" class="w-full text-left px-3 py-1.5 text-xs font-semibold text-rose-600 hover:bg-rose-50 flex items-center gap-2">
                                     ✕ Reject Order
                                 </button>
                             </div>
@@ -149,7 +153,7 @@ function updateStatus(orderId, status) {
     .then(res => res.json())
     .then(data => {
         if (typeof showToast === 'function') {
-            showToast(`Order #${orderId} status updated to ${status}`);
+            showToast(`Order #${escapeAdminText(orderId)} status updated to ${status}`);
         }
         fetchAdminOrders();
     })
